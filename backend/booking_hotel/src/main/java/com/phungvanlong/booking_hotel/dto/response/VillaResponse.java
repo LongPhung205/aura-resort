@@ -104,6 +104,12 @@ public class VillaResponse implements Serializable {
             }
         }
 
+        if (childRooms.isEmpty() && entity.getVillaType() != null) {
+            calculatedAdults = entity.getVillaType().getAdults() != null ? entity.getVillaType().getAdults() : 0;
+            calculatedChildren = entity.getVillaType().getChildren() != null ? entity.getVillaType().getChildren() : 0;
+            calculatedCapacity = entity.getVillaType().getCapacity() != null ? entity.getVillaType().getCapacity() : (calculatedAdults + calculatedChildren);
+        }
+
         List<String> imageUrls = new ArrayList<>();
         if (entity.getImages() != null) {
             imageUrls = entity.getImages().stream()
@@ -127,6 +133,7 @@ public class VillaResponse implements Serializable {
         }
 
         int bedroomCount = entity.getBedroomCount() != null ? entity.getBedroomCount() : childRooms.size();
+        int totalBeds = !childRooms.isEmpty() ? childRooms.size() : (entity.getBedroomCount() != null ? entity.getBedroomCount() : 1);
 
         return VillaResponse.builder()
                 .id(entity.getId())
@@ -143,7 +150,7 @@ public class VillaResponse implements Serializable {
                 .lastCleanedAt(entity.getLastCleanedAt())
                 .currentGuestName(entity.getCurrentGuestName())
                 .bedroomCount(bedroomCount)
-                .totalBeds(childRooms.size())
+                .totalBeds(totalBeds)
                 .totalAdults(calculatedAdults)
                 .totalChildren(calculatedChildren)
                 .totalCapacity(calculatedCapacity > 0 ? calculatedCapacity : (calculatedAdults + calculatedChildren))
