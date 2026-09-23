@@ -222,8 +222,18 @@ public class VillaServiceImpl implements VillaService {
                     .isPrimary(true)
                     .villa(villa)
                     .build());
-        }
-        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            if (request.getImages() != null) {
+                for (String img : request.getImages()) {
+                    if (img != null && !img.trim().isEmpty() && !img.trim().equals(request.getImageUrl().trim())) {
+                        villa.getImages().add(VillaImage.builder()
+                                .imageUrl(img.trim())
+                                .isPrimary(false)
+                                .villa(villa)
+                                .build());
+                    }
+                }
+            }
+        } else if (request.getImages() != null && !request.getImages().isEmpty()) {
             villa.getImages().clear();
             boolean first = true;
             for (String img : request.getImages()) {
