@@ -29,7 +29,11 @@ public class VillaResponse implements Serializable {
     private VillaStatus status;
     private Long villaTypeId;
     private String villaTypeName;
+    private Long zoneId;
     private String zone;
+    private String zoneTag;
+    private String zoneIcon;
+    private String zoneBadgeClass;
     private String ozoneStatus;
     private List<String> amenities;
     private LocalDateTime lastCleanedAt;
@@ -125,7 +129,17 @@ public class VillaResponse implements Serializable {
         }
 
         List<String> parsedAmenities = new ArrayList<>();
-        if (entity.getAmenities() != null && !entity.getAmenities().trim().isEmpty()) {
+        try {
+            if (entity.getVillaServices() != null && !entity.getVillaServices().isEmpty()) {
+                parsedAmenities = entity.getVillaServices().stream()
+                        .filter(vs -> Boolean.TRUE.equals(vs.getIsAvailable()) && vs.getService() != null)
+                        .map(vs -> vs.getService().getName())
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception ignored) {
+            // In case lazy loading outside transaction, fallback to getAmenities()
+        }
+        if (parsedAmenities.isEmpty() && entity.getAmenities() != null && !entity.getAmenities().trim().isEmpty()) {
             parsedAmenities = Arrays.stream(entity.getAmenities().split(","))
                     .map(String::trim)
                     .filter(s -> !s.isEmpty())
@@ -144,7 +158,11 @@ public class VillaResponse implements Serializable {
                 .status(entity.getStatus())
                 .villaTypeId(entity.getVillaType() != null ? entity.getVillaType().getId() : null)
                 .villaTypeName(entity.getVillaType() != null ? entity.getVillaType().getName() : null)
-                .zone(entity.getZone())
+                .zoneId(entity.getZone() != null ? entity.getZone().getId() : null)
+                .zone(entity.getZone() != null ? entity.getZone().getName() : null)
+                .zoneTag(entity.getZone() != null ? entity.getZone().getTag() : null)
+                .zoneIcon(entity.getZone() != null ? entity.getZone().getIcon() : null)
+                .zoneBadgeClass(entity.getZone() != null ? entity.getZone().getBadgeClass() : null)
                 .ozoneStatus(entity.getOzoneStatus())
                 .amenities(parsedAmenities)
                 .lastCleanedAt(entity.getLastCleanedAt())
