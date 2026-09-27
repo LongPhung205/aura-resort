@@ -14,7 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -28,6 +30,10 @@ public class DataInitializer implements CommandLineRunner {
     private final com.phungvanlong.booking_hotel.repository.InventoryItemRepository inventoryItemRepository;
     private final com.phungvanlong.booking_hotel.repository.InventoryTransactionRepository inventoryTransactionRepository;
     private final com.phungvanlong.booking_hotel.repository.VillaAssetRepository villaAssetRepository;
+    private final com.phungvanlong.booking_hotel.repository.VillaSupplyStandardRepository villaSupplyStandardRepository;
+    private final com.phungvanlong.booking_hotel.repository.VillaInventoryRepository villaInventoryRepository;
+    private final com.phungvanlong.booking_hotel.repository.RefillTaskRepository refillTaskRepository;
+    private final com.phungvanlong.booking_hotel.repository.VillaRepository villaRepository;
 
     @Override
     @Transactional
@@ -43,6 +49,7 @@ public class DataInitializer implements CommandLineRunner {
         initUsers();
         initExtraServices();
         initInventoryData();
+        initRefillStandardsAndTasks();
 
         log.info("Database verification completed successfully (Clean state - Users preserved).");
     }
@@ -271,6 +278,110 @@ public class DataInitializer implements CommandLineRunner {
 
         villaAssetRepository.saveAll(Arrays.asList(a1, a2, a3));
         log.info("Initialized 3 villa assets.");
+    }
+
+    private void initRefillStandardsAndTasks() {
+        if (villaSupplyStandardRepository.count() > 0) {
+            log.info("Villa supply standards already exist, skipping seed.");
+            return;
+        }
+
+        List<com.phungvanlong.booking_hotel.entity.Villa> villas = villaRepository.findAll();
+        if (villas.isEmpty()) {
+            log.info("No villas available to seed supply standards.");
+            return;
+        }
+
+        com.phungvanlong.booking_hotel.entity.Villa primaryVilla = villas.get(0);
+        List<com.phungvanlong.booking_hotel.entity.InventoryItem> items = inventoryItemRepository.findAll();
+        if (items.isEmpty()) return;
+
+        List<com.phungvanlong.booking_hotel.entity.VillaSupplyStandard> standards = new ArrayList<>();
+        List<com.phungvanlong.booking_hotel.entity.VillaInventory> inventories = new ArrayList<>();
+
+        for (com.phungvanlong.booking_hotel.entity.InventoryItem it : items) {
+            int stdQty = switch (it.getCode()) {
+                case "AMN-TOOTH-01" -> 4;
+                case "AMN-SHAMP-02" -> 2;
+                case "LIN-TOWL-03" -> 4;
+                case "MINI-WINE-04" -> 2;
+                case "CLN-OZONE-05" -> 1;
+                default -> 2;
+            };
+
+            standards.add(com.phungvanlong.booking_hotel.entity.VillaSupplyStandard.builder()
+                    .villa(primaryVilla)
+                    .item(it)
+                    .standardQuantity(stdQty)
+                    .note("Định mức tiêu chuẩn buồng phòng Resort")
+                    .build());
+
+            // Tồn kho thực tế ban đầu tại Villa
+            inventories.add(com.phungvanlong.booking_hotel.entity.VillaInventory.builder()
+                    .villa(primaryVilla)
+                    .item(it)
+                    .currentQuantity(stdQty)
+                    .lastCheckedAt(java.time.LocalDateTime.now())
+                    .build());
+        }
+
+        villaSupplyStandardRepository.saveAll(standards);
+        villaInventoryRepository.saveAll(inventories);
+        log.info("Initialized {} supply standards and inventories for villa {}.", standards.size(), primaryVilla.getVillaNumber());
+
+        // Khởi tạo 1 phiếu RefillTask PENDING mẫu sau checkout
+        if (refillTaskRepository.count() == 0 && standards.size() >= 3) {
+            com.phungvanlong.booking_hotel.entity.RefillTask task = com.phungvanlong.booking_hotel.entity.RefillTask.builder()
+                    .taskCode("RF-20260928-0001")
+                    .villa(primaryVilla)
+                    .status(com.phungvanlong.booking_hotel.entity.RefillTaskStatus.PENDING)
+                    .creator("Nguyễn Thị Hoa (Housekeeping)")
+                    .assignedStaff("Trần Văn Kho (Thủ kho)")
+                    .note("Khách đoàn VIP checkout lúc 11:30. Cần bổ sung vật tư đón khách mới 14:00")
+                    .build();
+
+            List<com.phungvanlong.booking_hotel.entity.RefillTaskItem> taskItems = new ArrayList<>();
+
+            // 1. Nước / Bàn chải: định mức 4, thực tế còn 2 => cần refill 2
+            var it1 = items.get(0);
+            taskItems.add(com.phungvanlong.booking_hotel.entity.RefillTaskItem.builder()
+                    .refillTask(task)
+                    .item(it1)
+                    .standardQuantity(4)
+                    .actualQuantity(2)
+                    .refillQuantity(2)
+                    .consumedQuantity(2)
+                    .isFulfilled(false)
+                    .build());
+
+            // 2. Dầu gội: định mức 2, thực tế còn 1 => cần refill 1
+            var it2 = items.get(1);
+            taskItems.add(com.phungvanlong.booking_hotel.entity.RefillTaskItem.builder()
+                    .refillTask(task)
+                    .item(it2)
+                    .standardQuantity(2)
+                    .actualQuantity(1)
+                    .refillQuantity(1)
+                    .consumedQuantity(1)
+                    .isFulfilled(false)
+                    .build());
+
+            // 3. Khăn tắm: định mức 4, thực tế còn 3 => cần refill 1
+            var it3 = items.get(2);
+            taskItems.add(com.phungvanlong.booking_hotel.entity.RefillTaskItem.builder()
+                    .refillTask(task)
+                    .item(it3)
+                    .standardQuantity(4)
+                    .actualQuantity(3)
+                    .refillQuantity(1)
+                    .consumedQuantity(1)
+                    .isFulfilled(false)
+                    .build());
+
+            task.setItems(taskItems);
+            refillTaskRepository.save(task);
+            log.info("Initialized 1 sample PENDING RefillTask for demonstration.");
+        }
     }
 }
 
