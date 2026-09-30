@@ -143,24 +143,31 @@ public class PaymentServiceImpl implements PaymentService {
 
         Long bookingId = Long.parseLong(orderId.split("_")[0]);
         Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null || booking.getStatus() != BookingStatus.PENDING) {
-            return; // Tránh xử lý lại
+        if (booking == null) {
+            return; // Tránh xử lý lỗi nếu không tìm thấy booking
         }
 
         if ("0".equals(resultCode)) {
-            // Thanh toán thành công
+            // IDEMPOTENCY: nếu đã xử lý thành công rồi thì bỏ qua
+            if (paymentRepository.existsByBookingIdAndStatus(bookingId, PaymentStatus.SUCCESS)) {
+                log.info("Booking {} đã thanh toán trước đó, bỏ qua callback lặp.", bookingId);
+                return;
+            }
+
             booking.setStatus(BookingStatus.CONFIRMED);
             bookingRepository.save(booking);
 
-            Payment payment = Payment.builder()
-                    .booking(booking)
-                    .amount(booking.getTotalAmount())
-                    .paymentMethod("MOMO") // Assuming MoMo
-                    .status(PaymentStatus.SUCCESS)
-                    .transactionId(transId)
-                    .paymentTime(LocalDateTime.now())
-                    .build();
+            // Cập nhật hoặc tạo Payment (upsert pattern)
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(
+                Payment.builder().booking(booking).build()
+            );
+            payment.setAmount(booking.getTotalAmount());
+            payment.setPaymentMethod("MOMO");
+            payment.setStatus(PaymentStatus.SUCCESS);
+            payment.setTransactionId(transId);
+            payment.setPaymentTime(LocalDateTime.now());
             paymentRepository.save(payment);
+
             log.info("Thanh toán MoMo thành công cho Booking ID: {}", bookingId);
         } else {
             // Thanh toán thất bại hoặc user hủy -> giữ PENDING
