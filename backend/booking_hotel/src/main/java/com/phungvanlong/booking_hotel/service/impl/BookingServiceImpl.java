@@ -369,12 +369,15 @@ public class BookingServiceImpl implements BookingService {
                 int nights = (int) ChronoUnit.DAYS.between(b.getCheckInDate(), b.getCheckOutDate());
                 if (nights <= 0) nights = 1;
 
+                String gName = b.getGuestName() != null && !b.getGuestName().isBlank() ? b.getGuestName() : (b.getUser() != null ? b.getUser().getFullName() : "Khách hàng Aura");
+                String avatar = "https://ui-avatars.com/api/?name=" + gName.replaceAll(" ", "+") + "&background=random";
+
                 items.add(AdminBookingItemResponse.builder()
                         .id(b.getId())
                         .bookingCode(b.getBookingCode())
                         .bookingDateFormatted(b.getCreatedAt() != null ? b.getCreatedAt().format(dtf) : "")
-                        .guestName(b.getGuestName() != null && !b.getGuestName().isBlank() ? b.getGuestName() : (b.getUser() != null ? b.getUser().getFullName() : "Khách hàng Aura"))
-                        .avatarUrl(null)
+                        .guestName(gName)
+                        .avatarUrl(avatar)
                         .guestCountry("Việt Nam")
                         .guestPhone(b.getGuestPhone() != null && !b.getGuestPhone().isBlank() ? b.getGuestPhone() : (b.getUser() != null ? b.getUser().getPhone() : ""))
                         .guestTier("Thành viên")
