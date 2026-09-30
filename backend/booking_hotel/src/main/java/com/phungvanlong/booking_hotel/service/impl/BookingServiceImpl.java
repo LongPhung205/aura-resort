@@ -65,6 +65,7 @@ public class BookingServiceImpl implements BookingService {
 
         BigDecimal basePrice;
         List<Villa> selectedVillas = new ArrayList<>();
+        List<Room> selectedRooms = new ArrayList<>();
 
         if (villaType != null) {
             basePrice = villaType.getBasePrice();
@@ -85,6 +86,7 @@ public class BookingServiceImpl implements BookingService {
             if (availableRooms.size() < quantity) {
                 throw new BusinessException("Không đủ phòng/villa trống trong khoảng thời gian này");
             }
+            selectedRooms = availableRooms.subList(0, quantity);
         }
 
         BigDecimal totalAmount = basePrice
@@ -156,6 +158,13 @@ public class BookingServiceImpl implements BookingService {
                     .pricePerNight(basePrice)
                     .build());
         }
+        for (Room r : selectedRooms) {
+            details.add(BookingDetail.builder()
+                    .booking(savedBooking)
+                    .room(r)
+                    .pricePerNight(basePrice)
+                    .build());
+        }
 
         if (!details.isEmpty()) {
             bookingDetailRepository.saveAll(details);
@@ -184,7 +193,8 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy đơn đặt phòng"));
         
         if (!booking.getUser().getEmail().equals(userEmail)) {
-            User user = userRepository.findByEmail(userEmail).get();
+            User user = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy user: " + userEmail));
             if (user.getRole() != Role.ROLE_ADMIN && user.getRole() != Role.ROLE_STAFF) {
                 throw new BusinessException("Không có quyền truy cập đơn này");
             }
@@ -209,7 +219,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy đơn đặt phòng"));
 
-        User user = userRepository.findByEmail(userEmail).get();
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy user: " + userEmail));
         if (!booking.getUser().getId().equals(user.getId()) && 
             user.getRole() != Role.ROLE_ADMIN && 
             user.getRole() != Role.ROLE_STAFF) {
@@ -273,6 +284,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.CHECKED_IN);
+        booking.setCheckInTime(LocalDateTime.now());
         if (booking.getBookingDetails() != null) {
             for (BookingDetail bd : booking.getBookingDetails()) {
                 if (bd.getVilla() != null) {
@@ -296,6 +308,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.CHECKED_OUT);
+        booking.setCheckOutTime(LocalDateTime.now());
         if (booking.getBookingDetails() != null) {
             for (BookingDetail bd : booking.getBookingDetails()) {
                 if (bd.getVilla() != null) {
