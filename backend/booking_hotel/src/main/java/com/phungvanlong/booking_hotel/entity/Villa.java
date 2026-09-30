@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "villas")
+@Table(name = "villas", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"villa_number", "zone_id"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +23,7 @@ public class Villa extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "villa_number", nullable = false, unique = true, length = 30)
+    @Column(name = "villa_number", nullable = false, length = 30)
     private String villaNumber; // Ví dụ: "Villa #801", "Pine-01", "V001"
 
     private Integer floor;
@@ -32,8 +34,9 @@ public class Villa extends BaseEntity {
     @Column(name = "base_price", precision = 12, scale = 2)
     private BigDecimal basePrice;
 
-    @Column(length = 50)
-    private String zone; // Ví dụ: "Khu A - Biển Đông", "Khu B - Đầm Hoàng Hôn"
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "zone_id")
+    private Zone zone;
 
     @Column(name = "ozone_status", length = 30)
     @Builder.Default
@@ -69,4 +72,9 @@ public class Villa extends BaseEntity {
     @OneToMany(mappedBy = "villa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<VillaImage> images = new ArrayList<>();
+
+    // Danh sách dịch vụ được cung cấp tại Villa này
+    @OneToMany(mappedBy = "villa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<VillaService> villaServices = new ArrayList<>();
 }

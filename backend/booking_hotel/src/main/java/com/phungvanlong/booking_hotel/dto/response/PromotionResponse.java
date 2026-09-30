@@ -22,6 +22,8 @@ public class PromotionResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private Integer quantity;
+    private String name;
+    private String category;
 
     public static PromotionResponse fromEntity(Promotion entity) {
         return PromotionResponse.builder()
@@ -32,6 +34,8 @@ public class PromotionResponse {
                 .startDate(entity.getStartDate())
                 .endDate(entity.getEndDate())
                 .quantity(entity.getQuantity())
+                .name(entity.getName())
+                .category(entity.getCategory())
                 .build();
     }
 }

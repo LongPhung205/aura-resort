@@ -1,4 +1,4 @@
-package com.phungvanlong.booking_hotel.dto.user;
+package com.phungvanlong.booking_hotel.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

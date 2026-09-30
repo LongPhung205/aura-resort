@@ -1,4 +1,4 @@
-package com.phungvanlong.booking_hotel.dto.user;
+package com.phungvanlong.booking_hotel.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

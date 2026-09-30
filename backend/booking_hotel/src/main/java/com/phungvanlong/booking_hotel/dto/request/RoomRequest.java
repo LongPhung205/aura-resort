@@ -22,6 +22,7 @@ public class RoomRequest {
     @NotNull(message = "ID Hạng phòng không được để trống")
     private Long roomTypeId;
 
+    private Long zoneId;
     private String zone;
     private com.phungvanlong.booking_hotel.entity.RoomStatus status;
     private String ozoneStatus;

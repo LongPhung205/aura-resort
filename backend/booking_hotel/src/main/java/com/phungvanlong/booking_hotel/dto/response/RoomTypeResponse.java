@@ -34,6 +34,15 @@ public class RoomTypeResponse {
         int ch = entity.getChildren() != null ? entity.getChildren() : 0;
         int cap = entity.getCapacity() != null ? entity.getCapacity() : (ad + ch);
 
+        List<String> imgUrls = null;
+        try {
+            if (entity.getImages() != null && !entity.getImages().isEmpty()) {
+                imgUrls = entity.getImages().stream().map(RoomImage::getImageUrl).collect(Collectors.toList());
+            }
+        } catch (Exception ignored) {
+            // Safe fallback if images collection is uninitialized outside transaction
+        }
+
         return RoomTypeResponse.builder()
                 .id(entity.getId())
                 .name(entity.getName())
@@ -44,8 +53,7 @@ public class RoomTypeResponse {
                 .children(ch)
                 .bedType(entity.getBedType())
                 .imageUrl(entity.getImageUrl())
-                .images(entity.getImages() != null ? 
-                        entity.getImages().stream().map(RoomImage::getImageUrl).collect(Collectors.toList()) : null)
+                .images(imgUrls)
                 .build();
     }
 }

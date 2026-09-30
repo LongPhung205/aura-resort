@@ -133,9 +133,8 @@ public class AdminInventoryServiceImpl implements AdminInventoryService {
         if (request.getUnit() != null) {
             item.setUnit(request.getUnit().trim());
         }
-        if (request.getInStock() != null) {
-            item.setInStock(request.getInStock());
-        }
+        // Số lượng tồn kho không được sửa trực tiếp khi cập nhật thông tin vật tư.
+        // Tồn kho chỉ được tăng/giảm thông qua phiếu Nhập / Xuất kho (recordTransaction).
         if (request.getMinThreshold() != null) {
             item.setMinThreshold(request.getMinThreshold());
         }

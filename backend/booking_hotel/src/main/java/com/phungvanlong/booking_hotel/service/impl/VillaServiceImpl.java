@@ -12,10 +12,12 @@ import com.phungvanlong.booking_hotel.entity.VillaImage;
 import com.phungvanlong.booking_hotel.entity.VillaStatus;
 import com.phungvanlong.booking_hotel.entity.VillaType;
 import com.phungvanlong.booking_hotel.exception.BusinessException;
+import com.phungvanlong.booking_hotel.entity.Zone;
 import com.phungvanlong.booking_hotel.repository.RoomRepository;
 import com.phungvanlong.booking_hotel.repository.RoomTypeRepository;
 import com.phungvanlong.booking_hotel.repository.VillaRepository;
 import com.phungvanlong.booking_hotel.repository.VillaTypeRepository;
+import com.phungvanlong.booking_hotel.repository.ZoneRepository;
 import com.phungvanlong.booking_hotel.service.VillaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,12 +43,15 @@ public class VillaServiceImpl implements VillaService {
     private final VillaTypeRepository villaTypeRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
+    private final ZoneRepository zoneRepository;
 
     @Override
     @Transactional
     public VillaResponse createVilla(VillaRequest request) {
-        if (villaRepository.findByVillaNumber(request.getVillaNumber()).isPresent()) {
-            throw new BusinessException("Mã căn Villa đã tồn tại: " + request.getVillaNumber());
+        Zone zone = resolveZone(request.getZoneId(), request.getZone());
+        
+        if (villaRepository.findByVillaNumberAndZoneId(request.getVillaNumber(), zone.getId()).isPresent()) {
+            throw new BusinessException("Mã căn Villa đã tồn tại trong phân khu này: " + request.getVillaNumber());
         }
 
         Integer bedroomCount = request.getBedroomCount();
@@ -56,31 +61,25 @@ public class VillaServiceImpl implements VillaService {
             bedroomCount = request.getChildRooms().size();
         }
 
-        VillaType villaType;
-        if (bedroomCount != null && bedroomCount > 0) {
-            String categoryName = "Villa " + bedroomCount + " Phòng Ngủ";
-            final int count = bedroomCount;
-            villaType = villaTypeRepository.findByName(categoryName)
+        VillaType villaType = null;
+        Long typeId = request.getVillaTypeId() != null ? request.getVillaTypeId() : request.getRoomTypeId();
+        if (typeId != null) {
+            villaType = villaTypeRepository.findById(typeId).orElse(null);
+        }
+        if (villaType == null) {
+            villaType = villaTypeRepository.findAll().stream().findFirst()
                     .orElseGet(() -> {
-                        VillaType autoType = VillaType.builder()
-                                .name(categoryName)
-                                .description("Biệt thự nghỉ dưỡng cao cấp " + count + " phòng ngủ")
+                        VillaType defaultType = VillaType.builder()
+                                .name("Villa Nghỉ Dưỡng")
+                                .description("Biệt thự nghỉ dưỡng cao cấp")
                                 .basePrice(request.getBasePrice() != null ? request.getBasePrice() : BigDecimal.valueOf(15000000))
-                                .capacity(count * 2)
-                                .adults(count * 2)
-                                .children(1)
-                                .bedType(count + " Phòng Ngủ Riêng Biệt")
+                                .capacity(4)
+                                .adults(2)
+                                .children(2)
+                                .bedType("Tiêu Chuẩn")
                                 .build();
-                        return villaTypeRepository.save(autoType);
+                        return villaTypeRepository.save(defaultType);
                     });
-        } else {
-            Long typeId = request.getVillaTypeId() != null ? request.getVillaTypeId() : request.getRoomTypeId();
-            if (typeId != null) {
-                villaType = villaTypeRepository.findById(typeId)
-                        .orElseThrow(() -> new BusinessException("Không tìm thấy hạng Villa ID: " + typeId));
-            } else {
-                throw new BusinessException("Vui lòng chọn hạng Villa hoặc chỉ định số lượng phòng ngủ");
-            }
         }
 
         String amenitiesStr = null;
@@ -98,7 +97,7 @@ public class VillaServiceImpl implements VillaService {
                 .floor(request.getFloor())
                 .structureType(request.getStructureType())
                 .basePrice(basePrice)
-                .zone(request.getZone() != null ? request.getZone() : "Khu A - Biển Đông")
+                .zone(zone)
                 .villaType(villaType)
                 .status(request.getStatus() != null ? request.getStatus() : VillaStatus.AVAILABLE)
                 .ozoneStatus(request.getOzoneStatus() != null ? request.getOzoneStatus() : "STERILIZED")
@@ -138,9 +137,20 @@ public class VillaServiceImpl implements VillaService {
         Villa villa = villaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy Villa ID: " + id));
 
-        if (request.getVillaNumber() != null && !villa.getVillaNumber().equalsIgnoreCase(request.getVillaNumber()) &&
-                villaRepository.findByVillaNumber(request.getVillaNumber()).isPresent()) {
-            throw new BusinessException("Mã căn Villa mới đã tồn tại: " + request.getVillaNumber());
+        Zone zone = villa.getZone();
+        if (request.getZoneId() != null || (request.getZone() != null && !request.getZone().isEmpty())) {
+            zone = resolveZone(request.getZoneId(), request.getZone());
+        }
+
+        if (request.getVillaNumber() != null) {
+            boolean numberChanged = !villa.getVillaNumber().equalsIgnoreCase(request.getVillaNumber());
+            boolean zoneChanged = !villa.getZone().getId().equals(zone.getId());
+            
+            if (numberChanged || zoneChanged) {
+                if (villaRepository.findByVillaNumberAndZoneId(request.getVillaNumber(), zone.getId()).isPresent()) {
+                    throw new BusinessException("Mã căn Villa mới đã tồn tại trong phân khu này: " + request.getVillaNumber());
+                }
+            }
         }
 
         Integer bedroomCount = request.getBedroomCount();
@@ -152,34 +162,16 @@ public class VillaServiceImpl implements VillaService {
 
         if (bedroomCount != null && bedroomCount > 0) {
             villa.setBedroomCount(bedroomCount);
-            String categoryName = "Villa " + bedroomCount + " Phòng Ngủ";
-            final int count = bedroomCount;
-            VillaType villaType = villaTypeRepository.findByName(categoryName)
-                    .orElseGet(() -> {
-                        VillaType autoType = VillaType.builder()
-                                .name(categoryName)
-                                .description("Biệt thự nghỉ dưỡng cao cấp " + count + " phòng ngủ")
-                                .basePrice(request.getBasePrice() != null ? request.getBasePrice() : (villa.getBasePrice() != null ? villa.getBasePrice() : BigDecimal.valueOf(15000000)))
-                                .capacity(count * 2)
-                                .adults(count * 2)
-                                .children(1)
-                                .bedType(count + " Phòng Ngủ Riêng Biệt")
-                                .build();
-                        return villaTypeRepository.save(autoType);
-                    });
-            villa.setVillaType(villaType);
-        } else {
-            Long typeId = request.getVillaTypeId() != null ? request.getVillaTypeId() : request.getRoomTypeId();
-            if (typeId != null) {
-                VillaType villaType = villaTypeRepository.findById(typeId)
-                        .orElseThrow(() -> new BusinessException("Không tìm thấy hạng Villa ID: " + typeId));
-                villa.setVillaType(villaType);
-            }
+        }
+        Long typeId = request.getVillaTypeId() != null ? request.getVillaTypeId() : request.getRoomTypeId();
+        if (typeId != null) {
+            villaTypeRepository.findById(typeId).ifPresent(villa::setVillaType);
         }
 
         if (request.getVillaNumber() != null) {
             villa.setVillaNumber(request.getVillaNumber());
         }
+        villa.setZone(zone);
         if (request.getFloor() != null) {
             villa.setFloor(request.getFloor());
         }
@@ -189,9 +181,7 @@ public class VillaServiceImpl implements VillaService {
         if (request.getBasePrice() != null) {
             villa.setBasePrice(request.getBasePrice());
         }
-        if (request.getZone() != null) {
-            villa.setZone(request.getZone());
-        }
+
         if (request.getStatus() != null) {
             villa.setStatus(request.getStatus());
         }
@@ -386,5 +376,23 @@ public class VillaServiceImpl implements VillaService {
         Villa villa = villaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy Villa ID: " + id));
         villaRepository.delete(villa);
+    }
+
+    private Zone resolveZone(Long zoneId, String zoneName) {
+        if (zoneId != null) {
+            return zoneRepository.findById(zoneId).orElse(null);
+        }
+        if (zoneName != null && !zoneName.trim().isEmpty()) {
+            String name = zoneName.trim();
+            return zoneRepository.findByNameIgnoreCase(name)
+                    .orElseGet(() -> zoneRepository.save(Zone.builder()
+                            .name(name)
+                            .matchKey(name.toLowerCase())
+                            .tag(name.toUpperCase())
+                            .icon("holiday_village")
+                            .badgeClass("bg-sky-50 text-sky-700 border-sky-200")
+                            .build()));
+        }
+        return null;
     }
 }

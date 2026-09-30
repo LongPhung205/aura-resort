@@ -9,6 +9,7 @@ import com.phungvanlong.booking_hotel.entity.RoomType;
 import com.phungvanlong.booking_hotel.entity.Villa;
 import com.phungvanlong.booking_hotel.entity.VillaStatus;
 import com.phungvanlong.booking_hotel.entity.VillaType;
+import com.phungvanlong.booking_hotel.entity.Zone;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -63,13 +64,21 @@ public class VillaDtoTest {
                 .name("Villa 3 Phòng Ngủ")
                 .build();
 
+        Zone zone = Zone.builder()
+                .id(1L)
+                .name("Ngọc Trai")
+                .tag("NGỌC TRAI")
+                .icon("holiday_village")
+                .badgeClass("bg-amber-50 text-amber-700 border-amber-200")
+                .build();
+
         Villa villa = Villa.builder()
                 .id(100L)
                 .villaNumber("Villa #101")
                 .floor(2)
                 .structureType("2 Tầng")
                 .basePrice(BigDecimal.valueOf(25000000))
-                .zone("Ngọc Trai")
+                .zone(zone)
                 .status(VillaStatus.AVAILABLE)
                 .ozoneStatus("STERILIZED")
                 .amenities("Khử trùng Ozon định kỳ, Quản gia Lead Butler 24/7")

@@ -23,4 +23,17 @@ public class ExtraServiceRequest {
     @NotNull(message = "Giá dịch vụ không được để trống")
     @Min(value = 0, message = "Giá dịch vụ phải lớn hơn hoặc bằng 0")
     private BigDecimal price;
+
+    /** DINING, TRANSPORT, SPA, ENTERTAINMENT, CLEANING, OTHER */
+    private String type;
+
+    /** người, gói, ngày, lần, chuyến */
+    private String unit;
+
+    /** Material Symbols icon name */
+    private String icon;
+
+    private String imageUrl;
+
+    private Boolean isActive;
 }

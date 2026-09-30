@@ -1,4 +1,4 @@
-package com.phungvanlong.booking_hotel.dto.user;
+package com.phungvanlong.booking_hotel.dto.response;
 
 import com.phungvanlong.booking_hotel.entity.AuthProvider;
 import com.phungvanlong.booking_hotel.entity.Role;

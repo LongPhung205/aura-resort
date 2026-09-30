@@ -38,4 +38,8 @@ public class PromotionRequest {
     private LocalDate endDate;
 
     private Integer quantity;
+
+    private String name;
+
+    private String category;
 }

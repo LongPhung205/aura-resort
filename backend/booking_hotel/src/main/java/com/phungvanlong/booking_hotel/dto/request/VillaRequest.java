@@ -24,6 +24,7 @@ public class VillaRequest {
     private BigDecimal basePrice;
     private Long villaTypeId;
 
+    private Long zoneId;
     private String zone;
     private VillaStatus status;
     private String ozoneStatus;

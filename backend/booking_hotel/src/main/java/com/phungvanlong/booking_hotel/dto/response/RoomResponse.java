@@ -18,12 +18,16 @@ public class RoomResponse {
     private RoomStatus status;
     private Long roomTypeId;
     private String roomTypeName;
+    private Long zoneId;
     private String zone;
     private String ozoneStatus;
     private java.time.LocalDateTime lastCleanedAt;
     private String currentGuestName;
 
     public static RoomResponse fromEntity(Room entity) {
+        Long zId = entity.getZone() != null ? entity.getZone().getId() : (entity.getVilla() != null && entity.getVilla().getZone() != null ? entity.getVilla().getZone().getId() : null);
+        String zName = entity.getZone() != null ? entity.getZone().getName() : (entity.getVilla() != null && entity.getVilla().getZone() != null ? entity.getVilla().getZone().getName() : null);
+
         return RoomResponse.builder()
                 .id(entity.getId())
                 .roomNumber(entity.getRoomNumber())
@@ -31,7 +35,8 @@ public class RoomResponse {
                 .status(entity.getStatus())
                 .roomTypeId(entity.getRoomType() != null ? entity.getRoomType().getId() : null)
                 .roomTypeName(entity.getRoomType() != null ? entity.getRoomType().getName() : null)
-                .zone(entity.getZone())
+                .zoneId(zId)
+                .zone(zName)
                 .ozoneStatus(entity.getOzoneStatus())
                 .lastCleanedAt(entity.getLastCleanedAt())
                 .currentGuestName(entity.getCurrentGuestName())

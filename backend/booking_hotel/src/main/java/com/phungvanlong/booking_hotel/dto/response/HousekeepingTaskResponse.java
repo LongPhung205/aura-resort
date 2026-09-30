@@ -53,12 +53,12 @@ public class HousekeepingTaskResponse {
             vId = task.getVilla().getId();
             vNum = task.getVilla().getVillaNumber();
             vType = task.getVilla().getVillaType() != null ? task.getVilla().getVillaType().getName() : null;
-            vZone = task.getVilla().getZone();
+            vZone = task.getVilla().getZone() != null ? task.getVilla().getZone().getName() : null;
         } else if (task.getRoom() != null && task.getRoom().getVilla() != null) {
             vId = task.getRoom().getVilla().getId();
             vNum = task.getRoom().getVilla().getVillaNumber();
             vType = task.getRoom().getVilla().getVillaType() != null ? task.getRoom().getVilla().getVillaType().getName() : null;
-            vZone = task.getRoom().getVilla().getZone();
+            vZone = task.getRoom().getVilla().getZone() != null ? task.getRoom().getVilla().getZone().getName() : null;
         }
 
         Long rId = task.getRoom() != null ? task.getRoom().getId() : null;

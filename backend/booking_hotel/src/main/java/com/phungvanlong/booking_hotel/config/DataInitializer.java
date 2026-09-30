@@ -34,6 +34,8 @@ public class DataInitializer implements CommandLineRunner {
     private final com.phungvanlong.booking_hotel.repository.VillaInventoryRepository villaInventoryRepository;
     private final com.phungvanlong.booking_hotel.repository.RefillTaskRepository refillTaskRepository;
     private final com.phungvanlong.booking_hotel.repository.VillaRepository villaRepository;
+    private final com.phungvanlong.booking_hotel.repository.HomeBannerRepository homeBannerRepository;
+    private final com.phungvanlong.booking_hotel.repository.ZoneRepository zoneRepository;
 
     @Override
     @Transactional
@@ -50,6 +52,7 @@ public class DataInitializer implements CommandLineRunner {
         initExtraServices();
         initInventoryData();
         initRefillStandardsAndTasks();
+        initBannersAndZones();
 
         log.info("Database verification completed successfully (Clean state - Users preserved).");
     }
@@ -381,6 +384,110 @@ public class DataInitializer implements CommandLineRunner {
             task.setItems(taskItems);
             refillTaskRepository.save(task);
             log.info("Initialized 1 sample PENDING RefillTask for demonstration.");
+        }
+    }
+
+    private void initBannersAndZones() {
+        // 1. Seed Banners if empty
+        if (homeBannerRepository.count() == 0) {
+            log.info("Seeding initial home banners...");
+            var b1 = com.phungvanlong.booking_hotel.entity.HomeBanner.builder()
+                    .title("Nâng Tầm Kỳ Nghỉ Đỉnh Cao")
+                    .subtitle("Hệ Thống 12 Điểm Đến Thượng Lưu AURA")
+                    .description("Khám phá không gian biệt thự biển biệt lập, hồ bơi riêng và dịch vụ quản gia cao cấp mang đến trải nghiệm nghỉ dưỡng hoàn mỹ.")
+                    .imageUrl("/assets/images/rooms/grand-oceanfront.jpg")
+                    .mobileImageUrl("/assets/images/rooms/grand-oceanfront.jpg")
+                    .ctaText("Khám Phá Biệt Thự")
+                    .ctaLink("/villas")
+                    .displayOrder(1)
+                    .isActive(true)
+                    .build();
+
+            var b2 = com.phungvanlong.booking_hotel.entity.HomeBanner.builder()
+                    .title("Trải Nghiệm Biệt Thự Biển Sầm Sơn")
+                    .subtitle("FLC Sầm Sơn Luxury Resort & Villas")
+                    .description("Không gian sang trọng, đón trọn làn gió biển và ánh bình minh rạng rỡ ngay tại các phân khu Ngọc Trai, Sao Biển & San Hô.")
+                    .imageUrl("/assets/images/rooms/villa-beachfront.jpg")
+                    .mobileImageUrl("/assets/images/rooms/villa-beachfront.jpg")
+                    .ctaText("Xem Phân Khu Ngọc Trai")
+                    .ctaLink("/villas/zone/villa-ngoc-trai")
+                    .displayOrder(2)
+                    .isActive(true)
+                    .build();
+
+            var b3 = com.phungvanlong.booking_hotel.entity.HomeBanner.builder()
+                    .title("Aura Elite Club VIP")
+                    .subtitle("Đặc Quyền Nghỉ Dưỡng Thượng Khách")
+                    .description("Đặc quyền ưu đãi độc quyền lên tới 25% cùng các tiện ích golf, spa và ẩm thực 5 sao dành riêng cho hội viên cao cấp.")
+                    .imageUrl("/assets/images/rooms/royal-penthouse.jpg")
+                    .mobileImageUrl("/assets/images/rooms/royal-penthouse.jpg")
+                    .ctaText("Nhận Ưu Đãi Ngay")
+                    .ctaLink("/promotions")
+                    .displayOrder(3)
+                    .isActive(true)
+                    .build();
+
+            homeBannerRepository.saveAll(List.of(b1, b2, b3));
+            log.info("Seeded 3 home banners successfully.");
+        }
+
+        // 2. Ensure Zones have slugs, banners, highlights and displayOrder
+        log.info("Checking & enhancing zone categories...");
+        ensureZone("Ngọc Trai", "villa-ngoc-trai", "NGỌC TRAI", "diamond", "bg-emerald-50 text-emerald-700 border-emerald-200",
+                "/assets/images/rooms/villa-beachfront.jpg",
+                "Gần bãi biển riêng Sầm Sơn,Hồ bơi vô cực nước ngọt,Quản gia và đầu bếp riêng 24/7,Sân vườn tổ chức tiệc BBQ ngoài trời", 1);
+
+        ensureZone("Sao Biển", "villa-sao-bien", "SAO BIỂN", "star", "bg-amber-50 text-amber-700 border-amber-200",
+                "/assets/images/rooms/grand-oceanfront.jpg",
+                "Tầm nhìn panorama hướng biển tuyệt mỹ,Nội thất gỗ óc chó cao cấp phong cách Modern Luxury,Bể sục Jacuzzi thư giãn trên ban công,Liền kề trung tâm ẩm thực & sân golf", 2);
+
+        ensureZone("San Hô", "villa-san-ho", "SAN HÔ", "waves", "bg-sky-50 text-sky-700 border-sky-200",
+                "/assets/images/rooms/royal-penthouse.jpg",
+                "Không gian biệt lập an tĩnh bên rặng dừa xanh,Khu vui chơi trẻ em riêng trong khuôn viên,Phòng chiếu phim & karaoke gia đình công nghệ cao,Sức chứa lớn lý tưởng cho đại gia đình và đoàn teambuilding", 3);
+    }
+
+    private void ensureZone(String name, String slug, String tag, String icon, String badgeClass,
+                            String bannerUrl, String highlights, int displayOrder) {
+        var opt = zoneRepository.findByNameIgnoreCase(name);
+        if (opt.isPresent()) {
+            var zone = opt.get();
+            boolean changed = false;
+            if (zone.getSlug() == null || zone.getSlug().isBlank()) {
+                zone.setSlug(slug);
+                changed = true;
+            }
+            if (zone.getBannerUrl() == null || zone.getBannerUrl().isBlank()) {
+                zone.setBannerUrl(bannerUrl);
+                changed = true;
+            }
+            if (zone.getHighlights() == null || zone.getHighlights().isBlank()) {
+                zone.setHighlights(highlights);
+                changed = true;
+            }
+            if (zone.getDisplayOrder() == null) {
+                zone.setDisplayOrder(displayOrder);
+                changed = true;
+            }
+            if (changed) {
+                zoneRepository.save(zone);
+                log.info("Enhanced zone: {}", name);
+            }
+        } else {
+            var newZone = com.phungvanlong.booking_hotel.entity.Zone.builder()
+                    .name(name)
+                    .matchKey(name.toLowerCase())
+                    .slug(slug)
+                    .tag(tag)
+                    .icon(icon)
+                    .badgeClass(badgeClass)
+                    .bannerUrl(bannerUrl)
+                    .highlights(highlights)
+                    .displayOrder(displayOrder)
+                    .isActive(true)
+                    .description("Phân khu " + name + " tại FLC Sầm Sơn Luxury Resort & Villas")
+                    .build();
+            zoneRepository.save(newZone);
+            log.info("Created new zone: {}", name);
         }
     }
 }

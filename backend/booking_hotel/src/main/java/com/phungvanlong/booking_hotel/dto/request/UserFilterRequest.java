@@ -1,4 +1,4 @@
-package com.phungvanlong.booking_hotel.dto.user;
+package com.phungvanlong.booking_hotel.dto.request;
 
 import com.phungvanlong.booking_hotel.entity.Role;
 import lombok.Data;
