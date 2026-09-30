@@ -36,6 +36,12 @@ public class DataInitializer implements CommandLineRunner {
     private final com.phungvanlong.booking_hotel.repository.VillaRepository villaRepository;
     private final com.phungvanlong.booking_hotel.repository.HomeBannerRepository homeBannerRepository;
     private final com.phungvanlong.booking_hotel.repository.ZoneRepository zoneRepository;
+    private final com.phungvanlong.booking_hotel.repository.HousekeepingTaskRepository housekeepingTaskRepository;
+    private final com.phungvanlong.booking_hotel.repository.RoomConsumptionRecordRepository roomConsumptionRecordRepository;
+    private final com.phungvanlong.booking_hotel.repository.LostAndFoundItemRepository lostAndFoundItemRepository;
+    private final com.phungvanlong.booking_hotel.repository.MaintenanceTicketRepository maintenanceTicketRepository;
+    private final com.phungvanlong.booking_hotel.repository.RoomRepository roomRepository;
+    private final com.phungvanlong.booking_hotel.repository.BookingRepository bookingRepository;
 
     @Override
     @Transactional
@@ -53,6 +59,7 @@ public class DataInitializer implements CommandLineRunner {
         initInventoryData();
         initRefillStandardsAndTasks();
         initBannersAndZones();
+        initHousekeepingData();
 
         log.info("Database verification completed successfully (Clean state - Users preserved).");
     }
@@ -489,6 +496,148 @@ public class DataInitializer implements CommandLineRunner {
             zoneRepository.save(newZone);
             log.info("Created new zone: {}", name);
         }
+    }
+
+    private void initHousekeepingData() {
+        if (housekeepingTaskRepository.count() > 0) {
+            log.info("Housekeeping tasks already exist, skipping seed.");
+            return;
+        }
+
+        var rooms = roomRepository.findAll();
+        if (rooms.isEmpty()) {
+            log.warn("No rooms found, skipping housekeeping seed.");
+            return;
+        }
+
+        User housekeeper = userRepository.findByEmail("hoa.housekeeping@auraholdings.vn").orElse(null);
+        User supervisor = userRepository.findByEmail("admin@auraholdings.vn").orElse(null);
+        var bookings = bookingRepository.findAll();
+        var sampleBooking = bookings.isEmpty() ? null : bookings.get(0);
+
+        var firstRoom = rooms.get(0);
+        var secondRoom = rooms.size() > 1 ? rooms.get(1) : firstRoom;
+        var firstVilla = firstRoom.getVilla();
+
+        // 1. Task DIRTY with RUSH priority (Checkout Deep Clean)
+        firstRoom.setStatus(com.phungvanlong.booking_hotel.entity.RoomStatus.CLEANING);
+        roomRepository.save(firstRoom);
+
+        var task1 = com.phungvanlong.booking_hotel.entity.HousekeepingTask.builder()
+                .room(firstRoom)
+                .villa(firstVilla)
+                .housekeeper(housekeeper)
+                .supervisor(supervisor)
+                .booking(sampleBooking)
+                .taskType("CHECKOUT_DEEP")
+                .status("PENDING")
+                .priority("RUSH")
+                .cleaningNote("Khách VIP nhận phòng lúc 14:00. Ưu tiên dọn sâu, bổ sung đầy đủ amenities.")
+                .ozoneEnabled(false)
+                .build();
+        housekeepingTaskRepository.save(task1);
+
+        // 2. Task WAITING_QC with minibar consumption and damaged item
+        secondRoom.setStatus(com.phungvanlong.booking_hotel.entity.RoomStatus.CLEANING);
+        roomRepository.save(secondRoom);
+
+        var task2 = com.phungvanlong.booking_hotel.entity.HousekeepingTask.builder()
+                .room(secondRoom)
+                .villa(secondRoom.getVilla())
+                .housekeeper(housekeeper)
+                .supervisor(supervisor)
+                .booking(sampleBooking)
+                .taskType("CHECKOUT_DEEP")
+                .status("WAITING_QC")
+                .priority("NORMAL")
+                .ozoneEnabled(true)
+                .cleaningNote("Đã dọn xong 16 bước và bật khử khuẩn Ozone 20p. Đã kiểm kê minibar.")
+                .checklistJson("[{\"id\":1,\"title\":\"Thay toàn bộ ga trải giường & vỏ gối\",\"category\":\"BEDDING\",\"completed\":true}]")
+                .build();
+        task2 = housekeepingTaskRepository.save(task2);
+
+        // Add 2 minibar consumptions & 1 asset incident for task2
+        var c1 = com.phungvanlong.booking_hotel.entity.RoomConsumptionRecord.builder()
+                .housekeepingTask(task2)
+                .villa(secondRoom.getVilla())
+                .room(secondRoom)
+                .booking(sampleBooking)
+                .itemType(com.phungvanlong.booking_hotel.entity.RoomConsumptionItemType.MINIBAR_CONSUMED)
+                .itemName("Bia Heineken lon 330ml")
+                .quantity(2)
+                .unitPrice(new BigDecimal("35000"))
+                .totalPrice(new BigDecimal("70000"))
+                .status(com.phungvanlong.booking_hotel.entity.RoomConsumptionStatus.PENDING_RECEPTION_APPROVAL)
+                .recordedBy(housekeeper != null ? housekeeper.getFullName() : "Nguyễn Thị Hoa")
+                .build();
+
+        var c2 = com.phungvanlong.booking_hotel.entity.RoomConsumptionRecord.builder()
+                .housekeepingTask(task2)
+                .villa(secondRoom.getVilla())
+                .room(secondRoom)
+                .booking(sampleBooking)
+                .itemType(com.phungvanlong.booking_hotel.entity.RoomConsumptionItemType.MINIBAR_CONSUMED)
+                .itemName("Nước khoáng có gas Perrier 330ml")
+                .quantity(1)
+                .unitPrice(new BigDecimal("45000"))
+                .totalPrice(new BigDecimal("45000"))
+                .status(com.phungvanlong.booking_hotel.entity.RoomConsumptionStatus.PENDING_RECEPTION_APPROVAL)
+                .recordedBy(housekeeper != null ? housekeeper.getFullName() : "Nguyễn Thị Hoa")
+                .build();
+
+        var c3 = com.phungvanlong.booking_hotel.entity.RoomConsumptionRecord.builder()
+                .housekeepingTask(task2)
+                .villa(secondRoom.getVilla())
+                .room(secondRoom)
+                .booking(sampleBooking)
+                .itemType(com.phungvanlong.booking_hotel.entity.RoomConsumptionItemType.ASSET_DAMAGED)
+                .itemName("Tách trà gốm sứ cao cấp Bát Tràng (Sứt mẻ)")
+                .quantity(1)
+                .unitPrice(new BigDecimal("120000"))
+                .totalPrice(new BigDecimal("120000"))
+                .status(com.phungvanlong.booking_hotel.entity.RoomConsumptionStatus.PENDING_RECEPTION_APPROVAL)
+                .note("Khách làm rơi sứt quai tách trà trên bàn ăn ngoài ban công.")
+                .recordedBy(housekeeper != null ? housekeeper.getFullName() : "Nguyễn Thị Hoa")
+                .build();
+
+        roomConsumptionRecordRepository.saveAll(Arrays.asList(c1, c2, c3));
+
+        // 3. Lost and Found item
+        if (lostAndFoundItemRepository.count() == 0) {
+            var lf = com.phungvanlong.booking_hotel.entity.LostAndFoundItem.builder()
+                    .itemCode("LF-2026-001")
+                    .villa(secondRoom.getVilla())
+                    .room(secondRoom)
+                    .booking(sampleBooking)
+                    .itemName("Ví da Montblanc màu đen")
+                    .category("Ví tiền / Giấy tờ")
+                    .foundLocation("Dưới gầm giường ngủ Master")
+                    .finderName(housekeeper != null ? housekeeper.getFullName() : "Nguyễn Thị Hoa")
+                    .guestName("Ông Trần Gia Huy")
+                    .guestPhone("(+84) 918 223 999")
+                    .status(com.phungvanlong.booking_hotel.entity.LostAndFoundStatus.STORED)
+                    .storageLocation("Két sắt an ninh Lễ tân Tầng 1")
+                    .note("Bên trong có CCCD và thẻ ngân hàng.")
+                    .build();
+            lostAndFoundItemRepository.save(lf);
+        }
+
+        // 4. Maintenance ticket
+        if (maintenanceTicketRepository.count() == 0) {
+            var mt = com.phungvanlong.booking_hotel.entity.MaintenanceTicket.builder()
+                    .ticketCode("MT-2026-001")
+                    .villa(firstVilla)
+                    .room(firstRoom)
+                    .category("Điều hòa & Điện lạnh")
+                    .priority(com.phungvanlong.booking_hotel.entity.MaintenancePriority.HIGH)
+                    .status(com.phungvanlong.booking_hotel.entity.MaintenanceStatus.REPORTED)
+                    .description("Điều hòa phòng khách Daikin Inverter kêu rè và không phả hơi lạnh.")
+                    .reportedBy(housekeeper != null ? housekeeper.getFullName() : "Nguyễn Thị Hoa")
+                    .build();
+            maintenanceTicketRepository.save(mt);
+        }
+
+        log.info("Initialized Housekeeping ecosystem operational sample data.");
     }
 }
 
