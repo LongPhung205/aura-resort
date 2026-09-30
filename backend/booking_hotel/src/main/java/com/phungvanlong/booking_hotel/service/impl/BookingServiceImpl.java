@@ -431,11 +431,7 @@ public class BookingServiceImpl implements BookingService {
         LocalDate endDate = effStartDate.plusDays(effDays);
 
         // Lấy tất cả active bookings trong khoảng thời gian này
-        List<Booking> activeBookings = bookingRepository.findAll().stream()
-                .filter(b -> b.getStatus() != BookingStatus.CANCELLED)
-                .filter(b -> b.getCheckInDate() != null && b.getCheckOutDate() != null)
-                .filter(b -> !b.getCheckInDate().isAfter(endDate) && !b.getCheckOutDate().isBefore(effStartDate))
-                .collect(Collectors.toList());
+        List<Booking> activeBookings = bookingRepository.findActiveBookingsBetween(effStartDate, endDate);
 
         for (Villa villa : villas) {
             List<GanttVillaAvailabilityResponse.GanttDaySlot> slots = new ArrayList<>();

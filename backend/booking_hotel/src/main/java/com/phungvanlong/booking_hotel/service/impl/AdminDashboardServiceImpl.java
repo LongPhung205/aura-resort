@@ -147,8 +147,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         modules.add(DashboardStatsResponse.ModuleMatrixStatus.builder().index(10).name("Cài Đặt & Bảo Mật").statusText("Cơ sở dữ liệu sạch chuẩn").badge("An toàn").badgeColor("bg-slate-50 text-slate-700").icon("shield").highlightInfo("Bảo mật đa tầng kích hoạt").build());
 
         // 4. VIP Arrival/Departure Live (truy vấn booking thực tế hôm nay)
-        List<Booking> todayBookings = bookingRepository.findAll().stream()
-                .filter(b -> (today.equals(b.getCheckInDate()) || today.equals(b.getCheckOutDate())) && b.getStatus() != BookingStatus.CANCELLED)
+        List<Booking> todayBookings = bookingRepository.findArrivalDepartureToday(today).stream()
                 .limit(5)
                 .collect(Collectors.toList());
 

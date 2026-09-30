@@ -82,4 +82,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT') AND b.createdAt >= :startOfDay")
     BigDecimal calculateTodayRevenue(@Param("startOfDay") LocalDateTime startOfDay);
+    @Query("SELECT b FROM Booking b WHERE b.status != 'CANCELLED' " +
+           "AND b.checkInDate <= :endDate AND b.checkOutDate >= :startDate")
+    List<Booking> findActiveBookingsBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT b FROM Booking b WHERE b.status != 'CANCELLED' " +
+           "AND (b.checkInDate = :today OR b.checkOutDate = :today)")
+    List<Booking> findArrivalDepartureToday(@Param("today") LocalDate today);
 }
