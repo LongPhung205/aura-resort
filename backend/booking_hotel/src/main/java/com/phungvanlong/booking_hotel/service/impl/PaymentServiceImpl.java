@@ -31,6 +31,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final MoMoConfig moMoConfig;
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
+    private final RestTemplate restTemplate;
 
     @Override
     @Transactional
@@ -76,7 +77,6 @@ public class PaymentServiceImpl implements PaymentService {
                 .signature(signature)
                 .build();
 
-        RestTemplate restTemplate = new RestTemplate();
         try {
             ResponseEntity<MoMoPaymentResponse> response = restTemplate.postForEntity(
                     moMoConfig.getEndpoint(), request, MoMoPaymentResponse.class);
