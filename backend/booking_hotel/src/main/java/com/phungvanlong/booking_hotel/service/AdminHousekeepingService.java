@@ -17,6 +17,11 @@ public interface AdminHousekeepingService {
     HousekeepingTaskResponse updateProgress(UpdateCleaningProgressRequest request, String housekeeperEmail);
     HousekeepingTaskResponse completeCleaning(Long taskId, String cleaningNote, String housekeeperEmail);
     HousekeepingTaskResponse approveTask(Long taskId, String supervisorEmail);
+    HousekeepingTaskResponse rejectTask(Long taskId, String reason, String supervisorEmail);
+    HousekeepingTaskResponse claimTask(Long taskId, String staffEmail);
+    HousekeepingTaskResponse toggleOzone(Long taskId, Boolean enabled);
+    List<HousekeepingTaskResponse> getAvailableDirtyRooms(String staffEmail);
+    HousekeepingTaskResponse submitQc(Long taskId, String cleaningNote, String staffEmail);
     HousekeepingTaskResponse startOzoneSterilisation(Long taskId);
     HousekeepingTaskResponse submitChecklist(HousekeepingChecklistRequest request);
 }

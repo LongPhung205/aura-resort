@@ -40,6 +40,11 @@ public class HousekeepingTaskResponse {
     private String checklistJson;
     private String evidencePhotoUrl;
     private LocalDateTime completedAt;
+    private String priority;
+    private Boolean ozoneEnabled;
+    private String reCleanReason;
+    private Long bookingId;
+    private String bookingCode;
     private String cleaningNote;
     private String supervisorNote;
 
@@ -89,6 +94,11 @@ public class HousekeepingTaskResponse {
                 .checklistJson(task.getChecklistJson())
                 .evidencePhotoUrl(task.getEvidencePhotoUrl())
                 .completedAt(task.getCompletedAt())
+                .priority(task.getPriority())
+                .ozoneEnabled(task.getOzoneEnabled())
+                .reCleanReason(task.getReCleanReason())
+                .bookingId(task.getBooking() != null ? task.getBooking().getId() : null)
+                .bookingCode(task.getBooking() != null ? task.getBooking().getBookingCode() : null)
                 .cleaningNote(task.getCleaningNote())
                 .supervisorNote(task.getSupervisorNote())
                 .build();

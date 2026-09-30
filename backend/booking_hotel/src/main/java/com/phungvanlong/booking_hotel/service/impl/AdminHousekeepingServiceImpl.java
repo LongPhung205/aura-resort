@@ -266,4 +266,84 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
 
         return HousekeepingTaskResponse.fromEntity(housekeepingTaskRepository.save(task));
     }
+
+    @Override
+    @Transactional
+    public HousekeepingTaskResponse rejectTask(Long taskId, String reason, String supervisorEmail) {
+        HousekeepingTask task = housekeepingTaskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhiệm vụ dọn phòng ID: " + taskId));
+
+        if (supervisorEmail != null && !supervisorEmail.isBlank()) {
+            User supervisor = userRepository.findByEmail(supervisorEmail).orElse(null);
+            if (supervisor != null) {
+                task.setSupervisor(supervisor);
+            }
+        }
+
+        task.setStatus("RE_CLEAN");
+        task.setReCleanReason(reason);
+        task.setSupervisorNote(reason);
+        return HousekeepingTaskResponse.fromEntity(housekeepingTaskRepository.save(task));
+    }
+
+    @Override
+    @Transactional
+    public HousekeepingTaskResponse claimTask(Long taskId, String staffEmail) {
+        HousekeepingTask task = housekeepingTaskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhiệm vụ dọn phòng ID: " + taskId));
+
+        if (staffEmail != null && !staffEmail.isBlank()) {
+            User housekeeper = userRepository.findByEmail(staffEmail).orElse(null);
+            if (housekeeper != null) {
+                task.setHousekeeper(housekeeper);
+            }
+        }
+
+        task.setStatus("IN_PROGRESS");
+        if (task.getStartedAt() == null) {
+            task.setStartedAt(LocalDateTime.now());
+        }
+        return HousekeepingTaskResponse.fromEntity(housekeepingTaskRepository.save(task));
+    }
+
+    @Override
+    @Transactional
+    public HousekeepingTaskResponse toggleOzone(Long taskId, Boolean enabled) {
+        HousekeepingTask task = housekeepingTaskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhiệm vụ dọn phòng ID: " + taskId));
+
+        task.setOzoneEnabled(enabled);
+        if (Boolean.TRUE.equals(enabled)) {
+            task.setOzoneStartedAt(LocalDateTime.now());
+            task.setOzoneEndedAt(LocalDateTime.now().plusMinutes(20));
+        } else {
+            task.setOzoneStartedAt(null);
+            task.setOzoneEndedAt(null);
+        }
+        return HousekeepingTaskResponse.fromEntity(housekeepingTaskRepository.save(task));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HousekeepingTaskResponse> getAvailableDirtyRooms(String staffEmail) {
+        // Lấy danh sách nhiệm vụ chưa ai nhận hoặc đang chờ dọn
+        return housekeepingTaskRepository.findAll().stream()
+                .filter(t -> "PENDING".equalsIgnoreCase(t.getStatus()) || t.getHousekeeper() == null)
+                .map(HousekeepingTaskResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public HousekeepingTaskResponse submitQc(Long taskId, String cleaningNote, String staffEmail) {
+        HousekeepingTask task = housekeepingTaskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhiệm vụ dọn phòng ID: " + taskId));
+
+        task.setStatus("WAITING_QC");
+        task.setCompletedAt(LocalDateTime.now());
+        if (cleaningNote != null && !cleaningNote.isBlank()) {
+            task.setCleaningNote(cleaningNote);
+        }
+        return HousekeepingTaskResponse.fromEntity(housekeepingTaskRepository.save(task));
+    }
 }
