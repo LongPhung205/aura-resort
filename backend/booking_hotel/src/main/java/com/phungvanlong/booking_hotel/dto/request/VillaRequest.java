@@ -36,6 +36,11 @@ public class VillaRequest {
     private String imageUrl;
     private List<String> images;
 
+    private Double area;
+    private String viewDirection;
+    private Double poolSize;
+    private String overviewDescription;
+
     // Backward-compatibility getters/setters for legacy clients
     public String getRoomNumber() {
         return villaNumber;

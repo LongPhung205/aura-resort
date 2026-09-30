@@ -103,6 +103,10 @@ public class VillaServiceImpl implements VillaService {
                 .ozoneStatus(request.getOzoneStatus() != null ? request.getOzoneStatus() : "STERILIZED")
                 .amenities(amenitiesStr)
                 .bedroomCount(bedroomCount)
+                .area(request.getArea())
+                .viewDirection(request.getViewDirection())
+                .poolSize(request.getPoolSize())
+                .overviewDescription(request.getOverviewDescription())
                 .lastCleanedAt(LocalDateTime.now())
                 .build();
 
@@ -180,6 +184,18 @@ public class VillaServiceImpl implements VillaService {
         }
         if (request.getBasePrice() != null) {
             villa.setBasePrice(request.getBasePrice());
+        }
+        if (request.getArea() != null) {
+            villa.setArea(request.getArea());
+        }
+        if (request.getViewDirection() != null) {
+            villa.setViewDirection(request.getViewDirection());
+        }
+        if (request.getPoolSize() != null) {
+            villa.setPoolSize(request.getPoolSize());
+        }
+        if (request.getOverviewDescription() != null) {
+            villa.setOverviewDescription(request.getOverviewDescription());
         }
 
         if (request.getStatus() != null) {

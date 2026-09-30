@@ -45,6 +45,12 @@ public class VillaResponse implements Serializable {
     private Integer totalCapacity;
     private String imageUrl;
     private List<String> images;
+    
+    private Double area;
+    private String viewDirection;
+    private Double poolSize;
+    private String overviewDescription;
+    
     private List<ChildRoomDto> rooms;
 
     @Data
@@ -174,6 +180,10 @@ public class VillaResponse implements Serializable {
                 .totalCapacity(calculatedCapacity > 0 ? calculatedCapacity : (calculatedAdults + calculatedChildren))
                 .imageUrl(primaryImg)
                 .images(imageUrls)
+                .area(entity.getArea())
+                .viewDirection(entity.getViewDirection())
+                .poolSize(entity.getPoolSize())
+                .overviewDescription(entity.getOverviewDescription())
                 .rooms(childRooms)
                 .build();
     }

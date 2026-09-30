@@ -34,6 +34,18 @@ public class Villa extends BaseEntity {
     @Column(name = "base_price", precision = 12, scale = 2)
     private BigDecimal basePrice;
 
+    @Column(name = "area")
+    private Double area;
+
+    @Column(name = "view_direction", length = 100)
+    private String viewDirection;
+
+    @Column(name = "pool_size")
+    private Double poolSize;
+
+    @Column(name = "overview_description", columnDefinition = "TEXT")
+    private String overviewDescription;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zone_id")
     private Zone zone;
