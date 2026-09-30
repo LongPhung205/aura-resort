@@ -21,6 +21,7 @@ import java.util.List;
 public class AdminHousekeepingController {
 
     private final AdminHousekeepingService housekeepingService;
+    private final com.phungvanlong.booking_hotel.service.HousekeepingInspectionService inspectionService;
 
     @GetMapping("/tasks")
     public ResponseEntity<ApiResponse<List<HousekeepingTaskResponse>>> getTasks(
@@ -105,5 +106,50 @@ public class AdminHousekeepingController {
         String email = authentication != null ? authentication.getName() : null;
         HousekeepingTaskResponse response = housekeepingService.approveTask(id, email);
         return ResponseEntity.ok(ApiResponse.success(response, "Nghiệm thu buồng phòng thành công. Phòng đã sẵn sàng đón khách!"));
+    }
+
+    @PostMapping("/tasks/{id}/reject")
+    public ResponseEntity<ApiResponse<HousekeepingTaskResponse>> rejectTask(
+            @PathVariable Long id,
+            @RequestParam String reason,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        HousekeepingTaskResponse response = housekeepingService.rejectTask(id, reason, email);
+        return ResponseEntity.ok(ApiResponse.success(response, "Đã yêu cầu nhân viên dọn lại phòng"));
+    }
+
+    @GetMapping("/lost-found")
+    public ResponseEntity<ApiResponse<List<com.phungvanlong.booking_hotel.dto.response.LostAndFoundResponse>>> getLostFound(
+            @RequestParam(required = false) com.phungvanlong.booking_hotel.entity.LostAndFoundStatus status,
+            @RequestParam(required = false) Long villaId) {
+        List<com.phungvanlong.booking_hotel.dto.response.LostAndFoundResponse> list = inspectionService.getLostAndFoundList(status, villaId);
+        return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách đồ thất lạc thành công"));
+    }
+
+    @PutMapping("/lost-found/{id}/status")
+    public ResponseEntity<ApiResponse<com.phungvanlong.booking_hotel.dto.response.LostAndFoundResponse>> updateLostFoundStatus(
+            @PathVariable Long id,
+            @RequestParam com.phungvanlong.booking_hotel.entity.LostAndFoundStatus status,
+            @RequestParam(required = false) String note) {
+        com.phungvanlong.booking_hotel.dto.response.LostAndFoundResponse response = inspectionService.updateLostAndFoundStatus(id, status, note);
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật trạng thái đồ thất lạc thành công"));
+    }
+
+    @GetMapping("/maintenance-tickets")
+    public ResponseEntity<ApiResponse<List<com.phungvanlong.booking_hotel.dto.response.MaintenanceTicketResponse>>> getMaintenanceTickets(
+            @RequestParam(required = false) com.phungvanlong.booking_hotel.entity.MaintenanceStatus status,
+            @RequestParam(required = false) Long villaId) {
+        List<com.phungvanlong.booking_hotel.dto.response.MaintenanceTicketResponse> list = inspectionService.getMaintenanceTickets(status, villaId);
+        return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách phiếu bảo trì phòng thành công"));
+    }
+
+    @PutMapping("/maintenance-tickets/{id}/status")
+    public ResponseEntity<ApiResponse<com.phungvanlong.booking_hotel.dto.response.MaintenanceTicketResponse>> updateMaintenanceStatus(
+            @PathVariable Long id,
+            @RequestParam com.phungvanlong.booking_hotel.entity.MaintenanceStatus status,
+            @RequestParam(required = false) String note,
+            @RequestParam(required = false) String technicianName) {
+        com.phungvanlong.booking_hotel.dto.response.MaintenanceTicketResponse response = inspectionService.updateMaintenanceTicketStatus(id, status, note, technicianName);
+        return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật trạng thái phiếu bảo trì thành công"));
     }
 }
