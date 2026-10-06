@@ -8,6 +8,7 @@ import java.util.List;
 public interface HomeBannerService {
 
     List<HomeBannerResponse> getActiveBanners();
+    List<HomeBannerResponse> getBannersByPlacement(String placement);
 
     List<HomeBannerResponse> getAllBanners();
 

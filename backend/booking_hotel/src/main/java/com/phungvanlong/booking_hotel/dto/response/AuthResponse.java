@@ -15,4 +15,5 @@ public class AuthResponse {
     private String tokenType = "Bearer";
     private String role;
     private String fullName;
+    private String avatarUrl;
 }

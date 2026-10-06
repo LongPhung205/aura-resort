@@ -14,5 +14,6 @@ public interface VillaService {
     List<VillaResponse> getVillasByVillaTypeId(Long villaTypeId);
     VillaResponse updateVillaStatus(Long id, VillaStatus status);
     void deleteVilla(Long id);
+    List<VillaResponse> searchAvailableVillas(String zoneName, Integer minAdults, java.time.LocalDate checkInDate, java.time.LocalDate checkOutDate);
     String uploadImage(org.springframework.web.multipart.MultipartFile file);
 }

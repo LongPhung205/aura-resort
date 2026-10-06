@@ -29,6 +29,13 @@ public class PromotionController {
                 .body(ApiResponse.success(promotion, "Tạo mã khuyến mãi thành công"));
     }
 
+    // ✅ Public endpoint — no auth required — used by homepage
+    @GetMapping("/active")
+    public ResponseEntity<ApiResponse<List<PromotionResponse>>> getActivePromotions() {
+        List<PromotionResponse> promotions = promotionService.getActivePromotions();
+        return ResponseEntity.ok(ApiResponse.success(promotions, "Lấy danh sách khuyến mãi đang hoạt động thành công"));
+    }
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<PromotionResponse>>> getAllPromotions() {

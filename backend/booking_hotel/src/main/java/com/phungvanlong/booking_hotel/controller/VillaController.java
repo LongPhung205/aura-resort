@@ -7,6 +7,8 @@ import com.phungvanlong.booking_hotel.entity.VillaStatus;
 import com.phungvanlong.booking_hotel.service.VillaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,12 +16,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping({"/villas", "/rooms"})
 @RequiredArgsConstructor
 public class VillaController {
 
     private final VillaService villaService;
+
+    @Value("${app.upload-dir}")
+    private String uploadDir;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<VillaResponse>>> getVillas(
@@ -76,8 +82,7 @@ public class VillaController {
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<org.springframework.core.io.Resource> getImage(@PathVariable String filename) {
         try {
-            java.nio.file.Path uploadDir = java.nio.file.Paths.get("d:/booking_hotel/frontend/public/assets/images/uploads");
-            java.nio.file.Path filePath = uploadDir.resolve(filename).normalize();
+            java.nio.file.Path filePath = java.nio.file.Paths.get(uploadDir).resolve(filename).normalize();
             if (!java.nio.file.Files.exists(filePath) || !java.nio.file.Files.isReadable(filePath)) {
                 return ResponseEntity.notFound().build();
             }
@@ -95,7 +100,9 @@ public class VillaController {
                     .header(org.springframework.http.HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
                     .body(resource);
         } catch (Exception e) {
+            log.warn("Lỗi serve ảnh {}: {}", filename, e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
 }
+

@@ -1,0 +1,529 @@
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+  <!-- Toast Alert -->
+  <div
+    *ngIf="successMessage"
+    class="fixed top-20 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-2xl shadow-xl border border-emerald-500 animate-bounce"
+  >
+    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+    <span class="text-xs sm:text-sm font-semibold">{{ successMessage }}</span>
+  </div>
+
+  <!-- Header & Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
+        <span>Bảng Điều Khiển</span>
+        <span>/</span>
+        <span>Nội Dung & Website</span>
+        <span>/</span>
+        <span class="text-amber-700 font-bold">Banner Trang Chủ</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[26px] text-teal-600">view_carousel</span>
+        <span>Quản Lý Banner Trang Chủ</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+        Tùy chỉnh hệ thống slider trình chiếu, ảnh nền, khẩu hiệu và nút điều hướng CTA hiển thị ngoài trang chủ
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        (click)="loadBanners()"
+        [disabled]="loading"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+        title="Tải lại danh sách"
+      >
+        <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="loading">refresh</span>
+        <span class="hidden sm:inline">Làm mới</span>
+      </button>
+
+      <button
+        (click)="openCreateModal()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-800/20 hover:from-amber-700 hover:to-amber-900 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+        <span>Thêm Banner Mới</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Stats Strip -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">layers</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tổng Số Slide</p>
+          <h3 class="text-xl font-black text-slate-900 leading-tight">{{ banners.length }}</h3>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500 font-medium">Toàn bộ slide</span>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">visibility</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Đang Hiển Thị</p>
+          <h3 class="text-xl font-black text-emerald-700 leading-tight">{{ activeCount }}</h3>
+        </div>
+      </div>
+      <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">Hoạt động</span>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">visibility_off</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tạm Ẩn</p>
+          <h3 class="text-xl font-black text-slate-700 leading-tight">{{ inactiveCount }}</h3>
+        </div>
+      </div>
+      <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-600">Đang tắt</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-sm font-semibold text-slate-600">Đang tải danh sách banner...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !loading" class="bg-red-50 p-6 rounded-2xl border border-red-200 text-center space-y-2">
+    <span class="material-symbols-outlined text-3xl text-red-500">error</span>
+    <p class="text-sm font-semibold text-red-700">{{ errorMessage }}</p>
+    <button (click)="loadBanners()" class="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700">
+      Thử lại
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !errorMessage && banners.length === 0" class="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center space-y-4">
+    <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+      <span class="material-symbols-outlined text-3xl">view_carousel</span>
+    </div>
+    <div>
+      <h3 class="text-base font-bold text-slate-800">Chưa có banner nào</h3>
+      <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+        Hãy bấm "Thêm Banner Mới" để tạo banner trình chiếu nổi bật đầu tiên cho trang chủ của bạn.
+      </p>
+    </div>
+    <button
+      (click)="openCreateModal()"
+      class="px-5 py-2.5 bg-amber-700 text-white text-xs font-bold rounded-xl hover:bg-amber-800 transition-colors shadow-sm"
+    >
+      + Tạo Banner Đầu Tiên
+    </button>
+  </div>
+
+  <!-- Banner Grid -->
+  <div *ngIf="!loading && banners.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let b of banners"
+      class="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col group relative"
+      [class.opacity-75]="!b.isActive"
+    >
+      <!-- Media Thumbnail Header -->
+      <div class="relative aspect-video w-full overflow-hidden bg-slate-900">
+        <img
+          [src]="b.imageUrl"
+          [alt]="b.title"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onerror="this.src='/assets/images/rooms/grand-oceanfront.jpg'"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30"></div>
+
+        <!-- Order Chip & Placement Badge -->
+        <div class="absolute top-3 left-3 flex flex-col gap-1.5 items-start">
+          <span class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-amber-300 text-[11px] font-black tracking-wider uppercase border border-amber-400/30">
+            Slide #{{ b.displayOrder }}
+          </span>
+          <span class="px-2 py-0.5 rounded-md bg-sky-500/80 backdrop-blur-md text-white text-[9px] font-bold tracking-wider uppercase border border-sky-400/30">
+            {{ b.placement || 'HOME' }}
+          </span>
+        </div>
+
+        <div class="absolute top-3 right-3 flex items-center gap-1.5">
+          <button
+            (click)="toggleStatus(b, $event)"
+            class="px-2.5 py-1 rounded-lg backdrop-blur-md text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer border"
+            [ngClass]="b.isActive ? 'bg-emerald-500/80 hover:bg-emerald-600 text-white border-emerald-400/40' : 'bg-slate-700/80 hover:bg-slate-800 text-slate-300 border-slate-600'"
+            title="Bấm để bật / tắt hiển thị"
+          >
+            <span class="w-2 h-2 rounded-full" [ngClass]="b.isActive ? 'bg-white animate-pulse' : 'bg-slate-400'"></span>
+            <span>{{ b.isActive ? 'ĐANG HIỆN' : 'TẠM ẨN' }}</span>
+          </button>
+        </div>
+
+        <!-- Banner Overlay Subtitle & Title on image -->
+        <div class="absolute bottom-3 left-3 right-3 text-white">
+          <p *ngIf="b.subtitle" class="text-[10px] font-bold tracking-widest uppercase text-amber-300 line-clamp-1">
+            {{ b.subtitle }}
+          </p>
+          <h3 class="text-sm font-extrabold text-white leading-snug line-clamp-1 drop-shadow-sm">
+            {{ b.title }}
+          </h3>
+        </div>
+      </div>
+
+      <!-- Card Body Content -->
+      <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+        <div>
+          <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+            {{ b.description || 'Không có phần mô tả bổ sung cho banner này.' }}
+          </p>
+
+          <!-- CTA Pill & Destination -->
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+            <span class="inline-flex items-center gap-1 text-slate-400 font-medium">
+              <span class="material-symbols-outlined text-[14px]">link</span>
+              <span>Nút CTA:</span>
+            </span>
+            <div class="flex items-center gap-1.5 font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 max-w-[180px] truncate">
+              <span>{{ b.ctaText || 'Khám Phá' }}</span>
+              <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Action Footer -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <button
+            (click)="openPreview(b, $event)"
+            class="px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+            title="Xem mockup thực tế trên trang chủ"
+          >
+            <span class="material-symbols-outlined text-[16px] text-teal-600">visibility</span>
+            <span>Xem Thử</span>
+          </button>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              (click)="openEditModal(b)"
+              class="px-2.5 py-1.5 rounded-lg text-amber-800 hover:bg-amber-50 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+              title="Chỉnh sửa banner"
+            >
+              <span class="material-symbols-outlined text-[16px]">edit</span>
+              <span>Sửa</span>
+            </button>
+            <button
+              (click)="deleteBanner(b, $event)"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer transition-colors"
+              title="Xóa banner này"
+            >
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div
+    *ngIf="showModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto"
+  >
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full my-8 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">{{ isEditing ? 'edit_document' : 'add_photo_alternate' }}</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">
+              {{ isEditing ? 'Chỉnh Sửa Banner Trang Chủ' : 'Thêm Mới Banner Trang Chủ' }}
+            </h3>
+            <p class="text-xs text-slate-500">Cập nhật nội dung hiển thị trên slider trang chủ</p>
+          </div>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form (ngSubmit)="saveBanner()" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <!-- Live Form Mockup Preview Box -->
+        <div class="rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 relative aspect-21/9 shadow-inner">
+          <img
+            [src]="formModel.imageUrl"
+            alt="Preview"
+            class="w-full h-full object-cover opacity-85"
+            onerror="this.src='/assets/images/rooms/grand-oceanfront.jpg'"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-4 text-white">
+            <p class="text-[10px] uppercase font-bold tracking-widest text-amber-300">
+              {{ formModel.subtitle || 'TIÊU ĐỀ PHỤ BANNER' }}
+            </p>
+            <h4 class="text-sm sm:text-base font-extrabold leading-snug drop-shadow-sm">
+              {{ formModel.title || 'Tiêu đề chính của banner slider' }}
+            </h4>
+            <p class="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
+              {{ formModel.description || 'Mô tả ngắn gọn về tiện ích và không gian biệt thự thượng lưu.' }}
+            </p>
+            <div class="mt-2">
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-amber-600 text-white text-[10px] font-bold shadow-xs">
+                <span>{{ formModel.ctaText || 'Khám Phá Ngay' }}</span>
+                <span class="material-symbols-outlined text-[11px]">arrow_forward</span>
+              </span>
+            </div>
+          </div>
+          <span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[9px] font-bold backdrop-blur-xs">
+            Xem trước giao diện
+          </span>
+        </div>
+
+        <!-- Image Selection: Choose from Folder / Computer or Direct URL -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">
+            Hình Ảnh Banner <span class="text-red-500">*</span>
+          </label>
+
+          <!-- Upload Drop/Click Zone from local folder -->
+          <div class="p-4 rounded-2xl border-2 border-dashed border-amber-300/80 bg-amber-50/40 hover:bg-amber-50/70 transition-all flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span class="material-symbols-outlined text-[22px]">drive_folder_upload</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">
+                  {{ selectedFileName || 'Chọn tệp ảnh từ máy tính / thư mục của bạn' }}
+                </p>
+                <p class="text-[10px] text-slate-500">Hỗ trợ JPG, PNG, WEBP (Khuyến nghị 1920x1080 hoặc tỷ lệ 16:9)</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input
+                type="file"
+                #bannerFileInput
+                (change)="onFileSelected($event)"
+                accept="image/*"
+                class="hidden"
+              />
+              <button
+                type="button"
+                (click)="bannerFileInput.click()"
+                [disabled]="isUploadingImage"
+                class="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span *ngIf="!isUploadingImage" class="material-symbols-outlined text-[16px]">folder_open</span>
+                <span *ngIf="isUploadingImage" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>{{ isUploadingImage ? 'Đang tải lên...' : 'Chọn Từ Thư Mục' }}</span>
+              </button>
+
+              <button
+                *ngIf="formModel.imageUrl"
+                type="button"
+                (click)="removeSelectedImage(); bannerFileInput.value=''"
+                class="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                title="Xóa ảnh này"
+              >
+                <span class="material-symbols-outlined text-[18px]">delete</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Direct URL Input -->
+          <div class="flex items-center gap-2 pt-0.5">
+            <span class="text-[10px] text-slate-400 font-semibold shrink-0">Hoặc URL ảnh:</span>
+            <input
+              type="text"
+              [(ngModel)]="formModel.imageUrl"
+              name="imageUrl"
+              required
+              placeholder="VD: /assets/images/rooms/grand-oceanfront.jpg hoặc link online"
+              class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] text-slate-700 focus:outline-hidden focus:border-amber-600 bg-white"
+            />
+          </div>
+        </div>
+
+        <!-- Main Title & Subtitle -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">
+              Tiêu Đề Chính <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="formModel.title"
+              name="title"
+              required
+              placeholder="VD: Nâng Tầm Kỳ Nghỉ Đỉnh Cao"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Tiêu Đề Phụ (Subtitle)</label>
+            <input
+              type="text"
+              [(ngModel)]="formModel.subtitle"
+              name="subtitle"
+              placeholder="VD: Hệ Thống 12 Điểm Đến Thượng Lưu"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">Mô Tả Chi Tiết</label>
+          <textarea
+            [(ngModel)]="formModel.description"
+            name="description"
+            rows="2"
+            placeholder="Tóm tắt tiện ích, trải nghiệm biệt thự biệt lập..."
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all resize-none"
+          ></textarea>
+        </div>
+
+        <!-- CTA Text & Link -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Tiêu Đề Nút Bấm (CTA)</label>
+            <input
+              type="text"
+              [(ngModel)]="formModel.ctaText"
+              name="ctaText"
+              placeholder="VD: Khám Phá Biệt Thự"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Đường Dẫn Đích (Link CTA)</label>
+            <input
+              type="text"
+              [(ngModel)]="formModel.ctaLink"
+              name="ctaLink"
+              placeholder="VD: /villas hoặc /villas/zone/villa-ngoc-trai"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Placement & Display Order -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Vị Trí Hiển Thị</label>
+            <select
+              [(ngModel)]="formModel.placement"
+              name="placement"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all bg-white"
+            >
+              <option value="HOME">Banner Trang Chủ (HOME)</option>
+              <option value="CATEGORY">Banner Danh Mục (CATEGORY)</option>
+              <option value="AUTH">Banner Đăng Nhập (AUTH)</option>
+              <option value="PROMOTION">Banner Khuyến Mãi (PROMOTION)</option>
+            </select>
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Thứ Tự Hiển Thị</label>
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="formModel.displayOrder"
+              name="displayOrder"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Active Toggle -->
+        <div class="flex items-center space-x-3 pt-2">
+          <input
+            type="checkbox"
+            id="isActiveCheck"
+            [(ngModel)]="formModel.isActive"
+            name="isActive"
+            class="w-4 h-4 text-amber-600 border-slate-300 rounded focus:ring-amber-500 cursor-pointer"
+          />
+          <label for="isActiveCheck" class="text-xs font-bold text-slate-700 cursor-pointer">
+            Kích hoạt hiển thị banner này
+          </label>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Hủy Bỏ
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving || isUploadingImage"
+            class="px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-md shadow-amber-800/20 transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <span *ngIf="saving || isUploadingImage" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ isUploadingImage ? 'Đang Tải Ảnh Lên...' : (isEditing ? 'Lưu Thay Đổi' : 'Tạo Banner') }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Live Mockup Fullscreen Preview Modal -->
+  <div
+    *ngIf="previewBanner"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+  >
+    <div class="relative w-full max-w-4xl bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border border-slate-800">
+      <!-- Close Button -->
+      <button
+        (click)="closePreview()"
+        class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/60 text-white hover:bg-black/90 flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+
+      <!-- Hero Simulation View -->
+      <div class="relative min-h-[380px] sm:min-h-[460px] flex items-center p-8 sm:p-14 overflow-hidden">
+        <img
+          [src]="previewBanner.imageUrl"
+          [alt]="previewBanner.title"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent"></div>
+
+        <div class="relative z-10 max-w-xl text-white space-y-4">
+          <span class="inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-bold uppercase tracking-widest">
+            {{ previewBanner.subtitle || 'AURA RESORT & LUXURY VILLAS' }}
+          </span>
+
+          <h2 class="text-2xl sm:text-4xl font-black leading-tight drop-shadow-md">
+            {{ previewBanner.title }}
+          </h2>
+
+          <p class="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-lg">
+            {{ previewBanner.description || 'Trải nghiệm không gian nghỉ dưỡng đỉnh cao với các căn biệt thự biển riêng tư và dịch vụ quản gia 24/7.' }}
+          </p>
+
+          <div class="pt-2 flex items-center gap-3">
+            <span class="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-700 text-white font-bold text-xs sm:text-sm shadow-lg flex items-center gap-2">
+              <span>{{ previewBanner.ctaText || 'Khám Phá Biệt Thự' }}</span>
+              <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </span>
+            <span class="text-xs text-slate-300">
+              Đích đến: <strong class="text-white">{{ previewBanner.ctaLink || '/villas' }}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

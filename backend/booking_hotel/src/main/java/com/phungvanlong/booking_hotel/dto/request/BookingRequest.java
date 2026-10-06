@@ -1,5 +1,6 @@
 package com.phungvanlong.booking_hotel.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
@@ -16,6 +17,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class BookingRequest {
 
     @NotNull(message = "Ngày nhận phòng/villa không được để trống")
@@ -25,6 +27,9 @@ public class BookingRequest {
     @NotNull(message = "Ngày trả phòng/villa không được để trống")
     @Future(message = "Ngày trả phòng/villa phải ở tương lai")
     private LocalDate checkOutDate;
+
+    // Căn Villa cụ thể (nếu khách chọn đúng 1 căn)
+    private Long villaId;
 
     // Hạng Villa (hoặc roomTypeId đối với client cũ)
     private Long villaTypeId;
@@ -40,7 +45,14 @@ public class BookingRequest {
     private Integer quantity = 1;
 
     private String note;
+    private String specialRequest;
+    private String paymentMethod;
     
+    private String guestName;
+    private String guestEmail;
+    private String guestPhone;
+    private String estimatedArrivalTime;
+
     private String promotionCode;
 
     private List<BookingExtraServiceDto> extraServices;

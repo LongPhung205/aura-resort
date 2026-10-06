@@ -7,6 +7,10 @@ import com.phungvanlong.booking_hotel.dto.response.HousekeeperSummaryDto;
 import com.phungvanlong.booking_hotel.dto.response.HousekeepingTaskResponse;
 import com.phungvanlong.booking_hotel.entity.*;
 import com.phungvanlong.booking_hotel.exception.ResourceNotFoundException;
+import com.phungvanlong.booking_hotel.dto.request.CreateRefillTaskRequest;
+import com.phungvanlong.booking_hotel.dto.request.RefillItemCheckRequest;
+import com.phungvanlong.booking_hotel.service.AdminRefillService;
+import com.phungvanlong.booking_hotel.service.NotificationService;
 import com.phungvanlong.booking_hotel.repository.HousekeepingTaskRepository;
 import com.phungvanlong.booking_hotel.repository.RoomRepository;
 import com.phungvanlong.booking_hotel.repository.UserRepository;
@@ -18,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +36,8 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     private final VillaRepository villaRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final AdminRefillService adminRefillService;
+    private final NotificationService notificationService;
 
     @Override
     public List<HousekeepingTaskResponse> getAllTasks(String status) {
@@ -81,14 +88,51 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     @Override
     @Transactional
     public HousekeepingTaskResponse assignTask(AssignHousekeepingTaskRequest request, String supervisorEmail) {
-        Long targetId = request.getRoomId();
-        Villa villa = villaRepository.findById(targetId).orElse(null);
+        HousekeepingTask task;
+        Villa villa = null;
         Room room = null;
 
-        if (villa == null) {
-            room = roomRepository.findById(targetId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Villa hoặc Phòng ID: " + targetId));
-            villa = room.getVilla();
+        if (request.getTaskId() != null) {
+            task = housekeepingTaskRepository.findById(request.getTaskId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhiệm vụ dọn phòng ID: " + request.getTaskId()));
+            villa = task.getVilla();
+            room = task.getRoom();
+        } else {
+            Long targetId = request.getRoomId() != null ? request.getRoomId() : request.getVillaId();
+            if (targetId == null) {
+                throw new ResourceNotFoundException("Vui lòng cung cấp taskId, roomId hoặc villaId");
+            }
+            villa = villaRepository.findById(targetId).orElse(null);
+
+            if (villa == null) {
+                room = roomRepository.findById(targetId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Villa hoặc Phòng ID: " + targetId));
+                villa = room.getVilla();
+            }
+
+            if (villa != null) {
+                task = housekeepingTaskRepository.findFirstByVillaIdAndStatusIn(
+                        villa.getId(), List.of("PENDING", "IN_PROGRESS", "OZONE_RUNNING", "INSPECTED"))
+                        .orElse(HousekeepingTask.builder().villa(villa).build());
+            } else {
+                task = housekeepingTaskRepository.findFirstByRoomIdAndStatusIn(
+                        room.getId(), List.of("PENDING", "IN_PROGRESS", "OZONE_RUNNING", "INSPECTED"))
+                        .orElse(HousekeepingTask.builder().room(room).build());
+            }
+        }
+
+        if (villa != null) {
+            task.setVilla(villa);
+            villa.setStatus(VillaStatus.CLEANING);
+            villa.setOzoneStatus("CLEANING");
+            villaRepository.save(villa);
+        }
+
+        if (room != null) {
+            task.setRoom(room);
+            room.setStatus(RoomStatus.CLEANING);
+            room.setOzoneStatus("CLEANING");
+            roomRepository.save(room);
         }
 
         User housekeeper = userRepository.findById(request.getHousekeeperId())
@@ -99,40 +143,22 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
             supervisor = userRepository.findByEmail(supervisorEmail).orElse(null);
         }
 
-        HousekeepingTask task;
-        if (villa != null) {
-            task = housekeepingTaskRepository.findFirstByVillaIdAndStatusIn(
-                    villa.getId(), List.of("PENDING", "IN_PROGRESS", "OZONE_RUNNING", "INSPECTED"))
-                    .orElse(HousekeepingTask.builder().villa(villa).build());
-            task.setVilla(villa);
-            villa.setStatus(VillaStatus.CLEANING);
-            villa.setOzoneStatus("CLEANING");
-            villaRepository.save(villa);
-        } else {
-            task = housekeepingTaskRepository.findFirstByRoomIdAndStatusIn(
-                    room.getId(), List.of("PENDING", "IN_PROGRESS", "OZONE_RUNNING", "INSPECTED"))
-                    .orElse(HousekeepingTask.builder().room(room).build());
-        }
-
-        if (room != null) {
-            task.setRoom(room);
-            room.setStatus(RoomStatus.CLEANING);
-            room.setOzoneStatus("CLEANING");
-            roomRepository.save(room);
-        }
-
         task.setHousekeeper(housekeeper);
         if (supervisor != null) {
             task.setSupervisor(supervisor);
         }
-        task.setTaskType(request.getTaskType() != null ? request.getTaskType() : "CHECKOUT_DEEP");
-        task.setStatus("PENDING");
+        if (request.getTaskType() != null && !request.getTaskType().isBlank()) {
+            task.setTaskType(request.getTaskType());
+        }
+        if (task.getStatus() == null || "PENDING".equals(task.getStatus())) {
+            task.setStatus("PENDING");
+        }
         if (request.getNotes() != null) {
             task.setSupervisorNote(request.getNotes());
         }
 
         HousekeepingTask saved = housekeepingTaskRepository.save(task);
-        log.info("Supervisor assigned task to housekeeper {}", housekeeper.getFullName());
+        log.info("Supervisor assigned task {} to housekeeper {}", saved.getId(), housekeeper.getFullName());
         return HousekeepingTaskResponse.fromEntity(saved);
     }
 
@@ -241,6 +267,24 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
         }
 
         HousekeepingTask saved = housekeepingTaskRepository.save(task);
+
+        if ("CHECKOUT_DEEP".equals(saved.getTaskType()) && villa != null) {
+            try {
+                CreateRefillTaskRequest refillReq = CreateRefillTaskRequest.builder()
+                        .villaId(villa.getId())
+                        .housekeepingTaskId(saved.getId())
+                        .note("Tự động bù đồ sau khi hoàn tất dọn phòng Checkout")
+                        .items(new ArrayList<>())
+                        .build();
+                adminRefillService.createRefillTask(refillReq, "Hệ thống");
+                log.info("Successfully created automatic RefillTask for villa {}", villa.getId());
+            } catch (Exception ex) {
+                log.warn("Could not create automatic refill task: {}", ex.getMessage());
+            }
+        }
+
+        notificationService.sendNotification("REFRESH_GANTT");
+
         return HousekeepingTaskResponse.fromEntity(saved);
     }
 
@@ -346,5 +390,12 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
             task.setCleaningNote(cleaningNote);
         }
         return HousekeepingTaskResponse.fromEntity(housekeepingTaskRepository.save(task));
+    }
+
+
+    @Override
+    @Transactional
+    public void clearAllData() {
+        housekeepingTaskRepository.deleteAll();
     }
 }

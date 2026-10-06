@@ -24,6 +24,7 @@ public class HomeBannerRequest {
     private String mobileImageUrl;
     private String ctaText;
     private String ctaLink;
+    private String placement;
     private Integer displayOrder;
     private Boolean isActive;
     private String badgesJson;

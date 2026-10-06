@@ -51,6 +51,12 @@ public class AdminRefillController {
         return ResponseEntity.ok(ApiResponse.success(null, "Áp dụng định mức tiêu chuẩn mẫu cho villa thành công"));
     }
 
+    @PostMapping("/standards/apply-defaults-all")
+    public ResponseEntity<ApiResponse<Void>> applyDefaultStandardsToAllVillas() {
+        refillService.applyDefaultStandardsToAllVillas();
+        return ResponseEntity.ok(ApiResponse.success(null, "Áp dụng định mức tiêu chuẩn mẫu cho TẤT CẢ villa thành công"));
+    }
+
     // --- 2. TỒN KHO THỰC TẾ TẠI VILLA ---
     @GetMapping("/villa-stock")
     public ResponseEntity<ApiResponse<List<VillaInventoryResponse>>> getVillaInventory(

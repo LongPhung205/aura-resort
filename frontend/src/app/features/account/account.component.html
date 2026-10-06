@@ -1,0 +1,610 @@
+<div class="min-h-screen bg-slate-50/60 pb-20 font-sans text-slate-800">
+  
+  <!-- TOAST NOTIFICATION -->
+  <div *ngIf="toastMessage" 
+       class="fixed top-24 right-6 z-50 flex items-center space-x-3 px-5 py-3.5 rounded-xl shadow-2xl border animate-fade-in text-sm font-bold text-white transition-all"
+       [ngClass]="toastType === 'success' ? 'bg-slate-900 border-sky-400' : 'bg-rose-900 border-rose-400'">
+    <span class="material-symbols-outlined text-[20px]" [ngClass]="toastType === 'success' ? 'text-sky-400' : 'text-rose-400'">
+      {{ toastType === 'success' ? 'check_circle' : 'error' }}
+    </span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- BREADCRUMBS & HERO HEADER -->
+  <div class="bg-gradient-to-r from-sky-50 via-white to-sky-100 text-slate-800 py-10 px-4 sm:px-6 lg:px-8 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-center space-x-2 text-xs font-bold text-sky-600 uppercase tracking-widest mb-2">
+        <a routerLink="/" class="hover:text-sky-800 transition">TRANG CHỦ</a>
+        <span>›</span>
+        <span class="text-slate-500">TRUNG TÂM KHÁCH HÀNG</span>
+      </div>
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-black uppercase tracking-wider text-slate-900">HỒ SƠ & LỊCH TRÌNH CÁ NHÂN</h1>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1">Quản lý những kỳ nghỉ sang trọng, đánh giá trải nghiệm và tài khoản thành viên Aura Club.</p>
+        </div>
+        <div class="flex items-center space-x-3 bg-white px-4 py-2.5 rounded-xl border border-sky-100 shadow-sm">
+          <span class="material-symbols-outlined text-amber-500 text-[24px]">verified</span>
+          <div>
+            <div class="text-[10px] text-sky-600 uppercase font-black tracking-widest">HẠNG THÀNH VIÊN</div>
+            <div class="text-sm font-extrabold text-slate-900">AURA ELITE MEMBER</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+      <!-- LEFT SIDEBAR -->
+      <div class="lg:col-span-1 space-y-6">
+        
+        <!-- User Info Card -->
+        <div class="bg-white rounded-2xl p-6 shadow-xl shadow-sky-100/50 border border-white text-center">
+          <div class="relative inline-block mb-3">
+            <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-[#0284C7] to-[#0369A1] text-white flex items-center justify-center text-2xl font-black shadow-md mx-auto overflow-hidden border-2 border-white">
+              <img *ngIf="profile?.avatar" [src]="profile?.avatar" alt="Avatar" class="w-full h-full object-cover">
+              <span *ngIf="!profile?.avatar">{{ getInitials(profile?.fullName || '') }}</span>
+            </div>
+            <span class="absolute bottom-0 right-0 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>
+          </div>
+
+          <h2 class="text-base font-black text-slate-900 tracking-wide">
+            {{ profile?.fullName || 'Khách Hàng Quý Tộc' }}
+          </h2>
+          <p class="text-xs text-slate-400 font-medium truncate mt-0.5">{{ profile?.email }}</p>
+
+          <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-2 text-center">
+            <div class="bg-sky-50/60 rounded-xl p-2.5 border border-sky-100/80">
+              <div class="text-lg font-black text-[#0369A1]">{{ bookings.length }}</div>
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Chuyến đi</div>
+            </div>
+            <div class="bg-amber-50/60 rounded-xl p-2.5 border border-amber-100/80">
+              <div class="text-lg font-black text-[#EA580C]">{{ reviews.length }}</div>
+              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Đánh giá</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs Card -->
+        <div class="bg-white rounded-2xl shadow-xl shadow-sky-100/50 border border-white overflow-hidden p-2">
+          <button (click)="setTab('bookings')"
+                  [ngClass]="activeTab === 'bookings' ? 'bg-[#0369A1] text-white shadow-md font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                  class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition text-xs tracking-wider uppercase cursor-pointer">
+            <div class="flex items-center space-x-3">
+              <span class="material-symbols-outlined text-[20px]">luggage</span>
+              <span>Chuyến đi của tôi</span>
+            </div>
+            <span *ngIf="bookings.length > 0" 
+                  [ngClass]="activeTab === 'bookings' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+              {{ bookings.length }}
+            </span>
+          </button>
+
+          <button (click)="setTab('reviews')"
+                  [ngClass]="activeTab === 'reviews' ? 'bg-[#0369A1] text-white shadow-md font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                  class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition text-xs tracking-wider uppercase mt-1 cursor-pointer">
+            <div class="flex items-center space-x-3">
+              <span class="material-symbols-outlined text-[20px]">star_rate</span>
+              <span>Đánh giá & Nhận xét</span>
+            </div>
+            <span *ngIf="completedUnreviewedBookings.length > 0"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#EA580C] text-white animate-pulse">
+              {{ completedUnreviewedBookings.length }} mới
+            </span>
+          </button>
+
+          <button (click)="setTab('profile')"
+                  [ngClass]="activeTab === 'profile' ? 'bg-[#0369A1] text-white shadow-md font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                  class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition text-xs tracking-wider uppercase mt-1 cursor-pointer">
+            <div class="flex items-center space-x-3">
+              <span class="material-symbols-outlined text-[20px]">badge</span>
+              <span>Thông tin tài khoản</span>
+            </div>
+          </button>
+
+          <div class="my-2 border-t border-slate-100"></div>
+
+          <button (click)="logout()"
+                  class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-bold tracking-wider uppercase text-rose-600 hover:bg-rose-50 transition cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span>Đăng xuất</span>
+          </button>
+        </div>
+
+        <!-- Help Card -->
+        <div class="bg-gradient-to-br from-[#0284C7] to-[#0369A1] rounded-2xl p-5 text-white shadow-md border border-sky-400">
+          <div class="flex items-center space-x-2 text-sky-100 font-bold text-xs uppercase mb-2">
+            <span class="material-symbols-outlined text-[18px]">support_agent</span>
+            <span>HỖ TRỢ ĐẶC QUYỀN 24/7</span>
+          </div>
+          <p class="text-[11px] text-sky-50 mb-3">Bạn cần hỗ trợ thay đổi lịch trình, đặt dịch vụ quản gia hoặc thắc mắc?</p>
+          <a href="tel:0961472686" class="inline-flex items-center space-x-2 px-3 py-2 bg-white hover:bg-sky-50 text-[#0369A1] rounded-lg text-xs font-black tracking-wider transition border border-white">
+            <span class="material-symbols-outlined text-[16px]">call</span>
+            <span>0961.472.686</span>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- RIGHT CONTENT AREA -->
+      <div class="lg:col-span-3">
+
+        <!-- ==================== TAB 1: MY BOOKINGS ==================== -->
+        <div *ngIf="activeTab === 'bookings'" class="space-y-6">
+
+          <!-- Filter Bar -->
+          <div class="bg-white rounded-2xl p-4 shadow-xl shadow-sky-100/50 border border-white flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap gap-1.5">
+              <button (click)="bookingFilter = 'ALL'"
+                      [ngClass]="bookingFilter === 'ALL' ? 'bg-[#0369A1] text-white shadow-2xs font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                      class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                Tất cả ({{ bookings.length }})
+              </button>
+              <button (click)="bookingFilter = 'PENDING'"
+                      [ngClass]="bookingFilter === 'PENDING' ? 'bg-amber-600 text-white shadow-2xs font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                      class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                Chờ xác nhận ({{ pendingBookingsCount }})
+              </button>
+              <button (click)="bookingFilter = 'CONFIRMED'"
+                      [ngClass]="bookingFilter === 'CONFIRMED' ? 'bg-emerald-600 text-white shadow-2xs font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                      class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                Sắp tới ({{ confirmedBookingsCount }})
+              </button>
+              <button (click)="bookingFilter = 'CHECKED_OUT'"
+                      [ngClass]="bookingFilter === 'CHECKED_OUT' ? 'bg-indigo-600 text-white shadow-2xs font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                      class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                Đã hoàn thành ({{ completedBookingsCount }})
+              </button>
+              <button (click)="bookingFilter = 'CANCELLED'"
+                      [ngClass]="bookingFilter === 'CANCELLED' ? 'bg-rose-600 text-white shadow-2xs font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                      class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                Đã hủy
+              </button>
+            </div>
+
+            <button (click)="loadBookings()" class="p-2 text-slate-400 hover:text-[#0369A1] rounded-lg hover:bg-slate-100 transition cursor-pointer" title="Làm mới">
+              <span class="material-symbols-outlined text-[20px]" [class.animate-spin]="bookingsLoading">refresh</span>
+            </button>
+          </div>
+
+          <!-- Loading state -->
+          <div *ngIf="bookingsLoading" class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
+            <span class="material-symbols-outlined animate-spin text-[#0369A1] text-4xl mb-3">progress_activity</span>
+            <p class="text-sm font-bold text-slate-600">Đang tải danh sách chuyến đi của bạn...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!bookingsLoading && filteredBookings.length === 0" class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
+            <div class="w-16 h-16 rounded-full bg-sky-50 text-[#0369A1] flex items-center justify-center mx-auto mb-4 border border-sky-100">
+              <span class="material-symbols-outlined text-[32px]">travel_explore</span>
+            </div>
+            <h3 class="text-base font-black text-slate-800 uppercase tracking-wide">CHƯA CÓ CHUYẾN ĐI PHÙ HỢP</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Bạn chưa có đơn đặt phòng nào trong mục này. Hãy khám phá bộ sưu tập villa sang trọng và lên kế hoạch cho kỳ nghỉ sắp tới.</p>
+            <a routerLink="/villas/search" class="mt-5 inline-flex items-center space-x-2 px-6 py-2.5 bg-[#0369A1] hover:bg-[#075985] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-sm transition">
+              <span class="material-symbols-outlined text-[18px]">search</span>
+              <span>Khám Phá Biệt Thự Ngay</span>
+            </a>
+          </div>
+
+          <!-- Bookings List -->
+          <div *ngIf="!bookingsLoading && filteredBookings.length > 0" class="space-y-4">
+            <div *ngFor="let b of filteredBookings" class="bg-white rounded-2xl p-5 sm:p-6 shadow-xl shadow-sky-100/50 border border-white hover:border-sky-300 transition-all">
+              <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-slate-100 gap-3">
+                <div class="flex items-center space-x-3">
+                  <div class="px-3 py-1 bg-sky-50 text-[#0369A1] rounded-lg text-xs font-black tracking-widest border border-sky-100 flex items-center space-x-1">
+                    <span class="material-symbols-outlined text-[14px]">confirmation_number</span>
+                    <span>#{{ b.bookingCode }}</span>
+                  </div>
+                  <span class="text-xs text-slate-400 font-medium">Đặt ngày {{ b.checkInDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+
+                <!-- Status Badge -->
+                <div>
+                  <span *ngIf="b.status === 'PENDING'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-bold border border-amber-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                    Chờ xác nhận / Thanh toán
+                  </span>
+                  <span *ngIf="b.status === 'CONFIRMED'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Đã xác nhận • Sắp tới
+                  </span>
+                  <span *ngIf="b.status === 'CHECKED_IN'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 text-sky-700 rounded-full text-xs font-bold border border-sky-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse"></span>
+                    Đang lưu trú tại Resort
+                  </span>
+                  <span *ngIf="b.status === 'CHECKED_OUT'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-bold border border-indigo-200">
+                    <span class="material-symbols-outlined text-[14px]">task_alt</span>
+                    Kỳ nghỉ đã hoàn thành
+                  </span>
+                  <span *ngIf="b.status === 'CANCELLED'" class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full text-xs font-bold border border-rose-200">
+                    Đã hủy đơn
+                  </span>
+                </div>
+              </div>
+
+              <!-- Main Card Body -->
+              <div class="py-4 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                <!-- Image & Title -->
+                <div class="md:col-span-6 flex items-center space-x-4">
+                  <img [src]="b.villaImage" alt="Villa" class="w-20 h-20 rounded-xl object-cover border border-slate-200 shadow-2xs flex-shrink-0" />
+                  <div>
+                    <h4 class="font-extrabold text-slate-900 text-sm sm:text-base leading-snug">
+                      {{ b.villaName }}
+                    </h4>
+                    <div class="flex items-center space-x-2 text-xs text-slate-500 mt-1">
+                      <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_month</span>
+                      <span>{{ b.checkInDate | date:'dd/MM/yyyy' }} ➔ {{ b.checkOutDate | date:'dd/MM/yyyy' }}</span>
+                      <span class="px-2 py-0.5 bg-slate-100 rounded-md font-bold text-slate-700 text-[11px]">{{ b.totalNights }} đêm</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Price and Cost -->
+                <div class="md:col-span-3">
+                  <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng giá trị đơn</div>
+                  <div class="text-lg font-black text-[#EA580C] mt-0.5">
+                    {{ b.totalAmount | number }} đ
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="md:col-span-3 flex flex-wrap md:flex-col gap-2 justify-end">
+                  <button (click)="openBookingDetail(b)" class="px-4 py-2 bg-slate-100 hover:bg-[#0369A1] hover:text-white text-slate-700 text-xs font-bold uppercase rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+                    <span>Chi Tiết & Hóa Đơn</span>
+                  </button>
+
+                  <button *ngIf="b.status === 'PENDING'" (click)="promptCancelBooking(b.id)" class="px-4 py-2 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-700 text-xs font-bold uppercase rounded-xl transition flex items-center justify-center space-x-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">cancel</span>
+                    <span>Hủy Đặt Phòng</span>
+                  </button>
+
+                  <button *ngIf="b.status === 'CHECKED_OUT'" (click)="openWriteReview(b)" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase rounded-xl transition flex items-center justify-center space-x-1 shadow-2xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">rate_review</span>
+                    <span>Đánh Giá Kỳ Nghỉ</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 2: MY REVIEWS ==================== -->
+        <div *ngIf="activeTab === 'reviews'" class="space-y-6">
+          
+          <!-- Sub-tabs -->
+          <div class="flex items-center space-x-3 bg-white p-2 rounded-2xl shadow-xl shadow-sky-100/50 border border-white w-max">
+            <button (click)="reviewSubTab = 'reviewed'"
+                    [ngClass]="reviewSubTab === 'reviewed' ? 'bg-[#0369A1] text-white shadow-md font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                    class="px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition flex items-center space-x-2 cursor-pointer">
+              <span class="material-symbols-outlined text-[18px]">verified</span>
+              <span>Đã Đánh Giá ({{ reviews.length }})</span>
+            </button>
+            <button (click)="reviewSubTab = 'pending'"
+                    [ngClass]="reviewSubTab === 'pending' ? 'bg-amber-500 text-white shadow-md font-bold' : 'text-slate-600 hover:bg-slate-50 font-medium'"
+                    class="px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition flex items-center space-x-2 cursor-pointer">
+              <span class="material-symbols-outlined text-[18px]">pending_actions</span>
+              <span>Chờ Đánh Giá ({{ completedUnreviewedBookings.length }})</span>
+            </button>
+          </div>
+
+          <!-- SubTab: Reviewed -->
+          <div *ngIf="reviewSubTab === 'reviewed'" class="space-y-4">
+            <div *ngIf="reviewsLoading" class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
+              <span class="material-symbols-outlined animate-spin text-[#0369A1] text-4xl mb-3">progress_activity</span>
+              <p class="text-sm font-bold text-slate-600">Đang tải danh sách đánh giá...</p>
+            </div>
+
+            <div *ngIf="!reviewsLoading && reviews.length === 0" class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
+              <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-4 border border-amber-100">
+                <span class="material-symbols-outlined text-[32px]">reviews</span>
+              </div>
+              <h3 class="text-base font-black text-slate-800 uppercase tracking-wide">CHƯA CÓ ĐÁNH GIÁ NÀO</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Bạn chưa để lại nhận xét nào. Những đánh giá chân thực của bạn sẽ giúp nâng tầm dịch vụ của chúng tôi.</p>
+            </div>
+
+            <div *ngIf="!reviewsLoading && reviews.length > 0" class="space-y-4">
+              <div *ngFor="let r of reviews" class="bg-white rounded-2xl p-6 shadow-xl shadow-sky-100/50 border border-white space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h4 class="font-black text-slate-900 text-sm sm:text-base">{{ r.villaName || 'Villa Aura Resort' }}</h4>
+                    <span class="text-xs text-slate-400">Đánh giá ngày {{ r.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <!-- Stars -->
+                  <div class="flex items-center space-x-1 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100">
+                    <span *ngFor="let star of [1,2,3,4,5]" class="material-symbols-outlined text-[18px]" [ngClass]="star <= r.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'">star</span>
+                    <span class="text-xs font-black text-amber-700 ml-1">{{ r.rating }}/5</span>
+                  </div>
+                </div>
+
+                <!-- Review Content -->
+                <p class="text-xs sm:text-sm text-slate-700 leading-relaxed italic">
+                  "{{ r.comment }}"
+                </p>
+
+                <!-- Management Reply Box -->
+                <div *ngIf="r.managementReply" class="bg-sky-50/60 rounded-xl p-4 border border-sky-100 space-y-1.5">
+                  <div class="flex items-center space-x-2 text-xs font-black text-[#0369A1] uppercase tracking-wider">
+                    <span class="material-symbols-outlined text-[16px]">corporate_fare</span>
+                    <span>Phản hồi từ Quản Lý Resort ({{ r.repliedAt | date:'dd/MM/yyyy' }})</span>
+                  </div>
+                  <p class="text-xs text-slate-600 leading-relaxed font-medium">
+                    {{ r.managementReply }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SubTab: Pending Review -->
+          <div *ngIf="reviewSubTab === 'pending'" class="space-y-4">
+            <div *ngIf="completedUnreviewedBookings.length === 0" class="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-200">
+              <span class="material-symbols-outlined text-emerald-500 text-5xl mb-2">task_alt</span>
+              <h3 class="text-base font-black text-slate-800 uppercase tracking-wide">TẤT CẢ CHUYẾN ĐI ĐÃ ĐƯỢC ĐÁNH GIÁ</h3>
+              <p class="text-xs text-slate-500 mt-1">Cảm ơn bạn đã luôn đồng hành và chia sẻ cảm nghĩ cùng Aura Villas!</p>
+            </div>
+
+            <div *ngFor="let b of completedUnreviewedBookings" class="bg-white rounded-2xl p-5 shadow-xl shadow-sky-100/50 border border-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center space-x-4">
+                <img [src]="b.villaImage" alt="Villa" class="w-16 h-16 rounded-xl object-cover border border-slate-200 flex-shrink-0" />
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">{{ b.villaName }}</h4>
+                  <div class="text-xs text-slate-500 mt-0.5">Lưu trú: {{ b.checkInDate | date:'dd/MM/yyyy' }} - {{ b.checkOutDate | date:'dd/MM/yyyy' }}</div>
+                </div>
+              </div>
+              <button (click)="openWriteReview(b)" class="px-5 py-2.5 bg-[#EA580C] hover:bg-[#C2410C] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">rate_review</span>
+                <span>Gửi Đánh Giá Ngay</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== TAB 3: MY PROFILE ==================== -->
+        <div *ngIf="activeTab === 'profile'" class="space-y-6">
+
+          <!-- Personal Information Card -->
+          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-sky-100/50 border border-white space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h3 class="text-base font-black text-slate-900 uppercase tracking-wide">THÔNG TIN CÁ NHÂN</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Cập nhật hồ sơ để nhận các ưu đãi và dịch vụ đón tiếp chu đáo nhất.</p>
+            </div>
+
+            <!-- Avatar Uploader -->
+            <div class="flex items-center space-x-5">
+              <div class="relative w-24 h-24 rounded-full border-4 border-slate-50 shadow-md flex-shrink-0 overflow-hidden bg-gradient-to-tr from-[#0284C7] to-[#0369A1] text-white flex items-center justify-center text-3xl font-black">
+                <img *ngIf="profileForm.avatar" [src]="profileForm.avatar" alt="Avatar" class="w-full h-full object-cover">
+                <span *ngIf="!profileForm.avatar">{{ getInitials(profileForm.fullName) }}</span>
+              </div>
+              <div>
+                <label class="cursor-pointer inline-flex items-center space-x-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-xl transition">
+                  <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                  <span>Đổi Ảnh Đại Diện</span>
+                  <input type="file" accept="image/*" class="hidden" (change)="onAvatarSelect($event)">
+                </label>
+                <p class="text-[10px] text-slate-400 mt-2">Định dạng JPG, PNG. Dung lượng tối đa 2MB.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Họ và tên</label>
+                <input type="text" [(ngModel)]="profileForm.fullName" placeholder="Nhập họ và tên..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-semibold text-slate-800" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Số điện thoại liên hệ</label>
+                <input type="text" [(ngModel)]="profileForm.phone" placeholder="Nhập số điện thoại..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-semibold text-slate-800" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Địa chỉ Email</label>
+                <input type="email" [value]="profile?.email" disabled class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-medium text-slate-400 cursor-not-allowed" />
+                <span class="text-[10px] text-slate-400 mt-1 block">Email dùng để đăng nhập và bảo mật tài khoản (không thể thay đổi).</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Ngày gia nhập Aura Club</label>
+                <input type="text" [value]="profile?.createdAt | date:'dd/MM/yyyy'" disabled class="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-medium text-slate-400 cursor-not-allowed" />
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+              <button (click)="saveProfile()" [disabled]="profileLoading" class="px-7 py-2.5 bg-[#0369A1] hover:bg-[#075985] text-white rounded-xl shadow-md font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2 cursor-pointer disabled:opacity-50">
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                <span>{{ profileLoading ? 'Đang lưu...' : 'Lưu Thay Đổi' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Password & Security Card -->
+          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-xl shadow-sky-100/50 border border-white space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h3 class="text-base font-black text-slate-900 uppercase tracking-wide">BẢO MẬT & ĐỔI MẬT KHẨU</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Đặt mật khẩu mạnh để bảo vệ thông tin cá nhân và lịch sử chuyến đi.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Mật khẩu hiện tại</label>
+                <input type="password" [(ngModel)]="passwordForm.currentPassword" placeholder="••••••••" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-semibold" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Mật khẩu mới</label>
+                <input type="password" [(ngModel)]="passwordForm.newPassword" placeholder="Từ 6 ký tự..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-semibold" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Xác nhận mật khẩu mới</label>
+                <input type="password" [(ngModel)]="passwordForm.confirmPassword" placeholder="Nhập lại mật khẩu..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-semibold" />
+              </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+              <button (click)="changePassword()" [disabled]="passwordLoading" class="px-7 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl shadow-md font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2 cursor-pointer disabled:opacity-50">
+                <span class="material-symbols-outlined text-[18px]">key</span>
+                <span>{{ passwordLoading ? 'Đang cập nhật...' : 'Đổi Mật Khẩu' }}</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== BOOKING DETAIL MODAL ==================== -->
+  <div *ngIf="showDetailModal && selectedBooking" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[#0369A1]">receipt_long</span>
+          <h3 class="text-base font-black text-slate-900 uppercase">CHI TIẾT ĐƠN ĐẶT PHÒNG #{{ selectedBooking.bookingCode }}</h3>
+        </div>
+        <button (click)="closeBookingDetail()" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 flex items-center justify-center transition cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 text-sm">
+        <div class="bg-sky-50/60 p-4 rounded-xl border border-sky-100 flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-500 font-medium">Trạng thái kỳ nghỉ</div>
+            <div class="text-base font-extrabold text-[#0369A1] uppercase">{{ selectedBooking.status }}</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500 font-medium">Tổng thanh toán</div>
+            <div class="text-lg font-black text-[#EA580C]">{{ selectedBooking.totalAmount | number }} đ</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-xs text-slate-400 font-bold uppercase block mb-1">Thời gian nhận phòng (Check-in)</span>
+            <div class="font-extrabold text-slate-800">{{ selectedBooking.checkInDate | date:'EEEE, dd/MM/yyyy' }}</div>
+            <span class="text-xs text-slate-500">Từ 14:00</span>
+          </div>
+          <div>
+            <span class="text-xs text-slate-400 font-bold uppercase block mb-1">Thời gian trả phòng (Check-out)</span>
+            <div class="font-extrabold text-slate-800">{{ selectedBooking.checkOutDate | date:'EEEE, dd/MM/yyyy' }}</div>
+            <span class="text-xs text-slate-500">Trước 12:00</span>
+          </div>
+        </div>
+
+        <div class="space-y-2 border-b border-slate-100 pb-4">
+          <span class="text-xs text-slate-400 font-bold uppercase block">Biệt Thự Đã Chọn</span>
+          <div class="font-bold text-slate-900 text-base">{{ selectedBooking.villaName }}</div>
+          <div class="text-xs text-slate-500" *ngIf="selectedBooking.note">
+            <span class="font-bold text-slate-700">Ghi chú đặc biệt:</span> {{ selectedBooking.note }}
+          </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 text-xs space-y-1.5 text-slate-600 border border-slate-100">
+          <div class="font-bold text-slate-800 uppercase text-[11px] mb-1">Chính sách nhận & trả phòng Aura Resort:</div>
+          <div>• Quý khách vui lòng xuất trình CCCD/Hộ chiếu trùng khớp thông tin khi nhận villa.</div>
+          <div>• Đội ngũ quản gia Butler sẽ túc trực đón tiếp và hướng dẫn sử dụng tiện ích cao cấp.</div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50">
+        <button (click)="closeBookingDetail()" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CANCEL BOOKING MODAL ==================== -->
+  <div *ngIf="showCancelModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4 border border-slate-200">
+      <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-[28px]">warning</span>
+      </div>
+      <div class="text-center">
+        <h3 class="text-base font-black text-slate-900 uppercase">XÁC NHẬN HỦY ĐẶT PHÒNG?</h3>
+        <p class="text-xs text-slate-500 mt-1">Bạn có chắc chắn muốn hủy đơn đặt phòng này không? Hành động này không thể hoàn tác.</p>
+      </div>
+
+      <div class="flex items-center space-x-3 pt-3">
+        <button (click)="showCancelModal = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold uppercase text-xs tracking-wider transition cursor-pointer">
+          Không, Giữ Lại
+        </button>
+        <button (click)="confirmCancelBooking()" [disabled]="cancelLoading" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold uppercase text-xs tracking-wider transition cursor-pointer disabled:opacity-50">
+          {{ cancelLoading ? 'Đang hủy...' : 'Đồng Ý Hủy' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== WRITE REVIEW MODAL ==================== -->
+  <div *ngIf="showReviewModal && reviewingBooking" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden border border-slate-200">
+      
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <div>
+          <h3 class="text-base font-black text-slate-900 uppercase">ĐÁNH GIÁ KỲ NGHỈ CỦA BẠN</h3>
+          <p class="text-xs text-slate-500 mt-0.5">{{ reviewingBooking.villaName }}</p>
+        </div>
+        <button (click)="closeReviewModal()" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 flex items-center justify-center transition cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <!-- Star selection -->
+        <div class="text-center space-y-2">
+          <label class="block text-xs font-bold text-slate-600 uppercase">Mức độ hài lòng của bạn</label>
+          <div class="flex items-center justify-center space-x-2">
+            <button *ngFor="let s of [1,2,3,4,5]" 
+                    type="button"
+                    (click)="setRating(s)" 
+                    class="p-1 hover:scale-125 transition-transform cursor-pointer">
+              <span class="material-symbols-outlined text-[36px]" 
+                    [ngClass]="s <= reviewForm.rating ? 'text-amber-500 fill-amber-500' : 'text-slate-300'">
+                star
+              </span>
+            </button>
+          </div>
+          <div class="text-xs font-black text-amber-600">
+            <span *ngIf="reviewForm.rating === 5">Tuyệt vời! Hoàn hảo trên cả mong đợi (5/5)</span>
+            <span *ngIf="reviewForm.rating === 4">Rất tốt! Kỳ nghỉ rất đáng nhớ (4/5)</span>
+            <span *ngIf="reviewForm.rating === 3">Hài lòng! Đáp ứng tốt nhu cầu (3/5)</span>
+            <span *ngIf="reviewForm.rating === 2">Trung bình! Cần cải thiện một số điểm (2/5)</span>
+            <span *ngIf="reviewForm.rating === 1">Chưa hài lòng! (1/5)</span>
+          </div>
+        </div>
+
+        <!-- Textarea comment -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Chia sẻ cảm nhận chi tiết</label>
+          <textarea [(ngModel)]="reviewForm.comment" 
+                    rows="4" 
+                    placeholder="Hãy chia sẻ về không gian biệt thự, độ sạch sẽ, thái độ quản gia hoặc tiện ích hồ bơi..." 
+                    class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-800 resize-none">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50">
+        <button (click)="closeReviewModal()" class="px-5 py-2.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer">
+          Hủy Bỏ
+        </button>
+        <button (click)="submitReview()" [disabled]="reviewSubmitting" class="px-7 py-2.5 bg-[#EA580C] hover:bg-[#C2410C] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm flex items-center space-x-2 cursor-pointer disabled:opacity-50">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          <span>{{ reviewSubmitting ? 'Đang gửi...' : 'Gửi Đánh Giá' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

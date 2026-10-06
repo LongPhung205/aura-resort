@@ -37,6 +37,10 @@ public class HomeBanner extends BaseEntity {
     @Column(name = "cta_link", length = 255)
     private String ctaLink;
 
+    @Column(name = "placement", length = 50)
+    @Builder.Default
+    private String placement = "HOME"; // e.g. HOME, CATEGORY, AUTH
+
     @Builder.Default
     @Column(name = "display_order", nullable = false)
     private Integer displayOrder = 1;

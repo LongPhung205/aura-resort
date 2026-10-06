@@ -1,0 +1,180 @@
+<!-- Luxury Unified Header -->
+<header class="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      
+      <!-- Left: Brand Logo -->
+      <a routerLink="/" class="flex-shrink-0 flex items-center group">
+        <img src="/logo.svg" alt="Aura Villas Logo" class="h-10 w-auto object-contain group-hover:opacity-80 transition-opacity">
+      </a>
+
+      <!-- Center: Main Navigation (Desktop) -->
+      <nav class="hidden lg:flex items-center space-x-8">
+        <a routerLink="/" class="text-[13px] font-bold text-slate-900 tracking-widest uppercase hover:text-[#0284C7] transition-colors relative group">
+          TRANG CHỦ
+          <span class="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-[#0284C7] transition-all duration-300 group-hover:w-full"></span>
+        </a>
+
+        <!-- Dropdown: PHÂN KHU -->
+        <div class="relative group" (mouseenter)="isVillaDropdownOpen = true" (mouseleave)="isVillaDropdownOpen = false">
+          <button type="button" (click)="toggleVillaDropdown($event)" class="flex items-center space-x-1 text-[13px] font-bold text-slate-900 tracking-widest uppercase hover:text-[#0284C7] transition-colors outline-none cursor-pointer">
+            <span>PHÂN KHU</span>
+            <span class="material-symbols-outlined text-[18px] transition-transform duration-200" [class.rotate-180]="isVillaDropdownOpen">arrow_drop_down</span>
+          </button>
+          
+          <!-- Elegant Dropdown Card -->
+          <div *ngIf="isVillaDropdownOpen" class="absolute left-1/2 -translate-x-1/2 top-full mt-0 w-72 bg-white rounded-b-sm shadow-xl border border-t-0 border-slate-200 py-3 z-50 text-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
+            <a *ngFor="let zone of zones" [routerLink]="['/villas/search']" [queryParams]="{zone: zone.name}" (click)="closeVillaDropdown()" class="flex items-center space-x-3 px-5 py-3 hover:bg-slate-50 transition group/item">
+              <span class="text-slate-400 group-hover/item:text-[#0284C7] transition-colors"><span class="material-symbols-outlined text-[18px]">holiday_village</span></span>
+              <div>
+                <div class="font-bold text-[13px] text-slate-900">Phân khu {{ zone.name }}</div>
+                <div class="text-[11px] text-slate-500 font-normal">{{ zone.description || 'Biệt thự nghỉ dưỡng cao cấp' }}</div>
+              </div>
+            </a>
+            <div class="my-2 border-t border-slate-100"></div>
+            <a [routerLink]="['/villas/search']" [queryParams]="{zone: 'all'}" (click)="closeVillaDropdown()" class="block px-5 py-2 text-center text-xs font-bold text-[#0284C7] uppercase tracking-widest hover:text-[#0369A1] transition">
+              XEM TẤT CẢ BIỆT THỰ →
+            </a>
+          </div>
+        </div>
+
+        <a href="#offers" class="text-[13px] font-bold text-slate-900 tracking-widest uppercase hover:text-[#0284C7] transition-colors relative group">
+          BÀI VIẾT
+          <span class="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-[#0284C7] transition-all duration-300 group-hover:w-full"></span>
+        </a>
+        <a href="#footer" class="text-[13px] font-bold text-slate-900 tracking-widest uppercase hover:text-[#0284C7] transition-colors relative group">
+          LIÊN HỆ
+          <span class="absolute -bottom-1.5 left-0 w-0 h-0.5 bg-[#0284C7] transition-all duration-300 group-hover:w-full"></span>
+        </a>
+      </nav>
+
+      <!-- Right: Actions -->
+      <div class="hidden lg:flex items-center space-x-5">
+        
+        <!-- Language -->
+        <div class="flex items-center space-x-1.5 text-slate-600 hover:text-[#0284C7] cursor-pointer transition-colors">
+          <span class="material-symbols-outlined text-[16px]">language</span>
+          <span class="text-[11px] font-bold uppercase tracking-wider">VN</span>
+        </div>
+
+        <span class="w-px h-4 bg-slate-200"></span>
+
+        <!-- Admin / Login -->
+        <ng-container *ngIf="isLoggedIn && currentUser">
+          <div class="relative group">
+            <button class="flex items-center space-x-1.5 text-slate-900 hover:text-[#0284C7] transition-colors cursor-pointer py-2">
+              <img *ngIf="currentUser.avatarUrl" [src]="currentUser.avatarUrl" class="w-6 h-6 rounded-full object-cover border border-slate-200">
+              <span *ngIf="!currentUser.avatarUrl" class="material-symbols-outlined text-[20px] text-[#0284C7]">account_circle</span>
+              <span class="text-[12px] font-bold tracking-wider">{{ vipUserName }}</span>
+              <span class="material-symbols-outlined text-[16px] text-slate-400">expand_more</span>
+            </button>
+            <div class="absolute right-0 top-full mt-1 w-56 bg-white border border-slate-200/80 shadow-2xl rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 py-2 z-50 divide-y divide-slate-100">
+              <div class="px-4 py-2 bg-slate-50/50">
+                <div class="text-xs font-black text-slate-900 truncate">{{ vipUserName }}</div>
+                <div class="text-[10px] text-slate-400 font-medium truncate">{{ currentUser.email || 'Aura Member' }}</div>
+              </div>
+
+              <div class="py-1">
+                <a routerLink="/account" [queryParams]="{tab: 'bookings'}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] transition">
+                  <span class="material-symbols-outlined text-[17px] text-[#0284C7]">luggage</span>
+                  <span>Chuyến đi của tôi</span>
+                </a>
+                <a routerLink="/account" [queryParams]="{tab: 'reviews'}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] transition">
+                  <span class="material-symbols-outlined text-[17px] text-amber-500">star</span>
+                  <span>Đánh giá & Nhận xét</span>
+                </a>
+                <a routerLink="/account" [queryParams]="{tab: 'profile'}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-sky-50 hover:text-[#0284C7] transition">
+                  <span class="material-symbols-outlined text-[17px] text-slate-500">badge</span>
+                  <span>Thông tin tài khoản</span>
+                </a>
+              </div>
+
+              <div class="py-1" *ngIf="currentUser.role === 'ROLE_HOUSEKEEPING' || (currentUser.role !== 'ROLE_CUSTOMER' && currentUser.role !== 'CUSTOMER')">
+                <a *ngIf="currentUser.role === 'ROLE_HOUSEKEEPING'" routerLink="/housekeeping" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0284C7] transition">
+                  <span class="material-symbols-outlined text-[17px]">cleaning_services</span>
+                  <span>Cổng Buồng Phòng</span>
+                </a>
+                <a *ngIf="currentUser.role !== 'ROLE_HOUSEKEEPING' && currentUser.role !== 'ROLE_CUSTOMER' && currentUser.role !== 'CUSTOMER'" routerLink="/admin" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-[#0284C7] transition">
+                  <span class="material-symbols-outlined text-[17px]">admin_panel_settings</span>
+                  <span>Cổng Quản Trị</span>
+                </a>
+              </div>
+
+              <div class="py-1">
+                <button (click)="logout()" class="w-full flex items-center space-x-2.5 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition cursor-pointer">
+                  <span class="material-symbols-outlined text-[17px]">logout</span>
+                  <span>Đăng Xuất</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+        
+        <a *ngIf="!isLoggedIn && !isAuthPage" routerLink="/login" class="text-[12px] font-bold text-slate-900 tracking-wider hover:text-[#0284C7] transition-colors flex items-center space-x-1 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">login</span>
+          <span>ĐĂNG NHẬP</span>
+        </a>
+
+        <!-- Hotline CTA -->
+        <a href="tel:0961472686" class="bg-[#0B1320] hover:bg-[#1E293B] text-white px-5 py-2.5 rounded-sm text-[11px] font-bold uppercase tracking-widest transition-colors flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[16px]">call</span>
+          <span>0961.472.686</span>
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="flex lg:hidden items-center space-x-3">
+        <a href="tel:0961472686" class="p-2 text-slate-900 bg-slate-100 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">call</span>
+        </a>
+        <button type="button" (click)="toggleMobileMenu()" class="p-2 text-slate-900 focus:outline-none flex items-center justify-center cursor-pointer">
+          <span *ngIf="!isMobileMenuOpen" class="material-symbols-outlined text-[28px]">menu</span>
+          <span *ngIf="isMobileMenuOpen" class="material-symbols-outlined text-[28px]">close</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Menu Dropdown -->
+  <div *ngIf="isMobileMenuOpen" class="lg:hidden absolute top-full left-0 w-full bg-white border-t border-slate-200 shadow-2xl animate-in slide-in-from-top-2">
+    <div class="px-4 pt-2 pb-6 space-y-1">
+      <a (click)="isMobileMenuOpen = false" routerLink="/" class="block px-4 py-3 text-sm font-bold text-slate-900 tracking-wider uppercase border-b border-slate-100">TRANG CHỦ</a>
+      <a (click)="isMobileMenuOpen = false" routerLink="/villas/zone/villa-ngoc-trai" class="block px-4 py-3 text-sm font-bold text-slate-900 tracking-wider uppercase border-b border-slate-100">VILLA NGỌC TRAI</a>
+      <a (click)="isMobileMenuOpen = false" routerLink="/villas/zone/villa-sao-bien" class="block px-4 py-3 text-sm font-bold text-slate-900 tracking-wider uppercase border-b border-slate-100">VILLA SAO BIỂN</a>
+      <a (click)="isMobileMenuOpen = false" routerLink="/villas/zone/villa-san-ho" class="block px-4 py-3 text-sm font-bold text-slate-900 tracking-wider uppercase border-b border-slate-100">VILLA SAN HÔ</a>
+      <a (click)="isMobileMenuOpen = false" [routerLink]="['/villas/search']" [queryParams]="{zone: 'all'}" class="block px-4 py-3 text-sm font-bold text-slate-900 tracking-wider uppercase border-b border-slate-100">TÌM VILLA TẤT CẢ</a>
+      <a (click)="isMobileMenuOpen = false" href="#offers" class="block px-4 py-3 text-sm font-bold text-slate-900 tracking-wider uppercase border-b border-slate-100">BÀI VIẾT</a>
+      
+      <div *ngIf="isLoggedIn" class="py-2 border-b border-slate-100 space-y-1">
+        <a (click)="isMobileMenuOpen = false" routerLink="/account" [queryParams]="{tab: 'bookings'}" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-[18px] text-[#0284C7]">luggage</span>
+          <span>Chuyến đi của tôi</span>
+        </a>
+        <a (click)="isMobileMenuOpen = false" routerLink="/account" [queryParams]="{tab: 'reviews'}" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-[18px] text-amber-500">star</span>
+          <span>Đánh giá & Nhận xét</span>
+        </a>
+        <a (click)="isMobileMenuOpen = false" routerLink="/account" [queryParams]="{tab: 'profile'}" class="flex items-center space-x-2 px-4 py-2.5 text-xs font-bold text-slate-800 uppercase tracking-wider">
+          <span class="material-symbols-outlined text-[18px] text-slate-500">badge</span>
+          <span>Thông tin tài khoản</span>
+        </a>
+      </div>
+
+      <div class="px-4 mt-4 space-y-2.5">
+        <a *ngIf="!isLoggedIn && !isAuthPage" (click)="isMobileMenuOpen = false" routerLink="/login" class="flex items-center justify-center space-x-2 w-full py-3 bg-slate-100 text-slate-900 text-xs font-bold uppercase tracking-widest rounded-sm">
+          <span class="material-symbols-outlined text-[18px]">login</span>
+          <span>Đăng Nhập</span>
+        </a>
+        <button *ngIf="isLoggedIn" (click)="isMobileMenuOpen = false; logout()" class="flex items-center justify-center space-x-2 w-full py-3 bg-red-50 text-red-600 text-xs font-bold uppercase tracking-widest rounded-sm cursor-pointer">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          <span>Đăng Xuất ({{ vipUserName }})</span>
+        </button>
+        <a href="tel:0961472686" class="flex items-center justify-center space-x-2 w-full py-3 bg-[#0B1320] text-white text-xs font-bold uppercase tracking-widest rounded-sm shadow-md">
+          <span class="material-symbols-outlined text-[18px]">call</span>
+          <span>Hotline: 0961.472.686</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</header>

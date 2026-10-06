@@ -39,6 +39,8 @@ public class AdminBookingItemResponse implements Serializable {
     }
 
     // Stay Details
+    private java.time.LocalDate checkInDate;
+    private java.time.LocalDate checkOutDate;
     private String checkInFormatted;
     private String checkOutFormatted;
     private Integer nights;
@@ -52,6 +54,7 @@ public class AdminBookingItemResponse implements Serializable {
     private BigDecimal totalAmount;
     private String totalAmountDisplay;
     private String paymentStatusDisplay;
+    private String paymentMethod;
     private Boolean isFullyPaid;
 
     // Service & Butler
@@ -63,4 +66,6 @@ public class AdminBookingItemResponse implements Serializable {
     private String statusCode;
     private String statusLabel;
     private String statusBadgeColor;
+    private String note;
+    private String guestEmail;
 }

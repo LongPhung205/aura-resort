@@ -18,6 +18,8 @@ public interface AdminRefillService {
     void deleteStandard(Long id);
 
     void applyDefaultStandardsToVilla(Long villaId);
+    
+    void applyDefaultStandardsToAllVillas();
 
     List<VillaInventoryResponse> getVillaInventory(Long villaId);
 

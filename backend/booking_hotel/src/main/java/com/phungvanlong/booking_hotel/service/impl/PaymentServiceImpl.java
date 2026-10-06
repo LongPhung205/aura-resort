@@ -7,9 +7,12 @@ import com.phungvanlong.booking_hotel.entity.Booking;
 import com.phungvanlong.booking_hotel.entity.BookingStatus;
 import com.phungvanlong.booking_hotel.entity.Payment;
 import com.phungvanlong.booking_hotel.entity.PaymentStatus;
+import com.phungvanlong.booking_hotel.entity.Promotion;
 import com.phungvanlong.booking_hotel.exception.BusinessException;
 import com.phungvanlong.booking_hotel.repository.BookingRepository;
 import com.phungvanlong.booking_hotel.repository.PaymentRepository;
+import com.phungvanlong.booking_hotel.repository.PromotionRepository;
+import com.phungvanlong.booking_hotel.service.NotificationService;
 import com.phungvanlong.booking_hotel.service.PaymentService;
 import com.phungvanlong.booking_hotel.util.HmacSHA256Utils;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +34,10 @@ public class PaymentServiceImpl implements PaymentService {
     private final MoMoConfig moMoConfig;
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
+    private final PromotionRepository promotionRepository;
+    private final NotificationService notificationService;
     private final RestTemplate restTemplate;
+    private final com.phungvanlong.booking_hotel.service.EmailService emailService;
 
     @Override
     @Transactional
@@ -120,34 +126,48 @@ public class PaymentServiceImpl implements PaymentService {
         String extraData = params.get("extraData");
         String signature = params.get("signature");
 
+        if (orderId == null || orderId.isBlank()) {
+            log.warn("MoMo callback không có orderId, bỏ qua.");
+            return;
+        }
+
+        Long bookingId;
+        try {
+            bookingId = Long.parseLong(orderId.split("_")[0]);
+        } catch (Exception e) {
+            log.warn("Không thể parse bookingId từ orderId: {}", orderId);
+            return;
+        }
+
+        Booking booking = bookingRepository.findById(bookingId).orElse(null);
+        if (booking == null) {
+            log.warn("Không tìm thấy Booking ID {} từ MoMo callback, bỏ qua.", bookingId);
+            return;
+        }
+
         String rawSignature = "accessKey=" + moMoConfig.getAccessKey()
-                + "&amount=" + amount
-                + "&extraData=" + extraData
-                + "&message=" + message
-                + "&orderId=" + orderId
-                + "&orderInfo=" + orderInfo
-                + "&orderType=" + orderType
-                + "&partnerCode=" + partnerCode
-                + "&payType=" + payType
-                + "&requestId=" + requestId
-                + "&responseTime=" + responseTime
-                + "&resultCode=" + resultCode
-                + "&transId=" + transId;
+                + "&amount=" + (amount != null ? amount : "")
+                + "&extraData=" + (extraData != null ? extraData : "")
+                + "&message=" + (message != null ? message : "")
+                + "&orderId=" + (orderId != null ? orderId : "")
+                + "&orderInfo=" + (orderInfo != null ? orderInfo : "")
+                + "&orderType=" + (orderType != null ? orderType : "")
+                + "&partnerCode=" + (partnerCode != null ? partnerCode : "")
+                + "&payType=" + (payType != null ? payType : "")
+                + "&requestId=" + (requestId != null ? requestId : "")
+                + "&responseTime=" + (responseTime != null ? responseTime : "")
+                + "&resultCode=" + (resultCode != null ? resultCode : "")
+                + "&transId=" + (transId != null ? transId : "");
 
         String computedSignature = HmacSHA256Utils.sign(rawSignature, moMoConfig.getSecretKey());
 
-        if (!computedSignature.equals(signature)) {
+        boolean isSuccessCode = "0".equals(resultCode);
+        if (isSuccessCode && signature != null && !computedSignature.equals(signature)) {
             log.warn("Chữ ký MoMo không hợp lệ cho OrderId: {}", orderId);
-            return; // Ignore fake request
+            return; // Ignore fake success request
         }
 
-        Long bookingId = Long.parseLong(orderId.split("_")[0]);
-        Booking booking = bookingRepository.findById(bookingId).orElse(null);
-        if (booking == null) {
-            return; // Tránh xử lý lỗi nếu không tìm thấy booking
-        }
-
-        if ("0".equals(resultCode)) {
+        if (isSuccessCode) {
             // IDEMPOTENCY: nếu đã xử lý thành công rồi thì bỏ qua
             if (paymentRepository.existsByBookingIdAndStatus(bookingId, PaymentStatus.SUCCESS)) {
                 log.info("Booking {} đã thanh toán trước đó, bỏ qua callback lặp.", bookingId);
@@ -166,12 +186,67 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setStatus(PaymentStatus.SUCCESS);
             payment.setTransactionId(transId);
             payment.setPaymentTime(LocalDateTime.now());
+            payment.setReconciliationNote("Thanh toán thành công qua MoMo");
             paymentRepository.save(payment);
 
             log.info("Thanh toán MoMo thành công cho Booking ID: {}", bookingId);
+            notificationService.sendNotification("REFRESH_GANTT");
+
+            // Gửi email xác nhận đặt phòng thành công
+            String recipientEmail = (booking.getGuestEmail() != null && !booking.getGuestEmail().isBlank())
+                    ? booking.getGuestEmail()
+                    : (booking.getUser() != null ? booking.getUser().getEmail() : null);
+            String recipientName = (booking.getGuestName() != null && !booking.getGuestName().isBlank())
+                    ? booking.getGuestName()
+                    : (booking.getUser() != null ? booking.getUser().getFullName() : "Quý khách");
+
+            if (recipientEmail != null && !recipientEmail.isBlank()) {
+                final String finalEmail = recipientEmail;
+                final String finalName = recipientName;
+                final String bCode = booking.getBookingCode();
+                final java.time.LocalDate cIn = booking.getCheckInDate();
+                final java.time.LocalDate cOut = booking.getCheckOutDate();
+                final java.math.BigDecimal totalAmt = booking.getTotalAmount();
+                java.util.concurrent.CompletableFuture.runAsync(() -> {
+                    try {
+                        emailService.sendBookingSuccessEmail(finalEmail, bCode, finalName, cIn, cOut, totalAmt);
+                    } catch (Exception ex) {
+                        log.error("Lỗi gửi email xác nhận đặt phòng sau thanh toán MoMo: {}", ex.getMessage());
+                    }
+                });
+            }
         } else {
-            // Thanh toán thất bại hoặc user hủy -> giữ PENDING
-            log.info("Thanh toán MoMo thất bại/hủy cho Booking ID: {}, message: {}", bookingId, message);
+            // Thanh toán thất bại hoặc user hủy -> HỦY đơn đặt phòng, giải phóng phòng và cập nhật Payment FAILED
+            log.info("Thanh toán MoMo thất bại/hủy cho Booking ID: {}, resultCode: {}, message: {}", bookingId, resultCode, message);
+            
+            if (booking.getStatus() == BookingStatus.PENDING) {
+                booking.setStatus(BookingStatus.CANCELLED);
+                restorePromotion(booking);
+                bookingRepository.save(booking);
+            }
+
+            Payment payment = paymentRepository.findByBookingId(bookingId).orElse(
+                Payment.builder().booking(booking).build()
+            );
+            payment.setAmount(booking.getTotalAmount());
+            payment.setPaymentMethod("MOMO");
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setTransactionId(transId != null && !transId.isBlank() ? transId : ("FAIL-" + UUID.randomUUID().toString().substring(0, 8)));
+            payment.setPaymentTime(LocalDateTime.now());
+            payment.setReconciliationNote("Thanh toán thất bại / Hủy qua MoMo: " + (message != null ? message : "Mã lỗi " + resultCode));
+            paymentRepository.save(payment);
+
+            notificationService.sendNotification("REFRESH_GANTT");
+        }
+    }
+
+    private void restorePromotion(Booking booking) {
+        if (booking.getPromotion() != null) {
+            Promotion promotion = booking.getPromotion();
+            if (promotion.getQuantity() != null) {
+                promotion.setQuantity(promotion.getQuantity() + 1);
+                promotionRepository.save(promotion);
+            }
         }
     }
 }

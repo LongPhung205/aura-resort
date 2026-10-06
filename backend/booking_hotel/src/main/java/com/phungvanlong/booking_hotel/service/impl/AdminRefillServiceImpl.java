@@ -97,10 +97,13 @@ public class AdminRefillServiceImpl implements AdminRefillService {
         List<InventoryItem> items = inventoryItemRepository.findAll();
         for (InventoryItem item : items) {
             if (!villaSupplyStandardRepository.existsByVillaIdAndItemId(villaId, item.getId())) {
+                int capacity = (villa.getVillaType() != null && villa.getVillaType().getCapacity() != null) 
+                        ? villa.getVillaType().getCapacity() : 4;
+                
                 int defaultQty = switch (item.getCategory()) {
-                    case AMENITY -> 4;
-                    case LINEN -> 4;
-                    case MINIBAR -> 2;
+                    case AMENITY -> capacity;
+                    case LINEN -> capacity;
+                    case MINIBAR -> capacity;
                     case CLEANING -> 1;
                     case EQUIPMENT -> 1;
                     case OTHER -> 2;
@@ -121,6 +124,15 @@ public class AdminRefillServiceImpl implements AdminRefillService {
                                 .lastCheckedAt(LocalDateTime.now())
                                 .build()));
             }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void applyDefaultStandardsToAllVillas() {
+        List<Villa> villas = villaRepository.findAll();
+        for (Villa v : villas) {
+            applyDefaultStandardsToVilla(v.getId());
         }
     }
 

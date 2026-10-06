@@ -35,4 +35,14 @@ public class ReviewController {
         List<ReviewResponse> reviews = reviewService.getReviewsByRoomType(roomTypeId);
         return ResponseEntity.ok(ApiResponse.success(reviews, "Lấy danh sách đánh giá thành công"));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getMyReviews(Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.ok(ApiResponse.success(List.of(), "Lấy danh sách đánh giá thành công"));
+        }
+        String userEmail = authentication.getName();
+        List<ReviewResponse> reviews = reviewService.getMyReviews(userEmail);
+        return ResponseEntity.ok(ApiResponse.success(reviews, "Lấy danh sách đánh giá của tôi thành công"));
+    }
 }

@@ -1,0 +1,92 @@
+<section
+  class="relative min-h-[640px] lg:min-h-[720px] flex items-center justify-center overflow-hidden group select-none"
+  (mouseenter)="stopAutoplay()"
+  (mouseleave)="startAutoplay()"
+>
+  <!-- Background Image Slider with Smooth Cross-Fade -->
+  <div class="absolute inset-0 z-0">
+    <div
+      *ngFor="let banner of banners; let i = index"
+      class="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out transform scale-100"
+      [class.opacity-100]="i === currentIndex"
+      [class.opacity-0]="i !== currentIndex"
+      [style.backgroundImage]="'url(' + banner.imageUrl + ')'"
+    ></div>
+  </div>
+
+  <!-- Contrast Gradient Overlay -->
+  <div class="absolute inset-0 z-1 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-slate-950/30"></div>
+
+  <!-- Prev / Next Navigation Arrows (Desktop & Tablet) -->
+  <div *ngIf="banners.length > 1" class="absolute inset-x-4 sm:inset-x-8 z-20 flex justify-between items-center pointer-events-none">
+    <button
+      (click)="prevSlide()"
+      aria-label="Slide trước"
+      class="pointer-events-auto w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white flex items-center justify-center transition-all duration-300 transform -translate-x-2 group-hover:translate-x-0 opacity-80 hover:opacity-100 hover:scale-105 cursor-pointer shadow-lg"
+    >
+      <span class="material-symbols-outlined text-[24px]">chevron_left</span>
+    </button>
+    <button
+      (click)="nextSlide()"
+      aria-label="Slide tiếp theo"
+      class="pointer-events-auto w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white flex items-center justify-center transition-all duration-300 transform translate-x-2 group-hover:translate-x-0 opacity-80 hover:opacity-100 hover:scale-105 cursor-pointer shadow-lg"
+    >
+      <span class="material-symbols-outlined text-[24px]">chevron_right</span>
+    </button>
+  </div>
+
+  <!-- Content Container -->
+  <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-14 pb-36 lg:pb-40">
+    <!-- Subtitle -->
+    <div class="inline-block text-xs md:text-sm font-normal tracking-[0.2em] text-white uppercase mb-6 animate-fade-in transition-all duration-500">
+      {{ currentBanner.subtitle || 'Điểm Đến Thượng Lưu' }}
+    </div>
+
+    <!-- Main Headline -->
+    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-serif-luxury text-white tracking-wide leading-tight mb-5 drop-shadow-md transition-all duration-500">
+      {{ currentBanner.title }}
+    </h1>
+
+    <!-- Subtitle description -->
+    <p class="max-w-2xl mx-auto text-base sm:text-lg text-white leading-relaxed font-normal mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] transition-all duration-500">
+      {{ currentBanner.description || 'Hòa quyện kiến trúc thanh lịch cùng dịch vụ 5 sao chuẩn quốc tế. Tận hưởng kỳ nghỉ dưỡng xa hoa, riêng tư tuyệt đối tại các vịnh biển đẹp nhất Việt Nam.' }}
+    </p>
+
+    <!-- Dynamic CTA Button with Glow Effect -->
+    <div class="mb-10">
+      <a
+        [routerLink]="currentBanner.ctaLink || '/villas'"
+        class="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-sm bg-[#0284C7] hover:bg-[#0369A1] text-white font-medium text-sm sm:text-base tracking-widest uppercase transition-all duration-300 shadow-md shadow-sky-900/20"
+      >
+        <span>{{ currentBanner.ctaText || 'Kiểm Tra Phòng Trống' }}</span>
+      </a>
+    </div>
+
+    <!-- Trust Badges -->
+    <div class="flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs font-normal tracking-wide text-white/90">
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-[16px]">verified</span>
+        <span>Đảm bảo giá trực tiếp tốt nhất</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-[16px]">event_repeat</span>
+        <span>Hủy phòng linh hoạt</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-[16px]">workspace_premium</span>
+        <span>Đặc quyền nâng cấp phòng VIP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide Dots Indicator at Bottom -->
+  <div *ngIf="banners.length > 1" class="absolute bottom-6 z-20 flex items-center justify-center gap-2.5">
+    <button
+      *ngFor="let b of banners; let idx = index"
+      (click)="goToSlide(idx)"
+      [attr.aria-label]="'Đi tới slide ' + (idx + 1)"
+      class="h-2.5 rounded-full transition-all duration-300 cursor-pointer"
+      [ngClass]="idx === currentIndex ? 'w-8 bg-amber-400 shadow-md shadow-amber-400/50' : 'w-2.5 bg-white/50 hover:bg-white/80'"
+    ></button>
+  </div>
+</section>

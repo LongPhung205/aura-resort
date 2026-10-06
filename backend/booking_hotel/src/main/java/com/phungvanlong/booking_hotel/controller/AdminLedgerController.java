@@ -4,6 +4,8 @@ import com.phungvanlong.booking_hotel.dto.request.DayEndClosingRequest;
 import com.phungvanlong.booking_hotel.dto.response.ApiResponse;
 import com.phungvanlong.booking_hotel.dto.response.DayEndClosingResponse;
 import com.phungvanlong.booking_hotel.dto.response.LedgerItemResponse;
+import com.phungvanlong.booking_hotel.dto.response.PaymentDashboardStatsResponse;
+import com.phungvanlong.booking_hotel.dto.request.ReconcileRequest;
 import com.phungvanlong.booking_hotel.service.AdminLedgerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +49,21 @@ public class AdminLedgerController {
     public ResponseEntity<ApiResponse<DayEndClosingResponse>> getLatestClosing() {
         DayEndClosingResponse response = ledgerService.getLatestClosing();
         return ResponseEntity.ok(ApiResponse.success(response, "Lấy dữ liệu chốt sổ gần nhất thành công"));
+    }
+
+    @GetMapping("/dashboard-stats")
+    public ResponseEntity<ApiResponse<PaymentDashboardStatsResponse>> getDashboardStats() {
+        PaymentDashboardStatsResponse response = ledgerService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy dữ liệu thống kê tài chính thành công"));
+    }
+
+    @PutMapping("/transactions/{id}/reconcile")
+    public ResponseEntity<ApiResponse<LedgerItemResponse>> reconcileTransaction(
+            @PathVariable Long id,
+            @RequestBody ReconcileRequest request,
+            Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        LedgerItemResponse response = ledgerService.reconcileTransaction(id, request, email);
+        return ResponseEntity.ok(ApiResponse.success(response, "Đối soát giao dịch thành công"));
     }
 }

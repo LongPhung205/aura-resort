@@ -1,0 +1,264 @@
+<section id="resorts" class="bg-slate-50/60 text-slate-800 py-20 lg:py-24 border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Modern Centered Header & Filters -->
+    <div class="text-center mb-12">
+      <!-- Section Title -->
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0369A1] uppercase tracking-wider mb-4 leading-tight">
+        Biệt Thự Đang Được<br class="block sm:hidden" /> Yêu Thích Nhất
+      </h2>
+      
+      <p class="text-[14px] text-slate-500 font-bold max-w-2xl mx-auto mb-10 leading-relaxed">
+        Những lựa chọn tuyệt vời với đánh giá cao nhất từ khách hàng. Không gian nghỉ dưỡng biệt lập ven biển với hồ bơi riêng, tiện nghi 5 sao sang trọng.
+      </p>
+
+      <!-- Elegant Filter Tabs (Segmented Control) -->
+      <div class="inline-flex flex-wrap justify-center items-center gap-2 p-1.5 bg-slate-100 rounded-xl shadow-inner mx-auto">
+        
+        <!-- All Zones button -->
+        <button
+          type="button"
+          (click)="filterByZone('all')"
+          [ngClass]="selectedZone === 'all' ? 'bg-white text-[#0369A1] shadow-sm ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-[#0369A1] hover:bg-white/50'"
+          class="px-5 py-2.5 rounded-lg text-[13px] font-black tracking-wider uppercase transition-all duration-300 focus:outline-none flex items-center space-x-2 cursor-pointer"
+        >
+          <span>TẤT CẢ</span>
+          <span
+            class="text-[11px] px-2 py-0.5 rounded-md font-bold"
+            [ngClass]="selectedZone === 'all' ? 'bg-sky-100 text-[#0284C7]' : 'bg-slate-200 text-slate-500'"
+          >
+            {{ allVillas.length }}
+          </span>
+        </button>
+
+        <!-- Dynamic Zone buttons -->
+        <button
+          type="button"
+          *ngFor="let zone of zones"
+          (click)="filterByZone(zone.name)"
+          [ngClass]="selectedZone === zone.name ? 'bg-white text-[#0369A1] shadow-sm ring-1 ring-slate-200/50' : 'text-slate-500 hover:text-[#0369A1] hover:bg-white/50'"
+          class="px-5 py-2.5 rounded-lg text-[13px] font-black tracking-wider uppercase transition-all duration-300 focus:outline-none flex items-center space-x-2 cursor-pointer"
+        >
+          <span>PHÂN KHU {{ zone.name }}</span>
+          <span
+            class="text-[11px] px-2 py-0.5 rounded-md font-bold"
+            [ngClass]="selectedZone === zone.name ? 'bg-sky-100 text-[#0284C7]' : 'bg-slate-200 text-slate-500'"
+          >
+            {{ getZoneCount(zone.name) }}
+          </span>
+        </button>
+        
+      </div>
+    </div>
+
+    <!-- Loading Skeleton Cards -->
+    <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div *ngFor="let item of [1, 2, 3]" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
+        <div class="h-64 bg-slate-200"></div>
+        <div class="p-6 space-y-4">
+          <div class="h-6 bg-slate-200 rounded w-3/4"></div>
+          <div class="h-4 bg-slate-100 rounded w-1/2"></div>
+          <div class="h-10 bg-slate-100 rounded"></div>
+          <div class="h-10 bg-slate-200 rounded w-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && filteredVillas.length === 0" class="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-lg mx-auto shadow-sm">
+      <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-700 flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-3xl">holiday_village</span>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Hiện Không Có Biệt Thự Phù Hợp</h3>
+      <p class="text-xs text-slate-500 mb-6">
+        Không tìm thấy biệt thự nào theo phân khu bạn đang lọc. Vui lòng chọn phân khu khác hoặc liên hệ hotline để được hỗ trợ.
+      </p>
+      <button
+        type="button"
+        (click)="filterByZone('all')"
+        class="bg-[#0284C7] hover:bg-[#0369A1] text-white px-6 py-2.5 rounded-sm text-xs font-medium uppercase tracking-widest transition-all shadow-md shadow-sky-900/20"
+      >
+        Xem Tất Cả Biệt Thự
+      </button>
+    </div>
+
+    <!-- 3-Column Luxury Villa Grid -->
+    <div *ngIf="!loading && filteredVillas.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div
+        *ngFor="let villa of paginatedVillas"
+        class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-1 border border-slate-100 overflow-hidden flex flex-col transition-all duration-300"
+      >
+        <!-- Card Image & Badges -->
+        <div class="relative h-64 overflow-hidden bg-slate-900">
+          <img
+            [src]="getVillaImageUrl(villa)"
+            [alt]="'Villa ' + villa.villaNumber"
+            (error)="onImageError($event)"
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-black/20"></div>
+
+          <!-- Top Badges -->
+          <div class="absolute top-4 left-4 flex flex-wrap gap-2 z-10">
+            <!-- Zone Tag -->
+            <span
+              [ngClass]="getZoneBadgeClass(villa.zone)"
+              class="text-[11px] font-black tracking-wider px-3 py-1.5 rounded-sm backdrop-blur-md uppercase shadow-md"
+            >
+              Phân khu {{ villa.zone || 'Aura' }}
+            </span>
+
+            <!-- Structure/Floor -->
+            <span class="bg-[#0284C7]/90 text-white border border-sky-400/30 text-[11px] font-black tracking-wider px-3 py-1.5 rounded-sm backdrop-blur-md uppercase shadow-md">
+              {{ villa.structureType || (villa.floor ? villa.floor + ' Tầng' : 'Villa Biển') }}
+            </span>
+          </div>
+
+          <!-- Bottom Status Pill -->
+          <div class="absolute bottom-4 left-4 z-10">
+            <span
+              [ngClass]="getStatusBadge(villa.status).class"
+              class="px-3 py-1.5 rounded-sm text-[11px] font-black tracking-wider uppercase backdrop-blur-md shadow-md inline-flex items-center space-x-1.5"
+            >
+              <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+              <span>{{ getStatusBadge(villa.status).label }}</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Card Content Body -->
+        <div class="p-6 flex-grow flex flex-col justify-between">
+          <div>
+            <!-- Villa Title & Subtitle -->
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-2xl font-black text-[#0369A1] group-hover:text-[#EA580C] transition-colors leading-tight">
+                  Villa {{ villa.villaNumber }}
+                </h3>
+                <p class="text-[13px] text-slate-500 font-bold mt-1 tracking-wide uppercase">
+                  {{ villa.villaTypeName || 'Biệt Thự Nghỉ Dưỡng Cao Cấp' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Unified Specs & Amenities Row -->
+            <div class="mt-5 flex flex-wrap items-center gap-y-3 gap-x-5 text-[13px] text-slate-700 font-bold">
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-[20px] text-[#EA580C]">bed</span>
+                <span>{{ villa.bedroomCount || villa.rooms?.length || 1 }} Phòng Ngủ</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-[20px] text-[#EA580C]">group</span>
+                <span>Tối đa {{ villa.totalCapacity || villa.capacity || 4 }} Khách</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-[20px] text-[#EA580C]">pool</span>
+                <span>Hồ Bơi Riêng</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-[20px] text-[#EA580C]">support_agent</span>
+                <span>Quản Gia 24/7</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price & Action Buttons -->
+          <div class="mt-6 pt-5 border-t-2 border-sky-50 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <div class="text-[11px] text-slate-400 uppercase font-black tracking-widest mb-1">Giá từ</div>
+              <div class="text-xl font-black text-slate-900">
+                {{ formatPrice(villa.basePrice) }}
+                <span class="text-[13px] font-bold text-slate-500">/ đêm</span>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3 w-full sm:w-auto">
+              <button
+                type="button"
+                (click)="onBookVilla(villa)"
+                class="w-full px-6 py-3 bg-gradient-to-r from-[#EA580C] to-[#f97316] hover:from-[#f97316] hover:to-[#fb923c] text-white text-[12px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/30 rounded-full cursor-pointer hover:scale-105 text-center"
+              >
+                ĐẶT PHÒNG
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div *ngIf="!loading && filteredVillas.length > 0" class="mt-12 pt-8 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Counter & Page Size Selector -->
+      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 font-bold">
+        <span>
+          Hiển thị <span class="text-slate-900 font-black">{{ filteredVillas.length > 0 ? (currentPage - 1) * pageSize + 1 : 0 }}</span> – 
+          <span class="text-slate-900 font-black">{{ getEndIndex() }}</span> trong tổng số 
+          <span class="text-[#0369A1] font-black">{{ filteredVillas.length }}</span> biệt thự
+        </span>
+
+        <span class="text-slate-300 hidden sm:inline">|</span>
+
+        <!-- Page size switcher -->
+        <div class="inline-flex items-center gap-1.5">
+          <span class="text-slate-400">Hiển thị mỗi trang:</span>
+          <button
+            type="button"
+            *ngFor="let size of pageSizeOptions"
+            (click)="setPageSize(size)"
+            [ngClass]="pageSize === size ? 'bg-[#0369A1] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            class="px-2.5 py-1 rounded text-[11px] font-black transition cursor-pointer"
+          >
+            {{ size }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Pagination Buttons -->
+      <div *ngIf="totalPages > 1" class="flex items-center space-x-1.5">
+        <!-- Prev Button -->
+        <button
+          type="button"
+          (click)="changePage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-[#0369A1] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center space-x-1 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+          <span class="hidden sm:inline">Trước</span>
+        </button>
+
+        <!-- Page Numbers -->
+        <ng-container *ngFor="let p of getPages()">
+          <button
+            *ngIf="p !== '...'"
+            type="button"
+            (click)="changePage(+p)"
+            [ngClass]="currentPage === p
+              ? 'bg-[#0284C7] text-white shadow-md shadow-sky-600/30 border-[#0284C7]'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'"
+            class="w-9 h-9 rounded-lg border text-xs font-black transition flex items-center justify-center cursor-pointer"
+          >
+            {{ p }}
+          </button>
+          <span *ngIf="p === '...'" class="w-6 text-center text-slate-400 font-bold text-xs select-none">
+            ...
+          </span>
+        </ng-container>
+
+        <!-- Next Button -->
+        <button
+          type="button"
+          (click)="changePage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-[#0369A1] disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center space-x-1 cursor-pointer"
+        >
+          <span class="hidden sm:inline">Sau</span>
+          <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+</section>

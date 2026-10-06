@@ -11,4 +11,6 @@ import java.util.List;
 public interface StaffScheduleRepository extends JpaRepository<StaffSchedule, Long> {
     List<StaffSchedule> findByWorkDateBetweenOrderByWorkDateAsc(LocalDate startDate, LocalDate endDate);
     List<StaffSchedule> findByStaffIdAndWorkDateBetween(Long staffId, LocalDate startDate, LocalDate endDate);
+    java.util.Optional<StaffSchedule> findByStaffIdAndWorkDate(Long staffId, LocalDate workDate);
+    void deleteByWorkDateBetween(LocalDate startDate, LocalDate endDate);
 }

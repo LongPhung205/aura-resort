@@ -23,7 +23,7 @@ public class StaffSchedule extends BaseEntity {
     private User staff;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "shift_id", nullable = false)
+    @JoinColumn(name = "shift_id", nullable = true)
     private Shift shift;
 
     @Column(name = "work_date", nullable = false)

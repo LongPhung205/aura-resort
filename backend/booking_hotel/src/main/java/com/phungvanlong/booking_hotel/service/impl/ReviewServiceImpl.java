@@ -76,4 +76,11 @@ public class ReviewServiceImpl implements ReviewService {
                 .map(ReviewResponse::fromEntity)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<ReviewResponse> getMyReviews(String userEmail) {
+        return reviewRepository.findByUserEmail(userEmail).stream()
+                .map(ReviewResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
 }

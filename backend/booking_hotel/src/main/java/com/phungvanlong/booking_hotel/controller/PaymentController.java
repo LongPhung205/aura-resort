@@ -3,18 +3,24 @@ package com.phungvanlong.booking_hotel.controller;
 import com.phungvanlong.booking_hotel.dto.response.ApiResponse;
 import com.phungvanlong.booking_hotel.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
+
+    @Value("${momo.redirect-url}")
+    private String momoRedirectUrl;
 
     // Không cần @PreAuthorize("hasRole('USER')") - bất kỳ user đã login đều có thể thanh toán
     @PostMapping("/momo/{bookingId}")
@@ -28,13 +34,13 @@ public class PaymentController {
         try {
             paymentService.processMoMoReturn(params);
         } catch (Exception e) {
-            // log but don't fail - redirect anyway
+            log.warn("Lỗi xử lý MoMo return callback, vẫn tiếp tục redirect: {}", e.getMessage());
         }
         // Redirect về trang frontend xử lý kết quả
         String resultCode = params.getOrDefault("resultCode", "-1");
         String orderId    = params.getOrDefault("orderId", "");
         String message    = params.getOrDefault("message", "");
-        String redirectFe = "http://localhost:4200/payment/momo-result"
+        String redirectFe = momoRedirectUrl
                 + "?resultCode=" + resultCode
                 + "&orderId=" + orderId
                 + "&message=" + java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8);

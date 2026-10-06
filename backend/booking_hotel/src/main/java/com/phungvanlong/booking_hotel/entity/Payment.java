@@ -46,6 +46,15 @@ public class Payment extends BaseEntity {
     @Column(name = "payment_time")
     private LocalDateTime paymentTime;
 
+    @Column(name = "reconciliation_note", columnDefinition = "TEXT")
+    private String reconciliationNote;
+
+    @Column(name = "reconciliation_time")
+    private LocalDateTime reconciliationTime;
+
+    @Column(name = "reconciled_by")
+    private String reconciledBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")
     private Booking booking;

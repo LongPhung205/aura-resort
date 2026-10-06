@@ -11,6 +11,7 @@ import com.phungvanlong.booking_hotel.exception.ResourceNotFoundException;
 import com.phungvanlong.booking_hotel.repository.VillaRepository;
 import com.phungvanlong.booking_hotel.repository.ZoneRepository;
 import com.phungvanlong.booking_hotel.service.AdminZoneService;
+import com.phungvanlong.booking_hotel.mapper.VillaMapper;
 import com.phungvanlong.booking_hotel.util.SlugUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,7 @@ public class AdminZoneServiceImpl implements AdminZoneService {
 
     private final ZoneRepository zoneRepository;
     private final VillaRepository villaRepository;
+    private final VillaMapper villaMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -78,7 +80,7 @@ public class AdminZoneServiceImpl implements AdminZoneService {
 
         List<Villa> villas = villaRepository.findByZoneId(zone.getId());
         List<VillaResponse> villaResponses = villas.stream()
-                .map(VillaResponse::fromEntity)
+                .map(villaMapper::toResponse)
                 .collect(Collectors.toList());
 
         return ZoneDetailResponse.builder()

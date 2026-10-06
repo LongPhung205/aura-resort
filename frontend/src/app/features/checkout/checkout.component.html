@@ -1,0 +1,391 @@
+<div class="min-h-screen bg-slate-50 pt-24 pb-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-400 mb-6">
+      <a routerLink="/" class="hover:text-[#0369A1] transition-colors">Trang chủ</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <a [routerLink]="['/villas/detail', bookingState?.villa?.id]" class="hover:text-[#0369A1] transition-colors">Chi tiết biệt thự</a>
+      <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+      <span class="text-slate-900">Thanh toán</span>
+    </div>
+
+    <h1 class="text-3xl font-black text-slate-900 mb-8">Xác nhận đặt phòng</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+      
+      <!-- Left Column: Forms -->
+      <div class="lg:w-2/3 space-y-6">
+        
+        <!-- 1. Customer Info -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#0369A1]">person</span>
+              Thông tin liên hệ
+            </h2>
+          </div>
+          <div class="p-6">
+            <form [formGroup]="checkoutForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Họ và Tên *</label>
+                <input type="text" formControlName="fullName" class="w-full px-4 py-3 text-sm font-semibold border-slate-200 rounded-lg focus:ring-[#0369A1] focus:border-[#0369A1] bg-slate-50">
+                <div *ngIf="checkoutForm.get('fullName')?.touched && checkoutForm.get('fullName')?.invalid" class="text-red-500 text-xs mt-1 font-medium">Vui lòng nhập họ tên.</div>
+              </div>
+              
+              <div>
+                <label class="block text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Email *</label>
+                <input type="email" formControlName="email" class="w-full px-4 py-3 text-sm font-semibold border-slate-200 rounded-lg focus:ring-[#0369A1] focus:border-[#0369A1] bg-slate-50">
+                <div *ngIf="checkoutForm.get('email')?.touched && checkoutForm.get('email')?.invalid" class="text-red-500 text-xs mt-1 font-medium">Vui lòng nhập email hợp lệ.</div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Số điện thoại *</label>
+                <input type="text" formControlName="phone" class="w-full px-4 py-3 text-sm font-semibold border-slate-200 rounded-lg focus:ring-[#0369A1] focus:border-[#0369A1] bg-slate-50">
+                <div *ngIf="checkoutForm.get('phone')?.touched && checkoutForm.get('phone')?.invalid" class="text-red-500 text-xs mt-1 font-medium">Vui lòng nhập số điện thoại.</div>
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Giờ dự kiến đến</label>
+                <input type="time" formControlName="estimatedArrivalTime" class="w-full px-4 py-3 text-sm font-semibold border-slate-200 rounded-lg focus:ring-[#0369A1] focus:border-[#0369A1] bg-slate-50 text-slate-700">
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Yêu cầu đặc biệt (Không bắt buộc)</label>
+                <textarea formControlName="specialRequest" rows="3" class="w-full px-4 py-3 text-sm font-medium border-slate-200 rounded-lg focus:ring-[#0369A1] focus:border-[#0369A1] bg-slate-50" placeholder="Bạn có yêu cầu gì thêm không? (ví dụ: cần thêm nôi em bé, phòng tầng cao...)"></textarea>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- 2. Services & Combos -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition hover:bg-slate-100/50" (click)="isServicesExpanded = !isServicesExpanded">
+            <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#EA580C]">room_service</span>
+              Dịch vụ & Tiện ích bổ sung
+            </h2>
+            
+            <div class="flex items-center gap-3 self-end sm:self-auto">
+              <div class="inline-flex p-0.5 bg-slate-200/60 rounded-lg text-[10px] font-bold" (click)="$event.stopPropagation()">
+                <button
+                  type="button"
+                  (click)="setServiceMode('individual')"
+                  [ngClass]="serviceSelectionMode === 'individual' ? 'bg-white text-[#0369A1] shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+                  class="px-2.5 py-1.5 rounded-md transition-all cursor-pointer"
+                >
+                  Chọn riêng lẻ
+                </button>
+                <button
+                  type="button"
+                  (click)="setServiceMode('combo')"
+                  [ngClass]="serviceSelectionMode === 'combo' ? 'bg-white text-[#EA580C] shadow-sm' : 'text-slate-500 hover:text-slate-800'"
+                  class="px-2.5 py-1.5 rounded-md transition-all cursor-pointer"
+                >
+                  Gói Combo
+                </button>
+              </div>
+              <span class="material-symbols-outlined text-slate-400 transition-transform duration-200" [class.rotate-180]="isServicesExpanded">expand_more</span>
+            </div>
+          </div>
+          
+          <div class="p-6" *ngIf="isServicesExpanded">
+            <!-- 1. Gói Combo Mode -->
+            <div *ngIf="serviceSelectionMode === 'combo'" class="space-y-3">
+              <div *ngIf="comboPackagesList.length === 0" class="text-sm text-slate-400 py-4 text-center">
+                Hiện chưa có gói combo nào đang hoạt động.
+              </div>
+
+              <div
+                *ngFor="let combo of comboPackagesList"
+                (click)="selectCombo(combo)"
+                [ngClass]="selectedComboId === combo.id ? 'border-[#EA580C] bg-orange-50/50 ring-1 ring-[#EA580C]' : 'border-slate-200 bg-white hover:border-slate-300'"
+                class="p-4 border rounded-xl cursor-pointer transition-all flex items-start justify-between gap-3 group"
+              >
+                <div class="flex items-start gap-3">
+                  <input
+                    type="radio"
+                    name="comboSelection"
+                    [checked]="selectedComboId === combo.id"
+                    class="mt-1 w-4 h-4 text-[#EA580C] border-slate-300 focus:ring-[#EA580C]"
+                  />
+                  <div>
+                    <div class="text-[14px] font-black text-slate-900 group-hover:text-[#EA580C] transition-colors">
+                      {{ combo.name }}
+                    </div>
+                    <p *ngIf="combo.description" class="text-[12px] text-slate-500 mt-0.5">
+                      {{ combo.description }}
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                      <span *ngFor="let svc of combo.extraServices" class="text-[10px] font-bold bg-slate-100 text-slate-800 px-2 py-0.5 rounded border border-slate-200 flex items-center space-x-1">
+                        <span *ngIf="svc.icon" class="material-symbols-outlined text-[12px]">{{ svc.icon }}</span>
+                        <span>{{ svc.name }}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-[14px] font-black text-[#EA580C] whitespace-nowrap">
+                  +{{ formatPrice(combo.price) }}đ
+                </div>
+              </div>
+
+              <button
+                *ngIf="selectedComboId"
+                type="button"
+                (click)="selectedComboId = null"
+                class="text-[12px] text-slate-400 hover:text-red-500 font-bold underline mt-2 inline-block cursor-pointer"
+              >
+                Hủy chọn gói combo
+              </button>
+            </div>
+
+            <!-- 2. Chọn Riêng Lẻ Mode -->
+            <div *ngIf="serviceSelectionMode === 'individual'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div *ngIf="extraServicesList.length === 0" class="col-span-2 text-sm text-slate-400 py-4 text-center">
+                Hiện không có dịch vụ cộng thêm nào.
+              </div>
+
+              <label
+                *ngFor="let s of extraServicesList"
+                class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all hover:bg-slate-50"
+                [ngClass]="isServiceSelected(s.id) ? 'border-[#0369A1] bg-sky-50/40 ring-1 ring-[#0369A1]' : 'border-slate-200 bg-white'"
+              >
+                <div class="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    [checked]="isServiceSelected(s.id)"
+                    (change)="toggleService(s.id)"
+                    class="w-4 h-4 rounded border-slate-300 text-[#0369A1] focus:ring-[#0369A1]"
+                  />
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-[#0369A1]">
+                      {{ s.icon || 'room_service' }}
+                    </span>
+                    <div>
+                      <div class="text-[13px] font-bold text-slate-800">{{ s.name }}</div>
+                      <div class="text-[11px] text-slate-400">Đơn vị: {{ s.unit }}</div>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-[13px] font-black text-slate-900 whitespace-nowrap">
+                  +{{ formatPrice(s.price) }}đ
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Payment Methods -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+            <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-600">payments</span>
+              Phương thức thanh toán
+            </h2>
+          </div>
+          <div class="p-6 space-y-3">
+            <label class="flex items-center justify-between p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" [class.border-[#0369A1]]="paymentMethod === 'pay_at_hotel'" [class.bg-sky-50]="paymentMethod === 'pay_at_hotel'">
+              <div class="flex items-center space-x-3">
+                <input type="radio" name="paymentMethod" value="pay_at_hotel" [(ngModel)]="paymentMethod" class="w-4 h-4 text-[#0369A1] focus:ring-[#0369A1] border-slate-300">
+                <span class="text-[14px] font-bold text-slate-800">Thanh toán khi check-in</span>
+              </div>
+              <span class="material-symbols-outlined text-2xl" [class.text-[#0369A1]]="paymentMethod === 'pay_at_hotel'" [class.text-slate-400]="paymentMethod !== 'pay_at_hotel'">payments</span>
+            </label>
+
+            <label class="flex items-center justify-between p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" [class.border-[#0369A1]]="paymentMethod === 'momo'" [class.bg-sky-50]="paymentMethod === 'momo'">
+              <div class="flex items-center space-x-3">
+                <input type="radio" name="paymentMethod" value="momo" [(ngModel)]="paymentMethod" class="w-4 h-4 text-[#0369A1] focus:ring-[#0369A1] border-slate-300">
+                <span class="text-[14px] font-bold text-slate-800">Ví MoMo</span>
+              </div>
+              <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" class="h-8 object-contain">
+            </label>
+            
+            <label class="flex items-center justify-between p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" [class.border-[#0369A1]]="paymentMethod === 'transfer'" [class.bg-sky-50]="paymentMethod === 'transfer'">
+              <div class="flex items-center space-x-3">
+                <input type="radio" name="paymentMethod" value="transfer" [(ngModel)]="paymentMethod" class="w-4 h-4 text-[#0369A1] focus:ring-[#0369A1] border-slate-300">
+                <span class="text-[14px] font-bold text-slate-800">Chuyển khoản Ngân hàng</span>
+              </div>
+              <span class="material-symbols-outlined text-2xl" [class.text-[#0369A1]]="paymentMethod === 'transfer'" [class.text-slate-400]="paymentMethod !== 'transfer'">account_balance</span>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Order Summary -->
+      <div class="lg:w-1/3">
+        <div class="bg-white rounded-2xl shadow-lg border border-slate-200 sticky top-24 overflow-hidden">
+          
+          <!-- Villa Mini Card -->
+          <div class="p-5 border-b border-slate-100 flex gap-4">
+            <img [src]="bookingState?.villa?.imageUrl || '/assets/images/rooms/royal-penthouse.jpg'" class="w-20 h-20 rounded-lg object-cover bg-slate-100">
+            <div>
+              <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ bookingState?.villa?.villaTypeName }}</div>
+              <h3 class="font-black text-slate-900 text-[15px] leading-tight line-clamp-2">{{ bookingState?.villa?.villaNumber }} - {{ bookingState?.villa?.villaTypeName }}</h3>
+            </div>
+          </div>
+
+          <div class="p-5">
+            <!-- Dates -->
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Nhận phòng</div>
+                <div class="font-bold text-slate-800">{{ bookingState?.checkInDate | date:'dd/MM/yyyy' }}</div>
+              </div>
+              <div class="w-8 h-px bg-slate-300"></div>
+              <div class="text-right">
+                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Trả phòng</div>
+                <div class="font-bold text-slate-800">{{ bookingState?.checkOutDate | date:'dd/MM/yyyy' }}</div>
+              </div>
+            </div>
+
+            <!-- Coupons -->
+            <div class="pt-4 border-t border-slate-100">
+              <span class="block text-[11px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-[#EA580C]">local_offer</span>
+                Mã giảm giá
+              </span>
+
+              <div *ngIf="!appliedPromotion" class="flex gap-2">
+                <div class="relative flex-1">
+                  <input type="text" [(ngModel)]="couponCode" name="couponCode" placeholder="Nhập mã (VD: AURA10)" (keyup.enter)="applyCoupon()" class="w-full pl-3 pr-3 py-2.5 text-xs font-semibold uppercase tracking-wider border border-slate-200 rounded-lg focus:outline-none focus:border-[#EA580C] focus:ring-1 focus:ring-[#EA580C] bg-slate-50/50" />
+                </div>
+                <button type="button" (click)="applyCoupon()" [disabled]="isCheckingCoupon || !couponCode.trim()" class="px-3 py-2.5 bg-slate-900 hover:bg-[#EA580C] text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-40 cursor-pointer flex items-center justify-center min-w-[70px]">
+                  <span *ngIf="isCheckingCoupon" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span *ngIf="!isCheckingCoupon">Áp dụng</span>
+                </button>
+              </div>
+
+
+
+              <!-- Applied Coupon -->
+              <div *ngIf="appliedPromotion" class="flex items-center justify-between p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600 text-[20px]">check_circle</span>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-black text-emerald-900 uppercase tracking-wider">{{ appliedPromotion.code }}</span>
+                      <span class="text-[10px] font-bold bg-emerald-200/70 text-emerald-800 px-1.5 py-0.5 rounded">
+                        {{ appliedPromotion.discountType === 'PERCENTAGE' ? ('-' + appliedPromotion.discountValue + '%') : ('-' + formatPrice(appliedPromotion.discountValue) + 'đ') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" (click)="removeCoupon()" class="p-1 text-slate-400 hover:text-red-500 rounded transition-colors cursor-pointer" title="Gỡ mã">
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+
+              <p *ngIf="couponError" class="text-[11px] text-red-500 font-semibold mt-1.5 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ couponError }}
+              </p>
+            </div>
+
+            <!-- Price Breakdown -->
+            <div class="pt-4 mt-4 border-t border-slate-100 space-y-2 text-[13px]">
+              <div class="flex justify-between text-slate-600 font-medium">
+                <span>{{ formatPrice(bookingState?.villa?.basePrice) }}đ x {{ numberOfNights }} đêm</span>
+                <span>{{ formatPrice(roomTotal) }}đ</span>
+              </div>
+              
+              <div *ngIf="extraServicesTotal > 0" class="flex justify-between text-slate-700 font-medium">
+                <span class="flex items-center gap-1 text-[#EA580C] font-bold">
+                  <span class="material-symbols-outlined text-[15px]">room_service</span>
+                  <span *ngIf="serviceSelectionMode === 'combo'">Combo: {{ selectedCombo?.name }}</span>
+                  <span *ngIf="serviceSelectionMode === 'individual'">Dịch vụ đã chọn ({{ selectedServiceIds.size }})</span>
+                </span>
+                <span class="font-bold text-[#EA580C]">+{{ formatPrice(extraServicesTotal) }}đ</span>
+              </div>
+              
+              <!-- Discount Row -->
+              <div *ngIf="discountAmount > 0" class="flex justify-between items-center text-emerald-700 bg-emerald-50/70 px-2 py-1.5 rounded border border-emerald-100 font-medium">
+                <span class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px] text-emerald-600">local_offer</span>
+                  <span>Mã giảm giá ({{ appliedPromotion?.code }})</span>
+                </span>
+                <span class="font-bold text-emerald-700">-{{ formatPrice(discountAmount) }}đ</span>
+              </div>
+              
+              <div class="flex justify-between text-slate-600 font-medium">
+                <span>Phí dịch vụ & Thuế (10%)</span>
+                <span>{{ formatPrice(taxAmount) }}đ</span>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="pt-4 mt-4 border-t border-slate-200">
+              <div class="flex justify-between items-end mb-6">
+                <span class="font-black text-slate-900">Tổng thanh toán</span>
+                <div class="text-right">
+                  <span class="font-black text-2xl text-[#0369A1] block leading-none">{{ formatPrice(finalTotal) }}đ</span>
+                  <span class="text-[10px] text-slate-400 font-medium">Đã bao gồm thuế, phí</span>
+                </div>
+              </div>
+              
+              <!-- Submit Error Notification Inline -->
+              <div *ngIf="submitError" class="mb-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-3 shadow-sm animate-fadeIn">
+                <span class="material-symbols-outlined text-rose-600 text-xl shrink-0">error</span>
+                <div class="flex-1">
+                  <div class="font-black text-rose-900 mb-0.5 tracking-wide uppercase text-[11px]">Không thể xác nhận đặt phòng</div>
+                  <div class="font-medium text-rose-800 leading-relaxed">{{ submitError }}</div>
+                </div>
+                <button type="button" (click)="submitError = null" class="text-rose-400 hover:text-rose-700 p-0.5 rounded cursor-pointer" title="Đóng">
+                  <span class="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+
+              <button type="button" 
+                      (click)="submitBooking()"
+                      [disabled]="isSubmitting"
+                      class="w-full bg-gradient-to-r from-[#EA580C] to-[#f97316] hover:from-[#f97316] hover:to-[#fb923c] text-white py-4 rounded-xl text-[14px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 cursor-pointer flex justify-center items-center">
+                <span *ngIf="isSubmitting" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                <span *ngIf="!isSubmitting">XÁC NHẬN & THANH TOÁN</span>
+                <span *ngIf="isSubmitting">ĐANG XỬ LÝ...</span>
+              </button>
+              
+              <div class="text-[11px] text-center text-slate-500 font-medium mt-4 space-y-1">
+                <p class="flex items-center justify-center"><span class="material-symbols-outlined text-[14px] mr-1">verified_user</span> Thông tin thanh toán được bảo mật an toàn 100%.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification (Compact, top-right side, 100% OPAQUE solid color, no transparency) -->
+<div *ngIf="showToast" class="fixed top-20 right-4 sm:right-6 z-[9999] max-w-sm w-[calc(100vw-2rem)] sm:w-[380px] animate-slide-in-right">
+  <div class="rounded-xl shadow-2xl p-4 flex items-start gap-3 transition-all text-white"
+       [style.opacity]="1"
+       [ngClass]="{
+         'bg-red-600 shadow-red-900/40': toastType === 'error',
+         'bg-emerald-600 shadow-emerald-900/40': toastType === 'success',
+         'bg-[#0284c7] shadow-sky-900/40': toastType === 'info'
+       }">
+    
+    <!-- Icon -->
+    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 text-white">
+      <span class="material-symbols-outlined text-xl">
+        {{ toastType === 'success' ? 'check_circle' : toastType === 'error' ? 'error' : 'info' }}
+      </span>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0 pr-1">
+      <div class="text-[11px] font-black uppercase tracking-wider text-white/90 mb-0.5">
+        {{ toastType === 'error' ? 'Không thể đặt phòng' : toastType === 'success' ? 'Thành công' : 'Thông báo' }}
+      </div>
+      <p class="text-xs font-medium text-white leading-relaxed">{{ toastMessage }}</p>
+    </div>
+
+    <!-- Close button -->
+    <button type="button" 
+            (click)="showToast = false" 
+            class="text-white/80 hover:text-white p-1 rounded-md hover:bg-white/20 transition-colors shrink-0 cursor-pointer" 
+            title="Đóng">
+      <span class="material-symbols-outlined text-lg leading-none">close</span>
+    </button>
+  </div>
+</div>

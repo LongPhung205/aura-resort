@@ -1,0 +1,1008 @@
+<div class="h-full flex flex-col bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
+
+  <!-- ================= TOP APP BAR (5★ PMS STANDARD) ================= -->
+  <header class="h-16 sm:h-20 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-20 shadow-xs">
+    <div class="flex items-center space-x-3 sm:space-x-4">
+      <!-- Back button to return to rooms list -->
+      <button
+        type="button"
+        (click)="close.emit()"
+        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs active:scale-95"
+        title="Quay lại danh sách phòng"
+      >
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+        <span class="hidden sm:inline">Quay Lại</span>
+      </button>
+
+      <!-- Room Header Identity -->
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[10px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200/80">
+            {{ task.villaZone ? 'Khu ' + task.villaZone : 'AURA 5★' }}
+          </span>
+          <span class="text-xs text-slate-300">•</span>
+          <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-amber-500">door_front</span>
+            Phòng {{ task.roomNumber || task.villaNumber }}
+          </h2>
+          <span
+            *ngIf="task.priority === 'RUSH'"
+            class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-50 text-rose-700 border border-rose-200 animate-pulse"
+          >
+            RUSH GẤP
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-500 font-medium truncate max-w-xs sm:max-w-md">
+          {{ task.villaTypeName || 'Beachfront Pool Villa' }} • {{
+            task.taskType === 'CHECKOUT_DEEP'
+              ? 'Dọn Sâu Trả Phòng (16 Bước Chuẩn 5★)'
+              : task.taskType === 'DAILY'
+                ? 'Dọn Phòng Hàng Ngày'
+                : 'Chỉnh Trang Tối Turndown'
+          }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Live Timer & Status & Primary Action Button -->
+    <div class="flex items-center space-x-2.5 sm:space-x-3">
+      <!-- Live KPI Timer -->
+      <div class="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs shadow-2xs">
+        <span class="material-symbols-outlined text-[16px] animate-pulse text-[#0284c7]">timer</span>
+        <span class="font-mono font-bold text-slate-800">{{ formattedKpiTime }}</span>
+        <button
+          *ngIf="!isPaused"
+          (click)="pauseKpiTimer()"
+          title="Tạm dừng đếm thời gian"
+          class="ml-1 text-slate-400 hover:text-amber-600 transition cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">pause</span>
+        </button>
+        <button
+          *ngIf="isPaused"
+          (click)="resumeKpiTimer()"
+          title="Tiếp tục dọn"
+          class="ml-1 text-emerald-600 hover:text-emerald-700 animate-bounce cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+        </button>
+      </div>
+
+      <!-- Status Badge -->
+      <span
+        class="hidden sm:inline-block px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider"
+        [ngClass]="{
+          'bg-amber-50 text-amber-700 border border-amber-300': task.status === 'IN_PROGRESS',
+          'bg-sky-50 text-sky-700 border border-sky-300': task.status === 'WAITING_QC' || task.status === 'INSPECTED',
+          'bg-rose-50 text-rose-700 border border-rose-300': task.status === 'RE_CLEAN',
+          'bg-emerald-50 text-emerald-700 border border-emerald-300': task.status === 'COMPLETED',
+          'bg-slate-100 text-slate-700 border border-slate-200': task.status === 'PENDING'
+        }"
+      >
+        {{
+          task.status === 'RE_CLEAN'
+            ? 'CẦN DỌN LẠI'
+            : task.status === 'WAITING_QC'
+              ? 'CHỜ DUYỆT QC'
+              : task.status === 'IN_PROGRESS'
+                ? 'ĐANG DỌN'
+                : task.status === 'COMPLETED'
+                  ? 'HOÀN TẤT'
+                  : 'CHƯA DỌN'
+        }}
+      </span>
+
+      <!-- Primary Action: Gửi Duyệt QC -->
+      <button
+        type="button"
+        (click)="submitFinishAndQc()"
+        [disabled]="isSubmitting"
+        class="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-50"
+      >
+        <span *ngIf="isSubmitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+        <span *ngIf="!isSubmitting" class="material-symbols-outlined text-[16px]">send</span>
+        <span>HOÀN TẤT & GỬI QC</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= PROGRESS STRIP & TABS NAVIGATION ================= -->
+  <div class="bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center justify-between gap-3 flex-shrink-0 z-10 shadow-2xs">
+    
+    <!-- Real-time Progress bar -->
+    <div class="flex items-center space-x-3 py-2.5 flex-1 max-w-md">
+      <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider flex-shrink-0">Tiến Độ Quy Trình:</span>
+      <div class="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+        <div
+          class="h-full bg-gradient-to-r from-sky-500 to-emerald-500 shimmer-progress transition-all duration-500"
+          [style.width.%]="checklistProgress"
+        ></div>
+      </div>
+      <span class="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex-shrink-0">
+        {{ checklistProgress }}% ({{ completedStepsCount }}/{{ checklistSteps.length }})
+      </span>
+    </div>
+
+    <!-- Segmented Navigation Tabs -->
+    <div class="inline-flex space-x-1 self-start md:self-end">
+      <button
+        type="button"
+        (click)="activeTab = 'checklist'"
+        class="px-4 py-2.5 text-xs font-bold transition rounded-t-xl cursor-pointer border-b-2"
+        [ngClass]="
+          activeTab === 'checklist'
+            ? 'bg-sky-50 text-[#0284c7] border-[#0284c7]'
+            : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-50'
+        "
+      >
+        <div class="flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[17px]">checklist</span>
+          <span>1. Quy Trình 16 Bước</span>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab = 'inventory'"
+        class="px-4 py-2.5 text-xs font-bold transition rounded-t-xl cursor-pointer border-b-2"
+        [ngClass]="
+          activeTab === 'inventory'
+            ? 'bg-amber-50 text-amber-700 border-amber-500'
+            : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-50'
+        "
+      >
+        <div class="flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[17px]">inventory_2</span>
+          <span>2. Minibar & Đồ Vải</span>
+          <span
+            *ngIf="getTotalMinibarEstimated() > 0"
+            class="px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-200 text-amber-900"
+          >
+            +{{ getTotalMinibarEstimated() | number }}đ
+          </span>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        (click)="activeTab = 'utilities'"
+        class="px-4 py-2.5 text-xs font-bold transition rounded-t-xl cursor-pointer border-b-2"
+        [ngClass]="
+          activeTab === 'utilities'
+            ? 'bg-purple-50 text-purple-700 border-purple-500'
+            : 'text-slate-600 hover:text-slate-900 border-transparent hover:bg-slate-50'
+        "
+      >
+        <div class="flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[17px]">build</span>
+          <span>3. Sự Cố & Lost/Found</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= 2-COLUMN SPLIT WORKSPACE BODY ================= -->
+  <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- ================= LEFT COLUMN: MAIN OPERATIONAL TABS (8 COLS) ================= -->
+      <div class="lg:col-span-8 space-y-4">
+
+        <!-- Re-clean alert if RE_CLEAN -->
+        <div
+          *ngIf="task.status === 'RE_CLEAN'"
+          class="p-4 bg-rose-50 border border-rose-300 rounded-2xl flex items-start space-x-3 shadow-xs animate-in fade-in"
+        >
+          <span class="material-symbols-outlined text-rose-600 text-[24px] flex-shrink-0 mt-0.5">error</span>
+          <div class="text-xs">
+            <h4 class="font-bold text-rose-900 uppercase tracking-wide">Yêu Cầu Dọn Lại Từ Giám Sát QC:</h4>
+            <p class="text-rose-700 mt-1 font-medium leading-relaxed">
+              {{ task.reCleanReason || task.supervisorNote || 'Vui lòng kiểm tra kỹ lại phòng tắm, thay thảm chân và bổ sung đồ dùng cá nhân.' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- ================= TAB 1: CHECKLIST 16 BƯỚC ================= -->
+        <div *ngIf="activeTab === 'checklist'" class="space-y-4">
+
+          <!-- Category Quick Filter Chips -->
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+            <button
+              type="button"
+              (click)="selectedCategory = 'ALL'"
+              [ngClass]="selectedCategory === 'ALL' ? 'bg-slate-900 text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              Tất Cả ({{ checklistSteps.length }})
+            </button>
+            <button
+              type="button"
+              (click)="selectedCategory = 'BEDDING'"
+              [ngClass]="selectedCategory === 'BEDDING' ? 'bg-[#0284c7] text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              🛏️ Phòng Ngủ
+            </button>
+            <button
+              type="button"
+              (click)="selectedCategory = 'BATHROOM'"
+              [ngClass]="selectedCategory === 'BATHROOM' ? 'bg-[#0284c7] text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              🚿 Phòng Tắm
+            </button>
+            <button
+              type="button"
+              (click)="selectedCategory = 'CLEANING'"
+              [ngClass]="selectedCategory === 'CLEANING' ? 'bg-[#0284c7] text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              🧹 Vệ Sinh & Bụi
+            </button>
+            <button
+              type="button"
+              (click)="selectedCategory = 'AMENITIES'"
+              [ngClass]="selectedCategory === 'AMENITIES' ? 'bg-[#0284c7] text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              🧴 Tiện Nghi & Minibar
+            </button>
+            <button
+              type="button"
+              (click)="selectedCategory = 'FLOOR'"
+              [ngClass]="selectedCategory === 'FLOOR' ? 'bg-[#0284c7] text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              ✨ Sàn & Kính
+            </button>
+            <button
+              type="button"
+              (click)="selectedCategory = 'DISINFECTION'"
+              [ngClass]="selectedCategory === 'DISINFECTION' ? 'bg-[#0284c7] text-white font-bold' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 font-medium'"
+              class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap cursor-pointer transition shadow-2xs"
+            >
+              💨 Khử Trùng Ozone
+            </button>
+          </div>
+
+          <!-- Step Items List -->
+          <div class="space-y-2.5">
+            <div
+              *ngFor="let step of filteredSteps; let idx = index"
+              (click)="toggleStep(step)"
+              class="p-3.5 sm:p-4 bg-white border rounded-2xl flex items-center space-x-3.5 transition cursor-pointer shadow-xs hover:border-sky-300 active:scale-99 group"
+              [ngClass]="
+                step.completed
+                  ? 'border-emerald-300 bg-emerald-50/20'
+                  : 'border-slate-200/80 hover:bg-slate-50/50'
+              "
+            >
+              <!-- Step Number Bubble -->
+              <span
+                class="w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center flex-shrink-0 transition-colors"
+                [ngClass]="step.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'"
+              >
+                {{ step.id || idx + 1 }}
+              </span>
+
+              <!-- Custom Checkbox -->
+              <div
+                class="w-6 h-6 rounded-lg flex items-center justify-center transition flex-shrink-0"
+                [ngClass]="
+                  step.completed
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'border-2 border-slate-300 bg-white group-hover:border-sky-400 text-transparent'
+                "
+              >
+                <span class="material-symbols-outlined text-[16px]">check</span>
+              </div>
+
+              <!-- Step Info & Title -->
+              <div class="flex-1 min-w-0">
+                <p
+                  class="text-xs sm:text-sm font-bold leading-relaxed transition"
+                  [ngClass]="step.completed ? 'text-slate-400 line-through' : 'text-slate-800 group-hover:text-sky-900'"
+                >
+                  {{ step.title }}
+                </p>
+              </div>
+
+              <!-- Category Tag -->
+              <span
+                class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border flex-shrink-0"
+                [ngClass]="{
+                  'bg-sky-50 text-sky-700 border-sky-200': step.category === 'CLEANING',
+                  'bg-indigo-50 text-indigo-700 border-indigo-200': step.category === 'BEDDING',
+                  'bg-teal-50 text-teal-700 border-teal-200': step.category === 'BATHROOM',
+                  'bg-amber-50 text-amber-700 border-amber-200': step.category === 'AMENITIES',
+                  'bg-slate-100 text-slate-600 border-slate-200': step.category === 'FLOOR',
+                  'bg-purple-50 text-purple-700 border-purple-200': step.category === 'DISINFECTION',
+                  'bg-rose-50 text-rose-700 border-rose-200': step.category === 'MAINTENANCE',
+                  'bg-emerald-50 text-emerald-700 border-emerald-200': step.category === 'OUTDOOR'
+                }"
+              >
+                {{ step.category }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Supervisor Note Input -->
+          <div class="p-4 bg-white border border-slate-200/80 rounded-2xl space-y-2 shadow-xs">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700">
+                Ghi chú bàn giao buồng phòng cho Giám sát QC
+              </label>
+              <span class="text-[10px] text-slate-400 font-medium">Tự động lưu khi nhập</span>
+            </div>
+            <textarea
+              [(ngModel)]="cleaningNote"
+              (blur)="saveProgress()"
+              rows="2"
+              placeholder="Nhập tình trạng phòng đặc biệt, đồ khách bỏ quên hoặc yêu cầu kiểm tra thêm..."
+              class="w-full bg-slate-50 text-slate-800 text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:bg-white focus:border-[#0284c7] outline-none transition"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- ================= TAB 2: KIỂM KÊ MINIBAR & ĐỒ VẢI ================= -->
+        <div *ngIf="activeTab === 'inventory'" class="space-y-4">
+          
+          <!-- KHỐI 1: MINIBAR CÓ TÍNH PHÍ -->
+          <div class="p-4 sm:p-5 bg-white border border-slate-200/80 rounded-2xl space-y-4 shadow-xs">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200">
+                  <span class="material-symbols-outlined text-[20px]">local_bar</span>
+                </div>
+                <div>
+                  <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">
+                    1. Minibar Có Tính Phí (Đồ Khách Đã Sử Dụng)
+                  </h3>
+                  <p class="text-[11px] text-slate-500">
+                    Kiểm tra số lượng thực tế trong tủ mát $\rightarrow$ Ghi nhận gửi Lễ tân thu tiền check-out
+                  </p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 font-bold uppercase">Tạm Tính Phụ Thu:</span>
+                <div class="text-sm font-black text-amber-700">
+                  {{ getTotalMinibarEstimated() | number }}đ
+                </div>
+              </div>
+            </div>
+
+            <!-- Minibar items grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div
+                *ngFor="let item of minibarItems"
+                class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between transition hover:border-slate-300"
+              >
+                <div class="flex-1 min-w-0 pr-2">
+                  <h4 class="text-xs font-bold text-slate-800 truncate">{{ item.itemName }}</h4>
+                  <div class="flex items-center space-x-2 mt-0.5 text-[11px] text-slate-500">
+                    <span>Định mức: <strong>{{ item.standardQuantity }}</strong></span>
+                    <span>•</span>
+                    <span class="text-slate-700 font-bold">{{ item.unitPrice | number }}đ</span>
+                  </div>
+                </div>
+
+                <!-- Quantity Controller -->
+                <div class="flex items-center space-x-1.5 flex-shrink-0">
+                  <button
+                    type="button"
+                    (click)="decreaseMinibar(item)"
+                    class="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 font-black flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
+                  >
+                    -
+                  </button>
+                  <span class="text-xs font-black text-slate-900 w-6 text-center">{{ item.currentQuantity }}</span>
+                  <button
+                    type="button"
+                    (click)="increaseMinibar(item)"
+                    class="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 font-black flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <!-- Consumed Tag -->
+                <div *ngIf="getConsumed(item) > 0" class="ml-2 pl-2 border-l border-slate-200 text-right min-w-[55px]">
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800">
+                    -{{ getConsumed(item) }}
+                  </span>
+                  <div class="text-[9px] font-bold text-amber-700 mt-0.5">
+                    {{ getConsumed(item) * item.unitPrice | number }}đ
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KHỐI 2: AMENITIES TIÊU HAO MIỄN PHÍ -->
+          <div class="p-4 sm:p-5 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-xs">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-9 h-9 rounded-xl bg-sky-50 text-[#0284c7] flex items-center justify-center border border-sky-200">
+                <span class="material-symbols-outlined text-[20px]">shower</span>
+              </div>
+              <div>
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">
+                  2. Amenities Tiêu Hao Miễn Phí (Complimentary)
+                </h3>
+                <p class="text-[11px] text-slate-500">
+                  Bàn chải, xà phòng, dầu gội, sữa tắm, chụp tóc, nước khoáng miễn phí
+                </p>
+              </div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-emerald-600 text-[18px]">verified</span>
+                <span class="text-xs font-bold text-slate-700">Đã bổ sung đầy đủ bộ amenities mới 100% đạt chuẩn 5★</span>
+              </div>
+              <button
+                type="button"
+                (click)="amenitiesConfirmed = !amenitiesConfirmed"
+                class="w-6 h-6 rounded-lg flex items-center justify-center transition cursor-pointer"
+                [ngClass]="
+                  amenitiesConfirmed
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'border border-slate-300 bg-white text-transparent'
+                "
+              >
+                <span class="material-symbols-outlined text-[16px]">check</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KHỐI 3: ĐỒ VẢI & TÀI SẢN PHÒNG -->
+          <div class="p-4 sm:p-5 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-xs">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200">
+                  <span class="material-symbols-outlined text-[20px]">bed</span>
+                </div>
+                <div>
+                  <h3 class="text-xs font-black uppercase tracking-wider text-slate-900">
+                    3. Đồ Vải & Tài Sản Phòng
+                  </h3>
+                  <p class="text-[11px] text-slate-500">
+                    Đồ vải gom giặt thường. Chỉ báo cáo khi phát hiện Mất hoặc Rách/Hỏng cần đền bù.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                (click)="openAssetModal()"
+                class="px-3 py-1.5 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 text-xs font-bold transition flex items-center space-x-1 cursor-pointer shadow-2xs active:scale-95"
+              >
+                <span class="material-symbols-outlined text-[16px]">warning</span>
+                <span>Báo Mất / Hỏng Đồ</span>
+              </button>
+            </div>
+
+            <!-- Incidents List -->
+            <div *ngIf="assetIncidents.length > 0" class="space-y-2 pt-1">
+              <div
+                *ngFor="let incident of assetIncidents; let i = index"
+                class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between"
+              >
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="text-xs font-bold text-rose-800">{{ incident.itemName }}</span>
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-rose-100 text-rose-700 border border-rose-200">
+                      {{ incident.incidentType === 'ASSET_DAMAGED' ? 'RÁCH / HỎNG' : 'MẤT' }}
+                    </span>
+                  </div>
+                  <div class="text-[11px] text-rose-600 mt-0.5 font-medium">
+                    Số lượng: {{ incident.quantity }} • Đền bù:
+                    <strong>{{ incident.compensationPrice * incident.quantity | number }}đ</strong>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  (click)="removeAssetIncident(i)"
+                  class="w-7 h-7 rounded-lg bg-rose-200/80 text-rose-800 hover:bg-rose-300 flex items-center justify-center transition cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div
+              *ngIf="assetIncidents.length === 0"
+              class="p-3 bg-slate-50 border border-slate-200/70 rounded-xl text-center text-xs text-slate-500 font-medium"
+            >
+              ✓ Tài sản và đồ vải bình thường, không ghi nhận mất mát hay hư hỏng.
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= TAB 3: TIỆN ÍCH & BÁO HỎNG ================= -->
+        <div *ngIf="activeTab === 'utilities'" class="space-y-3.5">
+          <!-- Maintenance Card -->
+          <div class="p-4 sm:p-5 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-xs">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-200 flex-shrink-0">
+                <span class="material-symbols-outlined text-[24px]">construction</span>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">Báo Cáo Sự Cố Kỹ Thuật Cho Đội Bảo Trì</h4>
+                <p class="text-[11px] text-slate-500">Điều hòa, vòi sen, bóng đèn, khóa cửa phòng hỏng...</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="showMaintenanceModal = true"
+              class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-amber-800 border border-slate-200 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
+            >
+              <span class="material-symbols-outlined text-[18px]">report_problem</span>
+              <span>Tạo Phiếu Báo Sửa Chữa Ngay</span>
+            </button>
+          </div>
+
+          <!-- Lost and Found Card -->
+          <div class="p-4 sm:p-5 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-xs">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-sky-50 text-[#0284c7] flex items-center justify-center border border-sky-200 flex-shrink-0">
+                <span class="material-symbols-outlined text-[24px]">travel_explore</span>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">Ghi Nhận Đồ Khách Bỏ Quên (Lost & Found)</h4>
+                <p class="text-[11px] text-slate-500">
+                  Lưu vào sổ Lost & Found để Lễ tân liên hệ trả lại khách.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="showLostFoundModal = true"
+              class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-sky-800 border border-slate-200 text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs"
+            >
+              <span class="material-symbols-outlined text-[18px]">add_photo_alternate</span>
+              <span>Ghi Nhận Đồ Thất Lạc Mới</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ================= RIGHT COLUMN: VILLA COMMAND PANEL (4 COLS) ================= -->
+      <div class="lg:col-span-4 space-y-4">
+
+        <!-- Villa Card Preview -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs light-card-shadow">
+          <div class="relative h-44 overflow-hidden bg-slate-100">
+            <img
+              [src]="getRoomImage()"
+              onerror="this.src='/assets/images/rooms/grand-oceanfront.jpg'"
+              class="w-full h-full object-cover"
+              alt="Villa Image"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+            <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-xl bg-slate-900/85 backdrop-blur-md text-white font-black text-xs border border-white/20 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[15px] text-amber-400">door_front</span>
+                NT-{{ task.roomNumber || task.villaNumber }}
+              </span>
+              <span class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider backdrop-blur-md bg-sky-600 text-white">
+                {{ task.villaZone ? 'Khu ' + task.villaZone : 'Villas 5★' }}
+              </span>
+            </div>
+            <div class="absolute bottom-3 left-3 right-3 text-white">
+              <h3 class="text-sm font-black">{{ task.villaTypeName || 'Beachfront Pool Villa' }}</h3>
+              <p class="text-[11px] text-slate-300">Giám sát QC: {{ task.supervisorNote ? 'Long Phùng' : 'Ban Giám Sát' }}</p>
+            </div>
+          </div>
+
+          <!-- Villa metadata items -->
+          <div class="p-4 space-y-2.5 text-xs">
+            <div class="flex items-center justify-between text-slate-600">
+              <span class="flex items-center gap-1.5 text-slate-400 font-medium">
+                <span class="material-symbols-outlined text-[16px]">schedule</span> Thời gian tiêu chuẩn:
+              </span>
+              <strong class="text-slate-800">45 phút</strong>
+            </div>
+            <div class="flex items-center justify-between text-slate-600 border-t border-slate-100 pt-2">
+              <span class="flex items-center gap-1.5 text-slate-400 font-medium">
+                <span class="material-symbols-outlined text-[16px]">cleaning_services</span> Hình thức dọn:
+              </span>
+              <strong class="text-[#0284c7]">
+                {{ task.taskType === 'CHECKOUT_DEEP' ? 'Dọn Sâu 16 Bước' : 'Dọn Định Kỳ' }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Khử Khuẩn & Khử Mùi Ozone Card (Aura 5★ Special) -->
+        <div
+          class="p-4 rounded-2xl border transition-all shadow-xs"
+          [ngClass]="
+            ozoneRunning
+              ? 'bg-purple-50/80 border-purple-300 shadow-purple-100'
+              : 'bg-white border-slate-200/80'
+          "
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div
+                class="w-9 h-9 rounded-xl flex items-center justify-center transition border"
+                [ngClass]="
+                  ozoneRunning
+                    ? 'bg-purple-100 border-purple-300 text-purple-700 animate-pulse'
+                    : 'bg-slate-100 border-slate-200 text-slate-500'
+                "
+              >
+                <span class="material-symbols-outlined text-[20px]">air</span>
+              </div>
+              <div>
+                <div class="flex items-center space-x-1.5">
+                  <h4 class="text-xs font-bold text-slate-900">Khử Khuẩn Ozone</h4>
+                  <span class="px-1.5 py-0.2 bg-purple-50 text-purple-700 text-[9px] font-black rounded border border-purple-200">
+                    Chuẩn 5★
+                  </span>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-0.5">Khử mùi & diệt khuẩn 20 phút</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="toggleOzone()"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs active:scale-95"
+              [ngClass]="
+                ozoneRunning
+                  ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-rose-200'
+                  : 'bg-purple-600 text-white hover:bg-purple-700 shadow-purple-200'
+              "
+            >
+              {{ ozoneRunning ? 'TẮT MÁY' : 'BẬT OZONE' }}
+            </button>
+          </div>
+
+          <div
+            *ngIf="ozoneRunning"
+            class="mt-2.5 pt-2.5 border-t border-purple-200 flex items-center justify-between text-xs text-purple-800 font-medium"
+          >
+            <span class="flex items-center space-x-1.5 text-[11px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-ping"></span>
+              <span>Đang khử khuẩn: Đóng kín cửa</span>
+            </span>
+            <span class="font-mono font-bold text-purple-900 bg-purple-100 px-2 py-0.5 rounded border border-purple-300 text-[11px]">
+              Còn: {{ ozoneMinutesRemaining }}p
+            </span>
+          </div>
+        </div>
+
+        <!-- Financial Surcharge Summary Card -->
+        <div class="p-4 bg-white border border-slate-200/80 rounded-2xl space-y-3 shadow-xs">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <span class="text-xs font-black uppercase tracking-wider text-slate-700">Tóm Tắt Phụ Thu Check-out</span>
+            <span class="material-symbols-outlined text-amber-500 text-[18px]">receipt_long</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between text-slate-500">
+              <span>Tiêu thụ Minibar:</span>
+              <span class="font-bold text-slate-800">{{ getTotalMinibarEstimated() | number }}đ</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-500">
+              <span>Đền bù đồ vải / Tài sản:</span>
+              <span class="font-bold text-slate-800">{{ getTotalAssetCompensation() | number }}đ</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-900 font-bold border-t border-slate-100 pt-2 text-sm">
+              <span>Tổng phụ thu gửi Lễ tân:</span>
+              <span class="font-black text-amber-700">
+                {{ getTotalMinibarEstimated() + getTotalAssetCompensation() | number }}đ
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Big Primary CTA Card -->
+        <div class="space-y-2 pt-1">
+          <button
+            type="button"
+            (click)="submitFinishAndQc()"
+            [disabled]="isSubmitting"
+            class="w-full py-3.5 px-4 rounded-2xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-black text-xs shadow-md shadow-sky-600/20 flex items-center justify-center space-x-2 transition transform active:scale-98 disabled:opacity-50 cursor-pointer"
+          >
+            <span *ngIf="isSubmitting" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+            <span *ngIf="!isSubmitting" class="material-symbols-outlined text-[20px]">verified</span>
+            <span>HOÀN TẤT & GỬI DUYỆT QC</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="close.emit()"
+            class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer text-center"
+          >
+            Quay Lại Danh Sách Phòng
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: BÁO MẤT / HỎNG TÀI SẢN ================= -->
+  <div
+    *ngIf="showAssetModal"
+    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+  >
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-xs font-black uppercase text-rose-700 flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[20px]">warning</span>
+          <span>Báo Mất / Rách Hỏng Tài Sản</span>
+        </h3>
+        <button
+          type="button"
+          (click)="showAssetModal = false"
+          class="text-slate-400 hover:text-slate-700 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Món đồ gặp sự cố (*)</label>
+          <select
+            [(ngModel)]="newAssetIncident.itemName"
+            (change)="onAssetSelectChange()"
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 outline-none"
+          >
+            <option *ngFor="let item of standardAssetPriceList" [value]="item.name">
+              {{ item.name }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Loại sự cố</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              (click)="newAssetIncident.incidentType = 'ASSET_DAMAGED'"
+              class="py-2 rounded-xl text-center font-bold text-xs border transition cursor-pointer"
+              [ngClass]="
+                newAssetIncident.incidentType === 'ASSET_DAMAGED'
+                  ? 'bg-rose-50 text-rose-700 border-rose-300'
+                  : 'bg-slate-50 text-slate-600 border-slate-200'
+              "
+            >
+              Rách / Vỡ / Hỏng
+            </button>
+            <button
+              type="button"
+              (click)="newAssetIncident.incidentType = 'ASSET_LOST'"
+              class="py-2 rounded-xl text-center font-bold text-xs border transition cursor-pointer"
+              [ngClass]="
+                newAssetIncident.incidentType === 'ASSET_LOST'
+                  ? 'bg-rose-50 text-rose-700 border-rose-300'
+                  : 'bg-slate-50 text-slate-600 border-slate-200'
+              "
+            >
+              Mất / Mang về
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Số lượng</label>
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="newAssetIncident.quantity"
+              class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 font-bold"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Giá đền bù</label>
+            <input
+              type="number"
+              [(ngModel)]="newAssetIncident.compensationPrice"
+              class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 font-bold text-rose-600"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ghi chú & Mô tả</label>
+          <input
+            type="text"
+            [(ngModel)]="newAssetIncident.note"
+            placeholder="Mô tả vết bẩn/hỏng..."
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 pt-2 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="showAssetModal = false"
+          class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          type="button"
+          (click)="saveAssetIncident()"
+          class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold cursor-pointer shadow-xs"
+        >
+          Lưu Báo Cáo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: BÁO HỎNG KỸ THUẬT ================= -->
+  <div
+    *ngIf="showMaintenanceModal"
+    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+  >
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-xs font-black uppercase text-amber-800 flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[20px]">construction</span>
+          <span>Báo Sự Cố Kỹ Thuật</span>
+        </h3>
+        <button
+          type="button"
+          (click)="showMaintenanceModal = false"
+          class="text-slate-400 hover:text-slate-700 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Hạng mục sự cố</label>
+          <select
+            [(ngModel)]="maintenanceForm.category"
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 outline-none"
+          >
+            <option value="AIR_CONDITIONER">Điều hòa / Máy lạnh</option>
+            <option value="PLUMBING">Hệ thống Nước / Vòi sen / Thoát sàn</option>
+            <option value="ELECTRICAL">Điện / Đèn chiếu sáng</option>
+            <option value="DOOR_LOCK">Khóa cửa phòng / Thẻ từ</option>
+            <option value="FURNITURE">Nội thất / Bàn ghế / Tủ</option>
+            <option value="OTHER">Sự cố khác</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mức độ khẩn cấp</label>
+          <select
+            [(ngModel)]="maintenanceForm.priority"
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 outline-none"
+          >
+            <option value="LOW">Thấp (Sửa sau)</option>
+            <option value="MEDIUM">Trung bình</option>
+            <option value="HIGH">Cao (Cần xử lý trước giờ check-in)</option>
+            <option value="EMERGENCY">Khẩn cấp (Rò rỉ/Mất điện)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mô tả sự cố (*)</label>
+          <textarea
+            [(ngModel)]="maintenanceForm.description"
+            rows="3"
+            placeholder="Mô tả cụ thể vị trí và tình trạng hỏng hóc..."
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 text-xs"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 pt-2 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="showMaintenanceModal = false"
+          class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          type="button"
+          (click)="submitMaintenance()"
+          [disabled]="!maintenanceForm.description"
+          class="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs"
+        >
+          Gửi Kỹ Thuật
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: GHI NHẬN ĐỒ THẤT LẠC ================= -->
+  <div
+    *ngIf="showLostFoundModal"
+    class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+  >
+    <div class="bg-white border border-slate-200 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-xs font-black uppercase text-sky-800 flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[20px]">travel_explore</span>
+          <span>Ghi Nhận Đồ Thất Lạc</span>
+        </h3>
+        <button
+          type="button"
+          (click)="showLostFoundModal = false"
+          class="text-slate-400 hover:text-slate-700 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên món đồ nhặt được (*)</label>
+          <input
+            type="text"
+            [(ngModel)]="lostFoundForm.itemName"
+            placeholder="Vd: Đồng hồ Apple Watch màu đen..."
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold"
+          />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Phân loại</label>
+          <select
+            [(ngModel)]="lostFoundForm.category"
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 outline-none"
+          >
+            <option value="ELECTRONICS">Thiết bị điện tử (Điện thoại, sạc, đồng hồ)</option>
+            <option value="JEWELRY">Trang sức, ví tiền, vàng bạc</option>
+            <option value="DOCUMENTS">Giấy tờ tùy thân, hộ chiếu</option>
+            <option value="CLOTHING">Quần áo, mũ nón, giày dép</option>
+            <option value="OTHER">Khác</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Vị trí tìm thấy (*)</label>
+          <input
+            type="text"
+            [(ngModel)]="lostFoundForm.foundLocation"
+            placeholder="Vd: Dưới gối phòng ngủ chính..."
+            class="w-full bg-slate-50 text-slate-800 px-3 py-2 rounded-xl border border-slate-200 text-xs"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 pt-2 border-t border-slate-100">
+        <button
+          type="button"
+          (click)="showLostFoundModal = false"
+          class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          type="button"
+          (click)="submitLostFound()"
+          [disabled]="!lostFoundForm.itemName"
+          class="flex-1 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white text-xs font-bold disabled:opacity-50 cursor-pointer shadow-xs"
+        >
+          Lưu Vào Sổ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FLOATING TOAST NOTIFICATION ================= -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed top-16 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-xl animate-in fade-in slide-in-from-top-2"
+  >
+    {{ toastMessage }}
+  </div>
+
+</div>

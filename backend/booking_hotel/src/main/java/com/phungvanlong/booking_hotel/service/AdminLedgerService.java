@@ -11,4 +11,6 @@ public interface AdminLedgerService {
     LedgerItemResponse createTransaction(com.phungvanlong.booking_hotel.dto.request.LedgerItemRequest request);
     DayEndClosingResponse executeDayEndClosing(DayEndClosingRequest request, String userEmail);
     DayEndClosingResponse getLatestClosing();
+    LedgerItemResponse reconcileTransaction(Long id, com.phungvanlong.booking_hotel.dto.request.ReconcileRequest request, String userEmail);
+    com.phungvanlong.booking_hotel.dto.response.PaymentDashboardStatsResponse getDashboardStats();
 }

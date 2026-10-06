@@ -1,0 +1,135 @@
+<section id="offers" class="bg-[#FAF8F5] text-slate-800 py-20 lg:py-24 border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Section Header -->
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 pb-5 border-b border-slate-200 gap-4">
+      <div>
+        <h2 class="text-3xl sm:text-4xl font-black text-[#0369A1] uppercase tracking-wider mb-2">
+          Ưu Đãi Đặc Quyền
+        </h2>
+        <p class="text-sm text-slate-500 font-bold max-w-2xl">Khám phá các gói nghỉ dưỡng và khuyến mãi độc quyền từ hệ thống</p>
+      </div>
+      <a routerLink="/villas" class="text-xs font-bold text-[#EA580C] hover:text-[#c2410c] tracking-wider uppercase flex items-center space-x-1.5 group">
+        <span>Xem tất cả gói combo</span>
+        <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Loading Skeleton -->
+    <div *ngIf="loading" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-7 rounded-2xl bg-slate-200 animate-pulse min-h-[460px]"></div>
+      <div class="lg:col-span-5 flex flex-col space-y-6">
+        <div class="bg-slate-200 rounded-2xl animate-pulse h-44"></div>
+        <div class="bg-slate-200 rounded-2xl animate-pulse h-44"></div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !featuredOffer" class="text-center py-20 space-y-3">
+      <span class="material-symbols-outlined text-5xl text-slate-300 block">hotel_class</span>
+      <p class="text-slate-400 font-medium text-sm">Hiện chưa có gói combo nào đang hoạt động.</p>
+      <p class="text-slate-300 text-xs">Vào trang Quản trị → Khuyến Mãi → Combo để tạo gói mới.</p>
+    </div>
+
+    <!-- 2-Column Layout -->
+    <div *ngIf="!loading && featuredOffer" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      
+      <!-- Left Big Card — Featured Combo -->
+      <div class="lg:col-span-7 rounded-2xl overflow-hidden shadow-xl border border-slate-200 relative flex flex-col justify-end min-h-[460px] bg-slate-900 group">
+        <!-- Background Image -->
+        <img
+          [src]="featuredOffer.imageUrl"
+          [alt]="featuredOffer.title"
+          class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <!-- Dark gradient overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
+
+        <!-- Content -->
+        <div class="relative z-10 p-6 sm:p-10 space-y-4">
+          <!-- Badge -->
+          <span class="inline-block sunset-badge text-[10px] font-extrabold tracking-widest px-3 py-1 rounded uppercase">
+            {{ featuredOffer.badge }}
+          </span>
+
+          <!-- Title -->
+          <h3 class="text-2xl sm:text-3xl font-black text-white leading-tight">
+            {{ featuredOffer.title }}
+          </h3>
+
+          <!-- Description -->
+          <p *ngIf="featuredOffer.description" class="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal line-clamp-2">
+            {{ featuredOffer.description }}
+          </p>
+
+
+          <!-- Benefits -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 text-xs text-amber-100 font-medium">
+            <div *ngFor="let benefit of featuredOffer.benefits" class="flex items-center space-x-2">
+              <span class="material-symbols-outlined text-[16px] text-amber-400 font-bold flex-shrink-0">check_circle</span>
+              <span>{{ benefit }}</span>
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="pt-4 flex items-center gap-4">
+            <button class="gold-button-vivid text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-2 shadow-lg">
+              <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+              <span>{{ featuredOffer.buttonText }}</span>
+            </button>
+            <span class="text-sm font-black text-amber-300">{{ featuredOffer.priceDisplay }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Stacked Cards -->
+      <div class="lg:col-span-5 flex flex-col justify-between space-y-5">
+        <div
+          *ngFor="let offer of stackedOffers; let idx = index"
+          class="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-400/50 transition-all duration-300 flex group"
+        >
+          <!-- Thumbnail -->
+          <div class="w-28 sm:w-32 shrink-0 relative overflow-hidden">
+            <img [src]="offer.imageUrl" [alt]="offer.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent to-black/10"></div>
+          </div>
+
+          <!-- Content -->
+          <div class="flex flex-col justify-between p-4 sm:p-5 flex-1 space-y-2">
+            <div>
+              <span
+                [class]="idx === 0
+                  ? 'text-[10px] font-bold tracking-wider uppercase text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded'
+                  : 'text-[10px] font-bold tracking-wider uppercase text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded'"
+              >
+                {{ offer.badge }}
+              </span>
+              <h4 class="text-sm font-bold text-slate-900 group-hover:text-[#EA580C] transition leading-snug mt-1.5">
+                {{ offer.title }}
+              </h4>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span class="text-sm font-black text-[#EA580C]">{{ offer.priceDisplay }}</span>
+              <a href="#" class="text-[11px] font-bold text-slate-600 hover:text-[#0369A1] tracking-wider uppercase flex items-center gap-0.5 group-hover:text-[#0369A1] transition">
+                <span>Đặt ngay</span>
+                <span class="material-symbols-outlined text-[14px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Placeholder if < 3 combos -->
+        <div
+          *ngIf="stackedOffers.length === 0"
+          class="flex-1 bg-white rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 py-10 text-slate-300"
+        >
+          <span class="material-symbols-outlined text-4xl">hotel_class</span>
+          <span class="text-xs font-medium">Thêm gói combo tại trang quản trị</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>

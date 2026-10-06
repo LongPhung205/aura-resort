@@ -29,6 +29,9 @@ public class BookingResponse implements Serializable {
     private LocalDateTime expireAt;
     private String note;
     private String userEmail;
+    private String guestName;
+    private String guestEmail;
+    private String guestPhone;
     private List<String> bookedVillaNumbers;
     private List<String> bookedRoomNumbers;
 
@@ -55,6 +58,9 @@ public class BookingResponse implements Serializable {
                 .expireAt(entity.getExpireAt())
                 .note(entity.getNote())
                 .userEmail(entity.getUser() != null ? entity.getUser().getEmail() : null)
+                .guestName(entity.getGuestName())
+                .guestEmail(entity.getGuestEmail())
+                .guestPhone(entity.getGuestPhone())
                 .bookedVillaNumbers(units)
                 .bookedRoomNumbers(units)
                 .build();

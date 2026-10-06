@@ -15,6 +15,9 @@ import java.util.List;
 public class GanttRoomAvailabilityResponse implements Serializable {
     private String villaNumber; // e.g. "Villa #801"
     private String roomTypeName; // e.g. "Grand Oceanfront Pool"
+    private String zoneName;
+    private String statusTag; 
+    private String statusTagClass;
     private List<GanttDaySlot> daySlots;
 
     @Data
@@ -29,5 +32,7 @@ public class GanttRoomAvailabilityResponse implements Serializable {
         private Boolean isSpanStart;
         private String blockLabel; // "Trịnh Gia Bảo (Diamond) - 2 Đêm"
         private String colorClass;
+        private Long bookingId;
+        private String bookingCode;
     }
 }

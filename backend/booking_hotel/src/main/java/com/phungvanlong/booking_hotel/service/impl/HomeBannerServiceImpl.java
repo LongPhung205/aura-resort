@@ -35,6 +35,24 @@ public class HomeBannerServiceImpl implements HomeBannerService {
 
     @Override
     @Transactional
+    public List<HomeBannerResponse> getBannersByPlacement(String placement) {
+        List<HomeBanner> banners = bannerRepository.findAllByIsActiveTrueOrderByDisplayOrderAsc();
+        
+        List<HomeBanner> filteredBanners = banners.stream()
+                .filter(b -> b.getPlacement() == null || b.getPlacement().trim().isEmpty() || placement.equalsIgnoreCase(b.getPlacement()))
+                .collect(Collectors.toList());
+                
+        if (filteredBanners.isEmpty() && "HOME".equalsIgnoreCase(placement)) {
+            return getActiveBanners();
+        }
+        
+        return filteredBanners.stream()
+                .map(HomeBannerResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
     public List<HomeBannerResponse> getAllBanners() {
         List<HomeBanner> banners = bannerRepository.findAllByOrderByDisplayOrderAsc();
         if (banners.isEmpty()) {
@@ -84,6 +102,7 @@ public class HomeBannerServiceImpl implements HomeBannerService {
                 .mobileImageUrl(img)
                 .ctaText(request.getCtaText() != null ? request.getCtaText().trim() : "Khám Phá Ngay")
                 .ctaLink(request.getCtaLink() != null ? request.getCtaLink().trim() : "/villas")
+                .placement(request.getPlacement() != null ? request.getPlacement().trim() : "HOME")
                 .displayOrder(order)
                 .isActive(request.getIsActive() != null ? request.getIsActive() : true)
                 .badgesJson(request.getBadgesJson())
@@ -114,6 +133,9 @@ public class HomeBannerServiceImpl implements HomeBannerService {
         }
         if (request.getCtaLink() != null) {
             banner.setCtaLink(request.getCtaLink().trim());
+        }
+        if (request.getPlacement() != null) {
+            banner.setPlacement(request.getPlacement().trim());
         }
         if (request.getDisplayOrder() != null) {
             banner.setDisplayOrder(request.getDisplayOrder());

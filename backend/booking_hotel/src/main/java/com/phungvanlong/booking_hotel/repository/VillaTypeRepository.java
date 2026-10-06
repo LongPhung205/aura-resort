@@ -29,7 +29,7 @@ public interface VillaTypeRepository extends JpaRepository<VillaType, Long> {
            "(:quantity <= (" +
            "   SELECT count(v.id) FROM Villa v WHERE v.villaType = vt AND v.status = 'AVAILABLE' AND v.id NOT IN (" +
            "       SELECT bd.villa.id FROM BookingDetail bd JOIN bd.booking b " +
-           "       WHERE bd.villa IS NOT NULL AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') " +
+           "       WHERE bd.villa IS NOT NULL AND (b.status IN ('CONFIRMED', 'CHECKED_IN') OR (b.status = 'PENDING' AND b.expireAt > CURRENT_TIMESTAMP)) " +
            "       AND b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate" +
            "   )" +
            "))")

@@ -135,6 +135,12 @@ public class AdminHousekeepingController {
         return ResponseEntity.ok(ApiResponse.success(response, "Cập nhật trạng thái đồ thất lạc thành công"));
     }
 
+    @DeleteMapping("/clear-all-data")
+    public ResponseEntity<ApiResponse<String>> clearAllData() {
+        housekeepingService.clearAllData();
+        return ResponseEntity.ok(ApiResponse.success("Đã xóa hết", "Đã xóa toàn bộ dữ liệu dọn phòng"));
+    }
+
     @GetMapping("/maintenance-tickets")
     public ResponseEntity<ApiResponse<List<com.phungvanlong.booking_hotel.dto.response.MaintenanceTicketResponse>>> getMaintenanceTickets(
             @RequestParam(required = false) com.phungvanlong.booking_hotel.entity.MaintenanceStatus status,

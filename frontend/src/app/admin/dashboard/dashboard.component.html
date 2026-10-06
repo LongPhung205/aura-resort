@@ -1,0 +1,722 @@
+<div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1440px] mx-auto font-sans text-slate-800">
+
+  <!-- Toast Notification -->
+  <div *ngIf="toastMessage" 
+       class="fixed bottom-6 right-6 z-50 flex items-center space-x-2.5 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 text-xs font-semibold animate-fade-in">
+    <span class="material-symbols-outlined text-emerald-400 text-[18px]">check_circle</span>
+    <span>{{ toastMessage }}</span>
+    <button (click)="toastMessage = null" class="text-slate-400 hover:text-white ml-2">
+      <span class="material-symbols-outlined text-[15px]">close</span>
+    </button>
+  </div>
+
+  <!-- 1. TOP EXECUTIVE BANNER (Vibrant Royal Blue matching resort branding) -->
+  <div class="relative bg-gradient-to-r from-[#034ea2] via-[#0b63ce] to-[#024491] rounded-2xl p-6 text-white shadow-md overflow-hidden">
+    <!-- Subtle luxury glow/lighting -->
+    <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+      <!-- Left text info -->
+      <div>
+        <div class="flex items-center space-x-3 text-xs font-bold text-sky-200 uppercase tracking-wider mb-2">
+          <span class="flex items-center space-x-1">
+            <span class="material-symbols-outlined text-[16px] text-sky-300">shield</span>
+            <span>AURA EXECUTIVE CONTROL TOWER</span>
+          </span>
+          <span class="text-white/40">•</span>
+          <span>Hệ Thống Vận Hành 2026</span>
+        </div>
+        
+        <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+          Tổng Quan Vận Hành & Thống Kê Toàn Hệ Thống
+        </h1>
+
+        <!-- Metadata Row with Live Clock and Shift -->
+        <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-sky-100 font-medium">
+          <div class="flex items-center space-x-1.5 bg-white/10 px-2.5 py-1 rounded-lg border border-white/15">
+            <span class="material-symbols-outlined text-[16px] text-amber-300">nest_clock_farsight_analog</span>
+            <span class="font-bold text-white tracking-wide">{{ currentLocalTimeStr }}</span>
+          </div>
+          <span class="text-white/30 hidden sm:inline">•</span>
+          <div class="flex items-center space-x-1.5">
+            <span class="material-symbols-outlined text-[16px] text-sky-300">badge</span>
+            <span>{{ currentShiftStr }}</span>
+          </div>
+          <span class="text-white/30 hidden sm:inline">•</span>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>{{ totalVillasCount }} Biệt Thự Phú Quốc • Đồng Bộ CSDL Realtime</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Action CTAs & Date Range Filter Pills -->
+      <div class="flex flex-col items-start xl:items-end gap-3">
+        <!-- Date Pills Container -->
+        <div class="flex items-center space-x-1 p-1 bg-white/15 backdrop-blur-md rounded-xl border border-white/20 text-xs font-semibold">
+          <button (click)="setDateFilter('today')"
+                  [class.bg-white]="activeDateFilter === 'today'"
+                  [class.text-slate-900]="activeDateFilter === 'today'"
+                  [class.shadow-xs]="activeDateFilter === 'today'"
+                  [class.text-white]="activeDateFilter !== 'today'"
+                  class="px-3 py-1.5 rounded-lg transition cursor-pointer">
+            Hôm nay
+          </button>
+          <button (click)="setDateFilter('7d')"
+                  [class.bg-white]="activeDateFilter === '7d'"
+                  [class.text-slate-900]="activeDateFilter === '7d'"
+                  [class.shadow-xs]="activeDateFilter === '7d'"
+                  [class.text-white]="activeDateFilter !== '7d'"
+                  class="px-3 py-1.5 rounded-lg transition cursor-pointer">
+            7 Ngày
+          </button>
+          <button (click)="setDateFilter('month')"
+                  [class.bg-white]="activeDateFilter === 'month'"
+                  [class.text-slate-900]="activeDateFilter === 'month'"
+                  [class.shadow-xs]="activeDateFilter === 'month'"
+                  [class.text-white]="activeDateFilter !== 'month'"
+                  class="px-3 py-1.5 rounded-lg transition cursor-pointer">
+            Tháng này
+          </button>
+          <button (click)="setDateFilter('year')"
+                  [class.bg-white]="activeDateFilter === 'year'"
+                  [class.text-slate-900]="activeDateFilter === 'year'"
+                  [class.shadow-xs]="activeDateFilter === 'year'"
+                  [class.text-white]="activeDateFilter !== 'year'"
+                  class="px-3 py-1.5 rounded-lg transition cursor-pointer">
+            Năm 2026
+          </button>
+
+          <!-- Export PDF Button -->
+          <button (click)="exportPdf()" 
+                  class="ml-1 px-3 py-1.5 bg-blue-700/60 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-1 transition border border-white/20 cursor-pointer">
+            <span class="material-symbols-outlined text-[15px]">print</span>
+            <span>In / PDF</span>
+          </button>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+          <button (click)="exportExcel()" 
+                  class="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 flex items-center space-x-1.5 transition cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">download</span>
+            <span>Xuất Báo Cáo CSV</span>
+          </button>
+
+
+          <button (click)="openBroadcastModal()" 
+                  class="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/20 flex items-center space-x-1.5 transition cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">campaign</span>
+            <span>Phát Thông Báo</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 4 KEY KPI CARDS -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- Card 1: CÔNG SUẤT BIỆT THỰ -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all">
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">CÔNG SUẤT BIỆT THỰ</span>
+          <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">villa</span>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{ occupancyPercent }}</span>
+          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+            +4.8% MoM
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-500">
+          <span>Biệt thự có khách:</span>
+          <span class="font-bold text-slate-800">{{ occupiedRoomsText }}</span>
+        </div>
+        <div class="flex justify-between text-slate-500 text-[11px]">
+          <span>Phân bổ tình trạng:</span>
+          <span class="font-semibold text-sky-700">{{ availableVillasCount }} Sẵn sàng • {{ todayOccupiedCount }} Ở • {{ maintenanceCleaningCount }} Dọn/Trì</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: DOANH THU HỆ THỐNG -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all">
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">DOANH THU HỆ THỐNG</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{ todayRevenueText }}</span>
+          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+            {{ paymentSuccessCount > 0 ? paymentSuccessCount + ' Giao Dịch Đối Soát' : '100% Khớp Cổng' }}
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-500">
+          <span>ADR Bình Quân:</span>
+          <span class="font-bold text-slate-800">{{ adrText }}</span>
+        </div>
+        <div class="flex justify-between text-slate-500">
+          <span>RevPAR:</span>
+          <span class="font-bold text-sky-700">{{ revParText }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: VIP & DIAMOND ELITE -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all">
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">VIP & DIAMOND ELITE</span>
+          <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">diamond</span>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{ inHouseVipCount }}</span>
+          <span class="text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
+            Thượng Khách
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-500">
+          <span>Yêu cầu VIP đặc biệt:</span>
+          <span class="font-bold text-amber-700">{{ specialRequestsCount }} Thượng khách</span>
+        </div>
+        <div class="flex justify-between text-slate-500">
+          <span>Quản gia riêng (Butler):</span>
+          <span class="font-bold text-emerald-700">{{ onDutyStaffCount }} Quản gia trực ca</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: CHỈ SỐ HÀI LÒNG (NPS/CSAT) -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all">
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">CHỈ SỐ HÀI LÒNG (NPS/CSAT)</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">star</span>
+          </div>
+        </div>
+        <div class="mt-3 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{ csatScoreText }}<span class="text-sm font-normal text-slate-400">/5.0</span></span>
+          <span class="text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+            NPS {{ npsScoreText }}
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-500">
+          <span>Đánh giá 5 sao:</span>
+          <span class="font-bold text-slate-800">{{ fiveStarReviewsCount }} lượt đánh giá</span>
+        </div>
+        <div class="flex justify-between text-slate-500">
+          <span>SLA cứu vãn khiếu nại:</span>
+          <span class="font-bold text-emerald-700">{{ unresolvedComplaintsCount === 0 ? '< 3 Phút (0 tồn)' : unresolvedComplaintsCount + ' Đang xử lý' }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 3. MIDDLE SECTION: 7-DAY REVENUE & OCCUPANCY CHART -->
+  <div class="w-full bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+      <div>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 gap-2">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[11px] font-bold text-sky-700 uppercase tracking-wider block">PHÂN TÍCH ĐA CHIỀU</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 font-bold border border-sky-200">
+                {{ weekRangeLabel }}
+              </span>
+            </div>
+            <h2 class="text-base font-bold text-slate-900 mt-1">{{ chartTitle }}</h2>
+          </div>
+          <!-- Mode Switcher & Chart Legend -->
+          <div class="flex flex-wrap items-center gap-3 text-xs font-semibold">
+            <!-- Mode Toggle: 7 Ngày Qua (Thực Thu) vs 7 Ngày Tới (Dự Báo) -->
+            <div class="flex items-center p-0.5 bg-slate-100 rounded-lg text-[10px] font-bold border border-slate-200/60">
+              <button (click)="setChartMode('past')"
+                      [class.bg-white]="chartMode === 'past'"
+                      [class.text-sky-700]="chartMode === 'past'"
+                      [class.shadow-2xs]="chartMode === 'past'"
+                      [class.text-slate-600]="chartMode !== 'past'"
+                      class="px-2.5 py-1 rounded-md transition cursor-pointer">
+                7 Ngày Qua (Thực Thu)
+              </button>
+              <button (click)="setChartMode('forecast')"
+                      [class.bg-white]="chartMode === 'forecast'"
+                      [class.text-sky-700]="chartMode === 'forecast'"
+                      [class.shadow-2xs]="chartMode === 'forecast'"
+                      [class.text-slate-600]="chartMode !== 'forecast'"
+                      class="px-2.5 py-1 rounded-md transition cursor-pointer">
+                7 Ngày Tới (Dự Báo)
+              </button>
+            </div>
+
+            <div class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+              <span class="text-slate-600">{{ chartRevLegend }}</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#f59e0b]"></span>
+              <span class="text-slate-600">{{ chartOccLegend }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dual Bar Visualization (Real Data Dynamic) -->
+        <div class="mt-6 pt-2 pb-2">
+          <div class="h-60 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-4 border-b border-slate-200 pb-2">
+            <div *ngFor="let item of chartData" class="flex-1 flex flex-col items-center justify-end h-full group relative">
+              
+              <!-- Hover Tooltip -->
+              <div class="absolute -top-14 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 bg-slate-900 text-white text-[10px] rounded-lg px-2.5 py-1 whitespace-nowrap shadow-lg">
+                <span class="font-bold text-amber-300">{{ item.day }}:</span> 
+                {{ chartMode === 'past' ? 'Thực thu ' : 'Dự kiến ' }}{{ item.revM }} Tr ₫ • 
+                {{ chartMode === 'past' ? 'Lấp đầy ' : 'Kế hoạch ' }}{{ item.occP }}%
+              </div>
+
+              <!-- Side-by-side Dual Bars -->
+              <div class="w-full flex items-end justify-center space-x-1 sm:space-x-1.5 h-full">
+                <!-- Blue Bar: Revenue -->
+                <div class="w-3 sm:w-5 bg-[#0284c7] hover:bg-[#0369a1] rounded-t-sm transition-all duration-500 shadow-2xs"
+                     [style.height.%]="item.revHeight"
+                     title="Doanh thu: {{ item.revM }} Tr ₫"></div>
+                <!-- Amber Bar: Occupancy -->
+                <div class="w-3 sm:w-5 bg-[#f59e0b] hover:bg-[#d97706] rounded-t-sm transition-all duration-500 shadow-2xs"
+                     [style.height.%]="item.occHeight"
+                     title="Công suất: {{ item.occP }}%"></div>
+              </div>
+
+              <!-- X-Axis Label -->
+              <span class="text-[10px] sm:text-[11px] font-semibold mt-2.5 text-center truncate max-w-full"
+                    [class.text-sky-700]="item.isToday"
+                    [class.font-black]="item.isToday"
+                    [class.text-slate-500]="!item.isToday">
+                {{ item.day }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 Bottom Stat Boxes (Dynamic DB Calculation) -->
+      <div class="mt-4 pt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+          <span class="text-slate-400 font-medium block text-[10px]">Dự báo 3 ngày tới:</span>
+          <span class="font-bold text-slate-800">{{ forecastNext3DaysText }}</span>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+          <span class="text-slate-400 font-medium block text-[10px]">Phân khúc được chuộng nhất:</span>
+          <span class="font-bold text-slate-800">{{ highestSegmentText }}</span>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+          <span class="text-slate-400 font-medium block text-[10px]">Kênh thanh toán chủ lực:</span>
+          <span class="font-bold text-sky-700">{{ primaryChannelText }}</span>
+        </div>
+      </div>
+    </div>
+
+
+
+  <!-- 5. LIVE VIP ARRIVAL & DEPARTURE TABLE -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    
+    <!-- Table Header Toolbar -->
+    <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] font-bold text-sky-700 uppercase tracking-wider block">NHẬT KÝ THƯỢNG KHÁCH LIVE • HÔM NAY ({{ todayDmStr }})</span>
+          <span *ngIf="todayCheckInCount > 0" class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse mr-1"></span>
+            {{ todayCheckInCount }} Khách Đến Check-in Hôm Nay
+          </span>
+        </div>
+        <h2 class="text-base font-bold text-slate-900 mt-0.5">Danh Sách Điều Phối Khách VIP Đến & Đi Trong Ngày</h2>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center space-x-2 text-xs font-bold flex-wrap gap-y-1.5">
+        <button (click)="setVipTab('checkin_today')"
+                [class.bg-[#0284c7]]="activeVipTab === 'checkin_today'"
+                [class.text-white]="activeVipTab === 'checkin_today'"
+                [class.bg-white]="activeVipTab !== 'checkin_today'"
+                [class.text-slate-700]="activeVipTab !== 'checkin_today'"
+                class="px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition flex items-center space-x-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">login</span>
+          <span>Check-in Hôm Nay ({{ todayCheckInCount }})</span>
+        </button>
+
+        <button (click)="setVipTab('in_house')"
+                [class.bg-[#0284c7]]="activeVipTab === 'in_house'"
+                [class.text-white]="activeVipTab === 'in_house'"
+                [class.bg-white]="activeVipTab !== 'in_house'"
+                [class.text-slate-700]="activeVipTab !== 'in_house'"
+                class="px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition flex items-center space-x-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">hotel</span>
+          <span>Đang Ở ({{ inHouseCount }})</span>
+        </button>
+
+        <button (click)="setVipTab('checkout_today')"
+                [class.bg-[#0284c7]]="activeVipTab === 'checkout_today'"
+                [class.text-white]="activeVipTab === 'checkout_today'"
+                [class.bg-white]="activeVipTab !== 'checkout_today'"
+                [class.text-slate-700]="activeVipTab !== 'checkout_today'"
+                class="px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition flex items-center space-x-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">logout</span>
+          <span>Check-out Hôm Nay ({{ todayCheckOutCount }})</span>
+        </button>
+
+        <button (click)="setVipTab('all')"
+                [class.bg-[#0284c7]]="activeVipTab === 'all'"
+                [class.text-white]="activeVipTab === 'all'"
+                [class.bg-white]="activeVipTab !== 'all'"
+                [class.text-slate-700]="activeVipTab !== 'all'"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs transition cursor-pointer">
+          Tất cả ({{ vipLogs.length }})
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-600">
+        <thead class="bg-slate-50/90 text-slate-600 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
+          <tr>
+            <th class="py-3 px-4">KHÁCH HÀNG & HẠNG THẺ</th>
+            <th class="py-3 px-4">BIỆT THỰ CHỈ ĐỊNH</th>
+            <th class="py-3 px-4">LỘ TRÌNH / THỜI GIAN</th>
+            <th class="py-3 px-4">PHƯƠNG TIỆN / ĐƯA ĐÓN</th>
+            <th class="py-3 px-4">QUẢN GIA PHỤ TRÁCH</th>
+            <th class="py-3 px-4">YÊU CẦU ĐẶC BIỆT</th>
+            <th class="py-3 px-4 text-center">TRẠNG THÁI</th>
+            <th class="py-3 px-3 text-center">THAO TÁC</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 font-medium">
+          <tr *ngIf="filteredVipLogs.length === 0">
+            <td colspan="8" class="py-10 text-center">
+              <div class="flex flex-col items-center justify-center space-y-2 text-slate-400">
+                <span class="material-symbols-outlined text-[36px] text-slate-300">event_available</span>
+                <p class="text-xs font-semibold text-slate-600">
+                  <span *ngIf="activeVipTab === 'checkin_today'">Hôm nay ({{ todayDmStr }}) không có khách mới đến nhận phòng</span>
+                  <span *ngIf="activeVipTab === 'in_house'">Hiện chưa có khách nào đang lưu trú</span>
+                  <span *ngIf="activeVipTab === 'checkout_today'">Hôm nay ({{ todayDmStr }}) không có khách nào trả phòng</span>
+                  <span *ngIf="activeVipTab === 'all'">Không có hồ sơ khách VIP nào trong hệ thống</span>
+                </p>
+                <p class="text-[11px] text-slate-400">
+                  Bạn có thể chọn tab "Tất cả" hoặc kiểm tra lại lịch Gantt để xem chi tiết đặt phòng.
+                </p>
+                <button *ngIf="activeVipTab !== 'all'" (click)="setVipTab('all')" class="mt-1 px-3 py-1 text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 cursor-pointer">
+                  Xem tất cả đơn đặt ({{ vipLogs.length }})
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngFor="let item of filteredVipLogs" class="hover:bg-slate-50/70 transition-colors">
+            
+            <!-- Col 1: Khách Hàng & Hạng Thẻ -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0" [ngClass]="item.avatarBg">
+                  {{ item.initials }}
+                </div>
+                <div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="font-bold text-slate-900">{{ item.name }}</span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded-full" [ngClass]="item.tierBadgeClass">
+                      {{ item.tier }}
+                    </span>
+                  </div>
+                  <div class="text-[10px] text-slate-400 font-normal mt-0.5">{{ item.sub }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Col 2: Biệt Thự Chỉ Định -->
+            <td class="py-3.5 px-4 font-bold text-sky-700">
+              {{ item.villa }}
+            </td>
+
+            <!-- Col 3: Lộ Trình / Chuyến Bay -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-800" [class.text-emerald-700]="item.isTodayCheckIn">{{ item.flight }}</div>
+              <div class="text-[10px] text-slate-400">{{ item.flightSub }}</div>
+            </td>
+
+            <!-- Col 4: Phương Tiện / Đưa Đón -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center space-x-1 text-slate-800 font-semibold">
+                <span class="material-symbols-outlined text-[16px] text-slate-400">{{ item.vehicleIcon }}</span>
+                <span>{{ item.vehicle }}</span>
+              </div>
+            </td>
+
+            <!-- Col 5: Quản Gia Phụ Trách -->
+            <td class="py-3.5 px-4">
+              <div class="font-bold text-slate-900">{{ item.butler }}</div>
+              <div class="text-[10px] text-slate-400">{{ item.butlerSub }}</div>
+            </td>
+
+            <!-- Col 6: Yêu Cầu Đặc Biệt -->
+            <td class="py-3.5 px-4 text-slate-700 max-w-xs leading-relaxed text-[11px]">
+              {{ item.request }}
+            </td>
+
+            <!-- Col 7: Trạng Thái -->
+            <td class="py-3.5 px-4 text-center">
+              <span class="inline-flex items-center space-x-1 text-[10px] font-bold px-2.5 py-1 rounded-full border" [ngClass]="item.statusClass">
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="item.statusDot"></span>
+                <span>{{ item.status }}</span>
+              </span>
+            </td>
+
+            <!-- Col 8: Thao Tác -->
+            <td class="py-3.5 px-3 text-center">
+              <div class="flex items-center justify-center space-x-1.5">
+                <button *ngIf="item.statusCode === 'CONFIRMED' && item.bookingId"
+                        (click)="quickCheckIn(item)"
+                        title="Tiến hành nhận phòng ngay cho khách"
+                        class="px-2.5 py-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-2xs transition cursor-pointer flex items-center space-x-1">
+                  <span class="material-symbols-outlined text-[13px]">key</span>
+                  <span>Check-in</span>
+                </button>
+                <button (click)="openVipModal(item)"
+                        title="Chỉnh sửa ghi chú VIP"
+                        class="px-2 py-1 text-xs font-bold text-sky-700 bg-sky-50 hover:bg-sky-100 rounded-lg border border-sky-200 transition cursor-pointer">
+                  Ghi chú
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer -->
+    <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500 gap-3">
+      <div>
+        <span *ngIf="activeVipTab === 'checkin_today'">
+          Đang hiển thị <b>{{ filteredVipLogs.length }}</b> thượng khách đến nhận phòng (Check-in) trong ngày hôm nay ({{ todayDmStr }})
+        </span>
+        <span *ngIf="activeVipTab === 'in_house'">
+          Đang hiển thị <b>{{ filteredVipLogs.length }}</b> thượng khách đang lưu trú tại các biệt thự
+        </span>
+        <span *ngIf="activeVipTab === 'checkout_today'">
+          Đang hiển thị <b>{{ filteredVipLogs.length }}</b> lượt trả phòng (Check-out) trong ngày hôm nay ({{ todayDmStr }})
+        </span>
+        <span *ngIf="activeVipTab === 'all'">
+          Hiển thị <b>{{ filteredVipLogs.length }}</b> trong số {{ vipLogs.length }} lượt điều phối toàn hệ thống
+        </span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a routerLink="/admin/bookings" class="font-bold text-sky-700 hover:text-sky-900 flex items-center space-x-1">
+          <span>Xem Biểu Đồ Lịch Gantt Biệt Thự</span>
+          <span class="material-symbols-outlined text-[14px]">calendar_view_week</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+
+
+</div>
+
+<!-- VIP NOTE MODAL -->
+<div *ngIf="showModal && selectedVipItem" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-fade-in">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-sky-600 text-[22px]">note_add</span>
+        <h3 class="text-base font-bold text-slate-900">Ghi Chú Điều Phối Thượng Khách</h3>
+      </div>
+      <button (click)="closeVipModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+
+    <div class="space-y-3 text-xs text-slate-700">
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+        <span class="text-slate-400 font-semibold block text-[10px]">Khách Hàng:</span>
+        <span class="font-bold text-slate-900 text-sm">{{ selectedVipItem.name }} ({{ selectedVipItem.tier }})</span>
+        <p class="text-sky-700 font-bold mt-1">{{ selectedVipItem.villa }}</p>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Yêu cầu đặc biệt cho Quản gia hiện trường:</label>
+        <textarea rows="3" [(ngModel)]="vipNoteText" class="w-full p-3 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500/30 focus:outline-none"
+                  placeholder="Nhập ghi chú chi tiết về sở thích, dị ứng, giờ đưa đón..."></textarea>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+      <button (click)="closeVipModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+        Đóng
+      </button>
+      <button (click)="saveVipNote()" class="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition cursor-pointer">
+        Lưu Ghi Chú
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- BROADCAST ALERT MODAL -->
+<div *ngIf="showBroadcastModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-fade-in">
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-amber-600 text-[22px]">campaign</span>
+        <h3 class="text-base font-bold text-slate-900">Phát Thông Báo Ca Trực & Khẩn Cấp</h3>
+      </div>
+      <button (click)="closeBroadcastModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+
+    <div class="space-y-3 text-xs text-slate-700">
+      <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+        <p class="font-bold">Thông báo tức thời tới toàn bộ {{ onDutyStaffCount }} quản gia & nhân viên ca trực.</p>
+        <p class="text-[11px] text-amber-700 mt-0.5">Tin nhắn sẽ được gửi qua ứng dụng nội bộ và bộ đàm thông minh.</p>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Nội dung thông điệp điều phối:</label>
+        <textarea rows="4" [(ngModel)]="broadcastMessage" class="w-full p-3 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500/30 focus:outline-none"
+                  placeholder="Ví dụ: Đón đoàn khách VIP Bùi Phương Thảo tại Villa SB-VIP lúc 14:00, yêu cầu chuẩn bị xe Maybach S680..."></textarea>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+      <button (click)="closeBroadcastModal()" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+        Hủy
+      </button>
+      <button (click)="sendBroadcast()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl shadow-xs transition cursor-pointer">
+        Phát Ngay Lập Tức
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- VIP CHECK-IN VERIFICATION MODAL -->
+<div *ngIf="showCheckInModal && bookingToCheckIn" 
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-5 bg-gradient-to-r from-emerald-600 via-teal-700 to-sky-700 text-white flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-inner">
+          <span class="material-symbols-outlined text-[24px]">key</span>
+        </div>
+        <div>
+          <h3 class="font-black text-base uppercase tracking-wider">Xác Thực Làm Thủ Tục Check-in</h3>
+          <p class="text-xs text-emerald-100 font-medium">Đối chiếu mã đặt phòng hoặc số điện thoại khách hàng</p>
+        </div>
+      </div>
+      <button (click)="closeCheckInModal()" class="w-8 h-8 rounded-full hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-4">
+      <!-- Guest & Room Summary Card -->
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Thượng Khách:</span>
+          <span class="font-extrabold text-sm text-slate-900 flex items-center space-x-2">
+            <span>{{ bookingToCheckIn.name }}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full" [ngClass]="bookingToCheckIn.tierBadgeClass">
+              {{ bookingToCheckIn.tier }}
+            </span>
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Căn Biệt Thự:</span>
+          <span class="px-2.5 py-1 bg-sky-100 text-sky-800 font-black text-xs rounded-lg">
+            {{ bookingToCheckIn.villa }}
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Thời gian lưu trú:</span>
+          <span class="text-xs font-semibold text-slate-700">
+            {{ bookingToCheckIn.checkInFormatted || bookingToCheckIn.checkInDate }} ➔ {{ bookingToCheckIn.checkOutFormatted || bookingToCheckIn.checkOutDate }} ({{ bookingToCheckIn.nights || 1 }} đêm)
+          </span>
+        </div>
+        <div *ngIf="bookingToCheckIn.totalAmountFormatted" class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng tiền thanh toán:</span>
+          <span class="text-xs font-black text-emerald-700">
+            {{ bookingToCheckIn.totalAmountFormatted }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Verification Input Field -->
+      <div>
+        <label class="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+          Nhập Mã Check-in hoặc Số Điện Thoại của khách <span class="text-rose-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
+            pin
+          </span>
+          <input
+            type="text"
+            [(ngModel)]="checkInInputCode"
+            (keyup.enter)="confirmCheckIn()"
+            placeholder="Ví dụ: BK-20261004-XXXX hoặc 0961..."
+            class="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition shadow-inner"
+            autofocus
+          />
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-sky-600">info</span>
+          Nhân viên yêu cầu khách đọc mã Check-in từ email hoặc số điện thoại khi đặt phòng.
+        </p>
+      </div>
+
+      <!-- Error Alert -->
+      <div *ngIf="checkInErrorMessage"
+           class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px] text-rose-600">error</span>
+        <span>{{ checkInErrorMessage }}</span>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end space-x-3">
+      <button
+        (click)="closeCheckInModal()"
+        [disabled]="isVerifyingCheckIn"
+        class="px-5 py-2.5 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+      >
+        Hủy Bỏ
+      </button>
+      <button
+        (click)="confirmCheckIn()"
+        [disabled]="isVerifyingCheckIn"
+        class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer flex items-center space-x-2 disabled:opacity-50 active:scale-95"
+      >
+        <span *ngIf="isVerifyingCheckIn" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        <span *ngIf="!isVerifyingCheckIn" class="material-symbols-outlined text-[18px]">how_to_reg</span>
+        <span>{{ isVerifyingCheckIn ? 'Đang xác thực...' : 'Xác Nhận Check-in' }}</span>
+      </button>
+    </div>
+
+  </div>
+</div>

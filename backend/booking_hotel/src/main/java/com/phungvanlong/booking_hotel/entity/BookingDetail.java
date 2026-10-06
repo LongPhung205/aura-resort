@@ -33,5 +33,6 @@ public class BookingDetail extends BaseEntity {
     // Phòng con (nếu có nghiệp vụ quản lý riêng)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.SET_NULL)
     private Room room;
 }

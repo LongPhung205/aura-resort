@@ -79,6 +79,13 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    public List<PromotionResponse> getActivePromotions() {
+        return promotionRepository.findActivePromotions(LocalDate.now()).stream()
+                .map(PromotionResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Promotion validatePromotionCode(String code) {
         Promotion promotion = promotionRepository.findByCode(code.toUpperCase())
                 .orElseThrow(() -> new BusinessException("Mã khuyến mãi không hợp lệ"));

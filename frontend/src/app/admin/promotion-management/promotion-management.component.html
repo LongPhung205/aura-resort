@@ -1,0 +1,606 @@
+<div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1440px] mx-auto font-sans text-slate-800">
+  
+  <!-- TOAST NOTIFICATION -->
+  <div *ngIf="toastMessage" class="fixed top-20 right-6 z-50 flex items-center space-x-2.5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-sky-400 animate-fade-in text-xs font-bold">
+    <span class="material-symbols-outlined text-sky-400 text-[20px]">check_circle</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- BREADCRUMBS & TOP HEADER -->
+  <div>
+    <div class="flex items-center space-x-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+      <span>HỆ THỐNG AURA CORE</span>
+      <span class="text-slate-300">›</span>
+      <span class="text-sky-700 font-extrabold">QUẢN LÝ KHUYẾN MÃI & CHIẾN LƯỢC GIÁ</span>
+    </div>
+    <h1 class="text-2xl font-black text-[#0369A1] uppercase tracking-wide mt-2">CẤU HÌNH GIÁ & KHUYẾN MÃI</h1>
+  </div>
+
+  <!-- TABS -->
+  <div class="flex flex-wrap gap-2 border-b border-slate-200">
+    <button (click)="setTab('VOUCHER')" 
+            [class.border-[#EA580C]]="activeTab === 'VOUCHER'"
+            [class.text-[#EA580C]]="activeTab === 'VOUCHER'"
+            [class.border-transparent]="activeTab !== 'VOUCHER'"
+            [class.text-slate-500]="activeTab !== 'VOUCHER'"
+            class="px-5 py-3 font-bold text-sm uppercase tracking-wide border-b-2 transition hover:text-[#EA580C] cursor-pointer flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-[18px]">local_offer</span>
+      <span>Quản Lý Voucher</span>
+    </button>
+    <button (click)="setTab('COMBO')" 
+            [class.border-[#EA580C]]="activeTab === 'COMBO'"
+            [class.text-[#EA580C]]="activeTab === 'COMBO'"
+            [class.border-transparent]="activeTab !== 'COMBO'"
+            [class.text-slate-500]="activeTab !== 'COMBO'"
+            class="px-5 py-3 font-bold text-sm uppercase tracking-wide border-b-2 transition hover:text-[#EA580C] cursor-pointer flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-[18px]">inventory_2</span>
+      <span>Tạo Gói Combo</span>
+    </button>
+    <button (click)="setTab('PRICING')" 
+            [class.border-[#EA580C]]="activeTab === 'PRICING'"
+            [class.text-[#EA580C]]="activeTab === 'PRICING'"
+            [class.border-transparent]="activeTab !== 'PRICING'"
+            [class.text-slate-500]="activeTab !== 'PRICING'"
+            class="px-5 py-3 font-bold text-sm uppercase tracking-wide border-b-2 transition hover:text-[#EA580C] cursor-pointer flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-[18px]">tune</span>
+      <span>Quy Tắc Giá Động</span>
+    </button>
+  </div>
+
+  <!-- TAB CONTENT 1: DYNAMIC PRICING BUILDER -->
+  <div *ngIf="activeTab === 'PRICING'" class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-black text-slate-900 uppercase">QUY TẮC GIÁ ĐỘNG (DYNAMIC PRICING)</h2>
+        <p class="text-xs text-slate-500 mt-1">Cấu hình điều chỉnh giá theo sự kiện hoặc mùa vụ.</p>
+      </div>
+      <button *ngIf="!showPricingForm" (click)="showPricingForm = true" class="px-5 py-2.5 bg-[#0369A1] hover:bg-[#075985] text-white rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span>Thêm Quy Tắc Mới</span>
+      </button>
+    </div>
+
+    <!-- Form Create / Edit Modal -->
+    <div *ngIf="showPricingForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+      <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div>
+            <h2 class="text-lg font-black text-slate-900 uppercase">
+              {{ isEditingPricing ? 'CẬP NHẬT QUY TẮC' : 'THÊM QUY TẮC MỚI' }}
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Cấu hình điều chỉnh giá theo sự kiện hoặc mùa vụ.</p>
+          </div>
+          <button (click)="cancelEditPricing()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 transition shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tên chiến dịch</label>
+          <input type="text" [(ngModel)]="pricingForm.campaignName" placeholder="Vd: Tết Âm Lịch 2027" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium" />
+        </div>
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Loại quy tắc</label>
+          <div class="flex space-x-4">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="radio" [(ngModel)]="pricingForm.ruleType" value="DATES" class="w-4 h-4 text-[#0369A1] focus:ring-[#0369A1] border-slate-300" />
+              <span class="text-sm font-medium text-slate-700">Theo Giai Đoạn (Lễ/Tết)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="radio" [(ngModel)]="pricingForm.ruleType" value="WEEKENDS" class="w-4 h-4 text-[#0369A1] focus:ring-[#0369A1] border-slate-300" />
+              <span class="text-sm font-medium text-slate-700">Cuối Tuần (Thứ 7 & CN)</span>
+            </label>
+          </div>
+        </div>
+        
+        <div *ngIf="pricingForm.ruleType === 'DATES'" class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Từ ngày</label>
+            <input type="date" [(ngModel)]="pricingForm.startDate" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-700" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Đến ngày</label>
+            <input type="date" [(ngModel)]="pricingForm.endDate" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-700" />
+          </div>
+        </div>
+
+        <div *ngIf="pricingForm.ruleType === 'WEEKENDS'" class="bg-sky-50 text-[#0369A1] px-4 py-3 rounded-xl border border-sky-100 flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+          <span class="text-sm font-bold">Quy tắc tự động áp dụng vào Thứ 7 và Chủ Nhật.</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Điều chỉnh</label>
+            <select [(ngModel)]="pricingForm.adjustmentType" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-700">
+              <option value="INCREASE">Tăng giá</option>
+              <option value="DECREASE">Giảm giá</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Đơn vị</label>
+            <select [(ngModel)]="pricingForm.unit" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-700">
+              <option value="PERCENT">%</option>
+              <option value="AMOUNT">VNĐ</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Giá trị</label>
+            <input type="number" [(ngModel)]="pricingForm.value" placeholder="Vd: 30" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium" />
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Áp dụng cho Phân Khu / Villa</label>
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 max-h-[220px] overflow-y-auto">
+          <label *ngFor="let v of villaOptions" class="flex items-center space-x-3 cursor-pointer group">
+            <input type="checkbox" [checked]="pricingForm.applicableVillas.includes(v)" (change)="toggleVilla(v)" class="w-4 h-4 text-[#0369A1] bg-white border-slate-300 rounded focus:ring-[#0369A1]" />
+            <span class="text-sm font-medium text-slate-700 group-hover:text-[#0369A1] transition">{{ v }}</span>
+          </label>
+        </div>
+      </div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50">
+          <button (click)="cancelEditPricing()" class="px-6 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2">
+            <span>Hủy Bỏ</span>
+          </button>
+          <button (click)="savePricing()" class="px-6 py-2.5 bg-[#0369A1] hover:bg-[#075985] text-white rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2">
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span>{{ isEditingPricing ? 'Lưu Cập Nhật' : 'Lưu Quy Tắc Giá' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing List -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">DANH SÁCH QUY TẮC ĐÃ LƯU</h3>
+        <span class="px-3 py-1 bg-[#0369A1]/10 text-[#0369A1] rounded-full text-xs font-bold">{{ pricingList.length }} Quy Tắc</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 bg-slate-50">
+              <th class="px-5 py-3">Chiến Dịch</th>
+              <th class="px-5 py-3">Thời Gian / Loại</th>
+              <th class="px-5 py-3">Điều Chỉnh</th>
+              <th class="px-5 py-3">Áp Dụng Cho</th>
+              <th class="px-5 py-3 text-right">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-slate-100">
+            <tr *ngIf="pricingList.length === 0">
+              <td colspan="5" class="px-5 py-6 text-center text-slate-400 font-medium">Chưa có quy tắc giá nào được tạo.</td>
+            </tr>
+            <tr *ngFor="let p of pricingList" class="hover:bg-slate-50/50 transition">
+              <td class="px-5 py-4">
+                <span class="font-bold text-slate-800">{{ p.campaignName }}</span>
+              </td>
+              <td class="px-5 py-4">
+                <div *ngIf="p.ruleType === 'DATES'" class="text-xs font-medium text-slate-600 flex items-center space-x-1">
+                  <span class="material-symbols-outlined text-[14px] text-slate-400">calendar_today</span>
+                  <span>{{ p.startDate | date:'dd/MM' }} - {{ p.endDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div *ngIf="p.ruleType === 'WEEKENDS'" class="text-xs font-medium text-[#0369A1] bg-sky-50 px-2 py-0.5 rounded border border-sky-100 inline-flex items-center space-x-1">
+                  <span class="material-symbols-outlined text-[12px]">event_repeat</span>
+                  <span>Thứ 7 & CN</span>
+                </div>
+              </td>
+              <td class="px-5 py-4">
+                <span class="font-bold" [ngClass]="{'text-rose-600': p.adjustmentType === 'INCREASE', 'text-emerald-600': p.adjustmentType === 'DECREASE'}">
+                  {{ p.adjustmentType === 'INCREASE' ? '+' : '-' }}{{ p.value | number }}{{ p.unit === 'PERCENT' ? '%' : 'VNĐ' }}
+                </span>
+              </td>
+              <td class="px-5 py-4 text-xs text-slate-600">
+                <span *ngIf="p.applicableVillas.length === 0" class="text-slate-400 italic">Chưa chọn</span>
+                <span *ngIf="p.applicableVillas.length > 0">{{ p.applicableVillas.length }} phân khu</span>
+              </td>
+              <td class="px-5 py-4 text-right space-x-2">
+                <button (click)="editPricing(p)" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-[#0369A1] hover:text-white transition shadow-sm">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+                <button (click)="deletePricing(p)" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-rose-600 hover:text-white transition shadow-sm">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT 2: COMBO PACKAGE CREATOR -->
+  <div *ngIf="activeTab === 'COMBO'" class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-black text-slate-900 uppercase">TẠO GÓI COMBO (PACKAGE CREATOR)</h2>
+        <p class="text-xs text-slate-500 mt-1">Đóng gói phòng nghỉ kèm dịch vụ để tăng doanh thu.</p>
+      </div>
+      <button *ngIf="!showComboForm" (click)="showComboForm = true" class="px-5 py-2.5 bg-[#EA580C] hover:bg-[#c2410a] text-white rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span>Thêm Combo Mới</span>
+      </button>
+    </div>
+
+    <!-- Form Create / Edit Modal -->
+    <div *ngIf="showComboForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+      <div class="bg-white rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div>
+            <h2 class="text-lg font-black text-slate-900 uppercase">
+              {{ isEditingCombo ? 'CẬP NHẬT GÓI COMBO' : 'TẠO GÓI COMBO' }}
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Đóng gói phòng nghỉ kèm dịch vụ để tăng doanh thu.</p>
+          </div>
+          <button (click)="cancelEditCombo()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 transition shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Cột Trái -->
+      <div class="lg:col-span-8 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tên Gói Combo</label>
+          <input type="text" [(ngModel)]="comboForm.name" placeholder="Vd: Kỳ Nghỉ Trăng Mật Lãng Mạn" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-bold text-[#0369A1]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Mô tả chi tiết (Rich-text)</label>
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex space-x-2">
+              <button class="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm text-slate-700 font-bold">B</button>
+              <button class="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm text-slate-700 italic">I</button>
+              <button class="w-7 h-7 flex items-center justify-center bg-white rounded shadow-sm text-slate-700 underline">U</button>
+            </div>
+            <textarea [(ngModel)]="comboForm.description" rows="5" placeholder="Nhập mô tả các quyền lợi của gói combo..." class="w-full px-4 py-3 bg-slate-50 focus:outline-none focus:bg-white text-sm font-medium text-slate-700"></textarea>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Ảnh Cover / Gallery</label>
+          <input type="file" #comboFileInput (change)="onComboImageUpload($event)" class="hidden" accept="image/png, image/jpeg, image/webp" />
+          <div (click)="comboFileInput.click()" class="border-2 border-dashed border-slate-200 rounded-xl min-h-[140px] flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative overflow-hidden">
+            <!-- Loading state -->
+            <div *ngIf="isUploadingComboImage" class="absolute inset-0 bg-white/80 backdrop-blur-xs flex flex-col items-center justify-center z-10">
+              <span class="w-6 h-6 border-2 border-[#0369A1] border-t-transparent rounded-full animate-spin mb-2"></span>
+              <span class="text-xs font-bold text-[#0369A1]">Đang tải ảnh lên...</span>
+            </div>
+
+            <!-- Empty state -->
+            <div *ngIf="!comboForm.image" class="flex flex-col items-center justify-center text-center p-4">
+              <span class="material-symbols-outlined text-4xl text-slate-300 mb-2 mt-2">cloud_upload</span>
+              <span class="text-sm font-bold text-[#0369A1]">Nhấp để tải ảnh lên</span>
+              <span class="text-xs text-slate-400 mt-1 mb-2">PNG, JPG, WEBP (Tối đa 5MB)</span>
+            </div>
+
+            <!-- Preview state -->
+            <div *ngIf="comboForm.image" class="absolute inset-0 w-full h-full group">
+              <img [src]="comboForm.image" class="w-full h-full object-cover" />
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                <span class="text-white text-xs font-bold flex items-center gap-1.5 bg-black/50 px-3 py-1.5 rounded-lg border border-white/20">
+                  <span class="material-symbols-outlined text-[16px]">refresh</span>
+                  Đổi ảnh
+                </span>
+                <button type="button" (click)="removeComboImage($event)" class="text-white text-xs font-bold flex items-center gap-1.5 bg-rose-600/90 hover:bg-rose-600 px-3 py-1.5 rounded-lg border border-white/20 transition">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                  Xóa
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Secondary Image URL input -->
+          <div class="mt-2 flex items-center gap-2">
+            <span class="text-[11px] font-semibold text-slate-400 shrink-0">Hoặc URL ảnh:</span>
+            <input type="text" [(ngModel)]="comboForm.image" placeholder="https://images.unsplash.com/... hoặc /assets/..." class="flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#0369A1]" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột Phải -->
+      <div class="lg:col-span-4 space-y-4">
+        <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 max-h-[300px] overflow-y-auto">
+          <label class="block text-xs font-bold text-slate-700 uppercase border-b border-slate-200 pb-2 sticky top-0 bg-slate-50 z-10">Dịch vụ đi kèm</label>
+          
+          <div *ngIf="availableExtraServices.length === 0" class="text-xs text-slate-400 italic">Chưa có dịch vụ nào được cấu hình.</div>
+          
+          <label *ngFor="let s of availableExtraServices" class="flex items-center space-x-3 cursor-pointer group hover:bg-slate-100 p-1.5 rounded transition">
+            <input type="checkbox" 
+                   [checked]="comboForm.extraServiceIds.includes(s.id)" 
+                   (change)="toggleExtraService(s.id)" 
+                   class="w-4 h-4 text-[#EA580C] bg-white border-slate-300 rounded focus:ring-[#EA580C]" />
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-slate-700 group-hover:text-[#EA580C]">{{ s.name }}</span>
+              <span class="text-[10px] text-slate-500">{{ s.price | number }} đ</span>
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Giá Trọn Gói (VNĐ)</label>
+          <input type="number" [(ngModel)]="comboForm.price" placeholder="Vd: 5000000" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-black text-[#EA580C]" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Trạng Thái</label>
+          <select [(ngModel)]="comboForm.status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-bold text-slate-700">
+            <option value="PUBLISH">Hiển thị (Publish)</option>
+            <option value="DRAFT">Lưu nháp (Draft)</option>
+          </select>
+        </div>
+      </div>
+          </div>
+        </div>
+        <div class="px-6 py-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50">
+          <button (click)="cancelEditCombo()" class="px-6 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2">
+            <span>Hủy Bỏ</span>
+          </button>
+          <button (click)="saveCombo()" class="px-6 py-2.5 bg-[#EA580C] hover:bg-[#c2410a] text-white rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2">
+            <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+            <span>{{ isEditingCombo ? 'Lưu Cập Nhật' : 'Lưu & Xuất Bản Combo' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Combo List -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">DANH SÁCH COMBO ĐANG HOẠT ĐỘNG</h3>
+        <span class="px-3 py-1 bg-[#EA580C]/10 text-[#EA580C] rounded-full text-xs font-bold">{{ comboList.length }} Combo</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 bg-white">
+              <th class="px-6 py-3">Hình Ảnh</th>
+              <th class="px-6 py-3">Tên Gói Combo & Dịch Vụ</th>
+              <th class="px-6 py-3">Giá Trọn Gói</th>
+              <th class="px-6 py-3">Trạng Thái</th>
+              <th class="px-6 py-3 text-right">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-slate-100">
+            <tr *ngIf="comboList.length === 0">
+              <td colspan="5" class="px-6 py-8 text-center text-slate-400 font-medium">Chưa có combo nào.</td>
+            </tr>
+            <tr *ngFor="let c of comboList" class="hover:bg-slate-50/50 transition">
+              <!-- Thumbnail -->
+              <td class="px-6 py-4">
+                <div class="w-16 h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 shadow-2xs relative flex items-center justify-center shrink-0">
+                  <img *ngIf="c.image" [src]="c.image" [alt]="c.name" class="w-full h-full object-cover" />
+                  <span *ngIf="!c.image" class="material-symbols-outlined text-slate-300 text-[20px]">image</span>
+                </div>
+              </td>
+              <!-- Name & Services -->
+              <td class="px-6 py-4">
+                <div class="font-bold text-slate-800 text-sm mb-1">{{ c.name }}</div>
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                  <span *ngFor="let svc of c.extraServices" class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded font-medium flex items-center space-x-1">
+                    <span *ngIf="svc.icon" class="material-symbols-outlined text-[12px]">{{ svc.icon }}</span>
+                    <span>{{ svc.name }}</span>
+                  </span>
+                  <span *ngIf="!c.extraServices || c.extraServices.length === 0" class="text-[10px] text-slate-400 italic">Không kèm dịch vụ</span>
+                </div>
+              </td>
+              <!-- Price -->
+              <td class="px-6 py-4 font-black text-[#EA580C]">
+                {{ (c.price | number) || 0 }} đ
+              </td>
+              <!-- Status -->
+              <td class="px-6 py-4">
+                <span *ngIf="c.status === 'PUBLISH'" class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-[10px] font-bold uppercase border border-emerald-200">Hiển thị</span>
+                <span *ngIf="c.status === 'DRAFT'" class="px-2 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase border border-slate-200">Bản Nháp</span>
+              </td>
+              <!-- Actions -->
+              <td class="px-6 py-4 text-right space-x-2">
+                <button (click)="editCombo(c)" title="Chỉnh sửa combo" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-[#0369A1] hover:text-white transition shadow-sm">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+                <button (click)="deleteCombo(c)" title="Xóa combo" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-rose-600 hover:text-white transition shadow-sm">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB CONTENT 3: VOUCHER GENERATOR -->
+  <div *ngIf="activeTab === 'VOUCHER'" class="space-y-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-black text-slate-900 uppercase">QUẢN LÝ & TẠO VOUCHER</h2>
+        <p class="text-xs text-slate-500 mt-1">Cấp phát mã giảm giá thực tế trong cơ sở dữ liệu cho chiến dịch Marketing hoặc tri ân khách hàng.</p>
+      </div>
+      <button *ngIf="!showVoucherForm" (click)="openCreateVoucher()" class="px-5 py-2.5 bg-[#0369A1] hover:bg-[#075985] text-white rounded-xl shadow-xs font-bold uppercase text-xs tracking-wider transition flex items-center space-x-2 cursor-pointer">
+        <span class="material-symbols-outlined text-[18px]">add</span>
+        <span>Thêm Voucher Mới</span>
+      </button>
+    </div>
+    
+    <!-- Form Create / Edit Modal -->
+    <div *ngIf="showVoucherForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fade-in">
+      <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+        
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div>
+            <h2 class="text-lg font-black text-slate-900 uppercase">
+              {{ isEditingVoucher ? 'CẬP NHẬT VOUCHER' : 'TẠO VOUCHER MỚI' }}
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Cấp phát mã giảm giá cho chiến dịch Marketing hoặc tri ân khách hàng.</p>
+          </div>
+          <button (click)="cancelEditVoucher()" class="w-8 h-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 transition shadow-sm cursor-pointer">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto">
+          <div class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Tên Chương Trình / Khuyến Mãi</label>
+              <input type="text" [(ngModel)]="voucherForm.name" placeholder="Vd: Ưu Đãi Mùa Thu FLC..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-700" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Mã Khuyến Mãi (Code)</label>
+              <div class="flex space-x-2">
+                <input type="text" [(ngModel)]="voucherForm.code" placeholder="Nhập mã hoặc tạo tự động..." class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-lg font-black text-[#0369A1] uppercase tracking-widest text-center" />
+                <button (click)="generateVoucherCode()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-[#0369A1] rounded-xl font-bold transition flex items-center space-x-1 border border-slate-200 cursor-pointer">
+                  <span class="material-symbols-outlined text-[18px]">autorenew</span>
+                  <span class="text-xs uppercase">Tạo ngẫu nhiên</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Loại giảm giá</label>
+                <select [(ngModel)]="voucherForm.discountType" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium text-slate-700">
+                  <option value="PERCENTAGE">Phần trăm (%)</option>
+                  <option value="FIXED_AMOUNT">Số tiền cố định (VNĐ)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Mức giảm</label>
+                <input type="number" [(ngModel)]="voucherForm.discountValue" placeholder="Vd: 15 hoặc 200000" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-black text-[#EA580C]" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Số lượng phát hành</label>
+                <input type="number" [(ngModel)]="voucherForm.quantity" placeholder="Vd: 100" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Từ ngày</label>
+                <input type="date" [(ngModel)]="voucherForm.startDate" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Đến ngày</label>
+                <input type="date" [(ngModel)]="voucherForm.endDate" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0369A1]/30 text-sm font-medium" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-100 flex justify-end space-x-3 bg-slate-50">
+          <button (click)="cancelEditVoucher()" class="px-6 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl shadow-xs font-bold uppercase text-sm tracking-wider transition flex items-center space-x-2 cursor-pointer">
+            <span>Hủy Bỏ</span>
+          </button>
+          <button (click)="saveVoucher()" class="px-8 py-2.5 bg-[#0369A1] hover:bg-[#075985] text-white rounded-xl shadow-xs font-bold uppercase text-sm tracking-wider transition flex items-center space-x-2 cursor-pointer">
+            <span class="material-symbols-outlined text-[20px]">{{ isEditingVoucher ? 'save' : 'sell' }}</span>
+            <span>{{ isEditingVoucher ? 'Lưu Cập Nhật' : 'Phát Hành Voucher' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voucher List -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">DANH SÁCH MÃ GIẢM GIÁ THỰC TẾ</h3>
+          <span class="px-3 py-0.5 bg-[#0369A1]/10 text-[#0369A1] rounded-full text-xs font-extrabold">{{ vouchersList.length }} Voucher</span>
+        </div>
+        <button (click)="loadVouchers()" class="text-slate-400 hover:text-[#0369A1] transition flex items-center space-x-1 text-xs font-bold cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]" [class.animate-spin]="voucherLoading">refresh</span>
+          <span>Làm mới</span>
+        </button>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 bg-white">
+              <th class="px-6 py-3">Mã Voucher</th>
+              <th class="px-6 py-3">Tên Khuyến Mãi</th>
+              <th class="px-6 py-3">Mức Giảm</th>
+              <th class="px-6 py-3">Số Lượng Còn Lại</th>
+              <th class="px-6 py-3">Thời Hạn Hiệu Lực</th>
+              <th class="px-6 py-3">Trạng Thái</th>
+              <th class="px-6 py-3 text-right">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm divide-y divide-slate-100">
+            <tr *ngIf="voucherLoading">
+              <td colspan="7" class="px-6 py-8 text-center text-slate-500 font-medium">
+                <div class="flex items-center justify-center space-x-2">
+                  <span class="material-symbols-outlined animate-spin text-[#0369A1]">progress_activity</span>
+                  <span>Đang tải danh sách mã khuyến mãi...</span>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!voucherLoading && vouchersList.length === 0">
+              <td colspan="7" class="px-6 py-8 text-center text-slate-400 font-medium">Chưa có voucher nào trong hệ thống.</td>
+            </tr>
+            <tr *ngFor="let v of vouchersList" class="hover:bg-slate-50/50 transition">
+              <td class="px-6 py-4">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 text-[#0369A1] font-black tracking-widest text-xs rounded-lg border border-sky-200 shadow-2xs">
+                  <span class="material-symbols-outlined text-[14px]">confirmation_number</span>
+                  <span>{{ v.code }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="font-bold text-slate-800 text-sm">{{ v.name || ('Khuyến mãi ' + v.code) }}</div>
+                <div class="text-[11px] text-slate-400 uppercase tracking-wider" *ngIf="v.category">{{ v.category }}</div>
+              </td>
+              <td class="px-6 py-4 font-black text-[#EA580C] text-sm">
+                <span *ngIf="v.discountType === 'PERCENTAGE' || v.discountType === 'PERCENT'">-{{ v.discountValue }}%</span>
+                <span *ngIf="v.discountType === 'FIXED_AMOUNT' || v.discountType === 'AMOUNT'">-{{ v.discountValue | number }}đ</span>
+              </td>
+              <td class="px-6 py-4 font-bold text-slate-700 text-xs">
+                <div class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[15px] text-slate-400">inventory</span>
+                  <span>{{ v.quantity !== null && v.quantity !== undefined ? v.quantity : 'Không giới hạn' }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4 text-xs font-medium text-slate-600">
+                <div class="flex items-center space-x-1.5">
+                  <span class="material-symbols-outlined text-[14px] text-slate-400">calendar_today</span>
+                  <span>{{ v.startDate | date:'dd/MM/yyyy' }} - {{ v.endDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span *ngIf="v.status === 'ACTIVE'" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-md text-[11px] font-bold border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Đang chạy
+                </span>
+                <span *ngIf="v.status === 'EXPIRED'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-[11px] font-bold border border-slate-200">
+                  Hết hạn
+                </span>
+                <span *ngIf="v.status === 'EXHAUSTED'" class="inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 text-rose-700 rounded-md text-[11px] font-bold border border-rose-200">
+                  Đã hết lượt
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right space-x-2">
+                <button (click)="editVoucher(v)" title="Chỉnh sửa voucher" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-[#0369A1] hover:text-white transition shadow-2xs cursor-pointer">
+                  <span class="material-symbols-outlined text-[16px]">edit</span>
+                </button>
+                <button (click)="deleteVoucher(v)" title="Xóa voucher" class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-600 hover:text-white transition shadow-2xs cursor-pointer">
+                  <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+

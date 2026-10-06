@@ -1,0 +1,179 @@
+<!-- Floating Chat Button -->
+<div class="chat-fab" [class.open]="isOpen()" (click)="toggleChat()" id="ai-chat-fab">
+  <div class="fab-inner">
+    <span class="fab-icon" *ngIf="!isOpen()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C13.85 22 15.59 21.5 17.1 20.63L22 22L20.63 17.1C21.5 15.59 22 13.85 22 12C22 6.48 17.52 2 12 2Z" fill="currentColor"/>
+        <circle cx="8" cy="12" r="1.5" fill="white"/>
+        <circle cx="12" cy="12" r="1.5" fill="white"/>
+        <circle cx="16" cy="12" r="1.5" fill="white"/>
+      </svg>
+    </span>
+    <span class="fab-icon" *ngIf="isOpen()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+    </span>
+  </div>
+  <div class="fab-pulse"></div>
+</div>
+
+<!-- Chat Window -->
+<div class="chat-window" [class.open]="isOpen()" id="ai-chat-window">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-left">
+      <div class="ai-avatar">
+        <img src="/logo.svg" alt="Aura Logo" class="avatar-logo">
+      </div>
+      <div class="header-info">
+        <h3 class="header-title">Villa AI</h3>
+        <span class="header-status">
+          <span class="status-dot" [class.loading]="isLoading()"></span>
+          {{ isLoading() ? 'Đang xử lý...' : 'Trực tuyến' }}
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" (click)="clearChat()" title="Cuộc hội thoại mới">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M4 6H20M4 12H14M4 18H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="header-btn close-btn" (click)="closeChat()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages Area -->
+  <div class="messages-container" #messagesContainer>
+
+    @for (msg of messages(); track $index) {
+      <!-- User Message -->
+      @if (msg.role === 'user') {
+        <div class="message-row user-row">
+          <div class="message user-message">
+            <span [innerHTML]="formatContent(msg.content)"></span>
+          </div>
+          <div class="message-time">{{ msg.timestamp | date:'HH:mm' }}</div>
+        </div>
+      }
+
+      <!-- AI Message -->
+      @if (msg.role === 'ai') {
+        <div class="message-row ai-row">
+          <div class="ai-avatar-small">
+            <img src="/logo.svg" alt="Aura Logo" class="avatar-logo-small">
+          </div>
+          <div class="ai-message-content">
+
+            <!-- Loading indicator -->
+            @if (msg.isLoading) {
+              <div class="message ai-message loading-message">
+                <div class="typing-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            } @else {
+              <!-- Text content -->
+              <div class="message ai-message">
+                <span [innerHTML]="formatContent(msg.content)"></span>
+              </div>
+
+              <!-- Action: Search Results (Villa Cards) -->
+              @if (msg.actionType === 'SEARCH_RESULTS' && getSearchResults(msg.actionPayload).length > 0) {
+                <div class="villa-cards">
+                  @for (villa of getSearchResults(msg.actionPayload); track villa.id) {
+                    <div class="villa-card" (click)="navigateToVilla(villa.id)">
+                      <div class="villa-card-img">
+                        <img [src]="getVillaImageUrl(villa)" [alt]="villa.villaTypeName || villa.villaNumber" loading="lazy"
+                             onerror="this.src='assets/images/villa-placeholder.jpg'">
+                        <span class="villa-card-zone">{{ villa.zone || 'Villa' }}</span>
+                      </div>
+                      <div class="villa-card-body">
+                        <div class="villa-card-name">{{ villa.villaTypeName || villa.villaNumber }}</div>
+                        <div class="villa-card-meta">
+                          <span>Phòng: {{ villa.bedroomCount || villa.totalBeds || '—' }}</span>
+                          <span>Người: {{ villa.totalCapacity || villa.totalAdults || '—' }}</span>
+                        </div>
+                        <div class="villa-card-price">{{ formatPrice(villa.basePrice) }}<span>/đêm</span></div>
+                        <button class="villa-card-btn" (click)="$event.stopPropagation(); sendMessage('Tôi muốn đặt villa ' + (villa.villaTypeName || villa.villaNumber) + ' (ID: ' + villa.id + ')')">
+                          Đặt ngay
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Action: Booking Created -->
+              @if (msg.actionType === 'BOOKING_CREATED' && msg.actionPayload) {
+                <div class="booking-success-card">
+                  <div class="booking-success-info">
+                    <div class="booking-code">Mã đặt phòng: <strong>{{ getBookingCode(msg.actionPayload) }}</strong></div>
+                    <button class="booking-view-btn" (click)="navigateToBookings()">
+                      Xem đơn hàng →
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Action: Login Required -->
+              @if (msg.actionType === 'LOGIN_REQUIRED') {
+                <div class="login-prompt-card">
+                  <span>Bạn cần đăng nhập để đặt phòng</span>
+                  <button class="login-prompt-btn" (click)="navigateToLogin()">Đăng nhập ngay</button>
+                </div>
+              }
+            }
+
+            @if (!msg.isLoading) {
+              <div class="message-time">{{ msg.timestamp | date:'HH:mm' }}</div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Quick Replies (hiển thị khi chưa gửi message nào hoặc sau welcome) -->
+  @if (messages().length <= 1 && !isLoading()) {
+    <div class="quick-replies">
+      @for (reply of quickReplies; track reply) {
+        <button class="quick-reply-btn" (click)="sendQuickReply(reply)">{{ reply }}</button>
+      }
+    </div>
+  }
+
+  <!-- Input Area -->
+  <div class="chat-input-area">
+    <div class="input-wrapper">
+      <textarea
+        #messageInput
+        [(ngModel)]="inputText"
+        (keydown)="onKeyDown($event)"
+        placeholder="Nhập tin nhắn..."
+        rows="1"
+        [disabled]="isLoading()"
+        class="chat-input"
+        id="ai-chat-input"
+      ></textarea>
+      <button
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="!inputText.trim() || isLoading()"
+        id="ai-chat-send"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="input-hint">Powered by Gemini AI · Enter để gửi</div>
+  </div>
+
+</div>

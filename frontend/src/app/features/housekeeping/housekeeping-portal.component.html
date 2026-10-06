@@ -1,0 +1,1780 @@
+<div class="flex h-screen bg-[#f8fafc] overflow-hidden font-sans text-slate-800">
+
+  <!-- ================= SIDEBAR BACKDROP (MOBILE) ================= -->
+  <button
+    type="button"
+    *ngIf="sidebarOpen"
+    (click)="closeMobileSidebar()"
+    aria-label="Đóng thanh điều hướng"
+    class="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-xs lg:hidden transition-opacity cursor-default border-0 p-0 w-full h-full"
+  ></button>
+
+  <!-- ================= SIDEBAR (FULL ADMIN MENU STYLE) ================= -->
+  <aside
+    class="fixed lg:static inset-y-0 left-0 z-50 lg:z-auto w-64 flex flex-col bg-white text-slate-700 shadow-lg lg:shadow-none transition-transform duration-300 ease-in-out border-r border-slate-200/80 flex-shrink-0"
+    [ngClass]="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+  >
+    <!-- Brand Logo in Sidebar Header (h-20 border-b border-slate-100) -->
+    <div class="p-4 border-b border-slate-100 flex items-center justify-between h-20">
+      <a routerLink="/" class="flex-shrink-0 flex items-center group cursor-pointer block" title="Aura Resort & Villas 5★">
+        <img src="/logo.svg" alt="Aura Villas Logo" class="h-10 w-auto object-contain group-hover:opacity-80 transition-opacity">
+      </a>
+      <button
+        type="button"
+        (click)="closeMobileSidebar()"
+        class="lg:hidden p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+
+    <!-- Navigation Menu (Thiết kế chuyên nghiệp, phân quyền bảo mật cho Buồng phòng) -->
+    <div class="flex-1 overflow-y-auto px-3 py-3 space-y-4 custom-scrollbar">
+
+      <!-- KHỐI 1: TÁC NGHIỆP BUỒNG PHÒNG -->
+      <div class="space-y-1">
+        <div class="px-3 pt-1 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[16px] text-sky-500">cleaning_services</span>
+          <span class="text-slate-600 font-bold">TÁC NGHIỆP BUỒNG PHÒNG</span>
+        </div>
+
+        <!-- 1. Dọn Dẹp & Nhiệm Vụ -->
+        <button
+          type="button"
+          (click)="activeMenu = 'tasks'; selectedTask = null; closeMobileSidebar()"
+          [ngClass]="activeMenu === 'tasks' ? 'bg-[#0284c7] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold'"
+          class="w-full flex items-center px-3 py-2 rounded-xl text-xs transition-all group text-left cursor-pointer"
+        >
+          <span
+            class="material-symbols-outlined text-[18px] mr-2.5 transition-colors"
+            [ngClass]="activeMenu === 'tasks' ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'"
+          >task_alt</span>
+          <span class="flex-1">Dọn Dẹp & Nhiệm Vụ</span>
+          <span
+            class="px-1.5 py-0.5 rounded-full text-[9px] font-black"
+            [ngClass]="activeMenu === 'tasks' ? 'bg-white/20 text-white' : 'bg-sky-100 text-[#0284c7]'"
+          >{{ totalAssignedCount }}</span>
+        </button>
+
+        <!-- 2. Báo Cáo Sự Cố Villa -->
+        <button
+          type="button"
+          (click)="openIncidentModal()"
+          class="w-full flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-rose-700 hover:bg-rose-50 transition-all group text-left cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[18px] mr-2.5 text-rose-500 group-hover:text-rose-600 transition-colors">report_problem</span>
+          <span class="flex-1">Báo Cáo Sự Cố Villa</span>
+          <span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-rose-100 text-rose-700">Khẩn</span>
+        </button>
+      </div>
+
+      <!-- KHỐI 2: LỊCH TRỰC & CHẾ ĐỘ NHÂN SỰ -->
+      <div class="space-y-1 pt-1">
+        <div class="px-3 pt-1 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[16px] text-amber-500">calendar_month</span>
+          <span class="text-slate-600 font-bold">LỊCH TRỰC & CHẾ ĐỘ</span>
+        </div>
+
+        <!-- 3. Lịch Trực & Ca Làm Việc -->
+        <button
+          type="button"
+          (click)="activeMenu = 'shifts'; closeMobileSidebar()"
+          [ngClass]="activeMenu === 'shifts' ? 'bg-[#0284c7] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold'"
+          class="w-full flex items-center px-3 py-2 rounded-xl text-xs transition-all group text-left cursor-pointer"
+        >
+          <span
+            class="material-symbols-outlined text-[18px] mr-2.5 transition-colors"
+            [ngClass]="activeMenu === 'shifts' ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'"
+          >event_available</span>
+          <span class="flex-1">Lịch Trực Ca Làm</span>
+          <span
+            class="px-1.5 py-0.5 rounded-full text-[9px] font-black"
+            [ngClass]="activeMenu === 'shifts' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700'"
+          >Tuần này</span>
+        </button>
+
+        <!-- 4. Đăng Ký Nghỉ Phép & OT -->
+        <button
+          type="button"
+          (click)="activeMenu = 'leaves'; closeMobileSidebar()"
+          [ngClass]="activeMenu === 'leaves' ? 'bg-[#0284c7] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-semibold'"
+          class="w-full flex items-center px-3 py-2 rounded-xl text-xs transition-all group text-left cursor-pointer"
+        >
+          <span
+            class="material-symbols-outlined text-[18px] mr-2.5 transition-colors"
+            [ngClass]="activeMenu === 'leaves' ? 'text-white' : 'text-slate-400 group-hover:text-slate-700'"
+          >event_busy</span>
+          <span class="flex-1">Nghỉ Phép & Làm OT</span>
+          <span
+            class="px-1.5 py-0.5 rounded-full text-[9px] font-black"
+            [ngClass]="activeMenu === 'leaves' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'"
+          >{{ remainingAnnualLeave }} ngày</span>
+        </button>
+      </div>
+
+      <!-- KHỐI 3: TIÊU CHUẨN VỆ SINH 5★ -->
+      <div class="space-y-1 pt-1">
+        <div class="px-3 pt-1 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[16px] text-teal-600">verified</span>
+          <span class="text-slate-600 font-bold">TIÊU CHUẨN BUỒNG PHÒNG</span>
+        </div>
+
+        <div class="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-sky-950 text-white space-y-2 shadow-xs">
+          <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-sky-300">
+            <span>Tiêu Chuẩn Aura 5★</span>
+            <span class="material-symbols-outlined text-amber-400 text-xs">stars</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-snug">
+            Kiểm soát đủ 16 bước: thay drap gối, khử khuẩn Ozone, bổ sung amenities và minibar trước khi bàn giao QC.
+          </p>
+          <div class="pt-1.5 border-t border-slate-700/60 flex items-center justify-between text-[10px] text-slate-400">
+            <span>Thời gian chuẩn</span>
+            <span class="font-bold text-white">45 phút / Villa</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHỐI 4: HỆ THỐNG -->
+      <div class="space-y-1 pt-1">
+        <div class="px-3 pt-1 pb-1 text-[11px] font-black uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+          <span class="material-symbols-outlined text-[16px] text-indigo-500">link</span>
+          <span class="text-slate-600 font-bold">HỆ THỐNG</span>
+        </div>
+
+        <!-- Về Trang Chủ Khách Sạn -->
+        <a
+          routerLink="/"
+          class="flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition-all group"
+        >
+          <span class="material-symbols-outlined text-[18px] mr-2.5 text-slate-400 group-hover:text-slate-700 transition-colors">home</span>
+          <span>Trang Chủ Khách Sạn</span>
+        </a>
+
+        <!-- Cổng Quản Trị Admin (Chỉ hiển thị nếu tài khoản có quyền Admin) -->
+        <a
+          *ngIf="isAdmin"
+          routerLink="/admin/dashboard"
+          class="flex items-center px-3 py-2 rounded-xl text-xs font-semibold text-sky-700 hover:text-sky-900 bg-sky-50/70 hover:bg-sky-100 border border-sky-200/80 transition-all group"
+        >
+          <span class="material-symbols-outlined text-[18px] mr-2.5 text-sky-600 group-hover:text-sky-800 transition-colors">admin_panel_settings</span>
+          <span class="flex-1 font-bold">Cổng Quản Trị Admin</span>
+          <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-sky-600 text-white">Admin</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Staff Profile Card in Sidebar Footer -->
+    <div class="p-3 border-t border-slate-100">
+      <div class="flex items-center gap-2.5 p-2 rounded-2xl bg-slate-50 border border-slate-200/80">
+        <div class="relative flex-shrink-0">
+          <img
+            [src]="staffAvatar"
+            alt="Avatar"
+            class="w-9 h-9 rounded-xl object-cover"
+            (error)="staffAvatar = '/assets/images/staff/avatar-hoa.jpg'"
+          />
+          <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="text-xs font-bold text-slate-900 truncate">{{ staffName }}</div>
+          <div class="text-[10px] text-slate-500 font-medium truncate">{{ staffRole }}</div>
+        </div>
+        <button
+          type="button"
+          (click)="logout()"
+          title="Đăng xuất ca trực"
+          class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-lg leading-none">logout</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= RIGHT SIDE: TOPBAR & SCROLLABLE DASHBOARD OR TASK WORKSPACE ================= -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <!-- A. Khi đang mở quy trình dọn phòng: Hiển thị Workspace bên cạnh Sidebar (không bị đè che mất Menu) -->
+    <ng-container *ngIf="selectedTask">
+      <app-task-workspace
+        class="h-full flex flex-col overflow-hidden"
+        [task]="selectedTask"
+        (close)="selectedTask = null"
+        (taskUpdated)="onTaskUpdated($event)"
+      ></app-task-workspace>
+    </ng-container>
+
+    <!-- B. Khi ở trang tổng quan: Hiển thị Header & Dashboard bình thường -->
+    <ng-container *ngIf="!selectedTask">
+      <!-- Top Header Bar (h-20 bg-white border-b border-slate-200/80) -->
+      <header class="h-20 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-30">
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <!-- Sidebar Toggle -->
+        <button
+          type="button"
+          (click)="toggleSidebar()"
+          class="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+          title="Đóng / mở menu điều hướng"
+        >
+          <span class="material-symbols-outlined text-2xl">menu</span>
+        </button>
+
+        <!-- Breadcrumbs & Status -->
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-50 text-[#0284c7] border border-sky-200/80">
+              AURA 5★ RESORT
+            </span>
+            <span class="text-xs text-slate-300">•</span>
+            <span class="text-[11px] text-emerald-700 font-bold tracking-wide flex items-center gap-1.5 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Trực Tuyến
+            </span>
+          </div>
+          <h1 class="text-sm sm:text-base font-black text-slate-900 tracking-tight mt-0.5">
+            Cổng Điều Hành Buồng Phòng & QC
+          </h1>
+        </div>
+      </div>
+
+      <!-- Center Live Shift & Clock (Desktop) -->
+      <div class="hidden xl:flex items-center space-x-4 bg-slate-50/80 px-4 py-2 rounded-2xl border border-slate-200/80">
+        <div class="flex items-center space-x-2 text-xs font-bold text-slate-700">
+          <span class="material-symbols-outlined text-[18px] text-sky-600">schedule</span>
+          <span>{{ currentTime }}</span>
+        </div>
+        <span class="text-slate-300">|</span>
+        <div class="flex items-center space-x-1.5 text-xs text-slate-600 font-medium">
+          <span class="material-symbols-outlined text-[16px] text-amber-500">hotel_class</span>
+          <span>{{ staffShift }}</span>
+        </div>
+      </div>
+
+      <!-- Right Action Buttons -->
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <!-- Incident Report Button -->
+        <button
+          type="button"
+          (click)="openIncidentModal()"
+          class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-xs font-bold text-rose-700 transition cursor-pointer shadow-2xs active:scale-95"
+          title="Báo cáo sự cố kỹ thuật khẩn cấp"
+        >
+          <span class="material-symbols-outlined text-[18px] text-rose-600">handyman</span>
+          <span class="hidden md:inline">Báo Sự Cố</span>
+        </button>
+
+        <!-- Refresh Data Button -->
+        <button
+          type="button"
+          (click)="loadTasks()"
+          [disabled]="isLoading"
+          class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-xs font-bold text-[#0284c7] transition cursor-pointer shadow-2xs active:scale-95"
+          title="Đồng bộ danh sách phòng mới nhất"
+        >
+          <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="isLoading">sync</span>
+          <span class="hidden md:inline">Đồng Bộ</span>
+        </button>
+
+        <!-- Home Shortcut -->
+        <a
+          routerLink="/"
+          class="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
+          title="Về Trang Chủ"
+        >
+          <span class="material-symbols-outlined text-[18px]">home</span>
+        </a>
+
+        <!-- Admin Portal Shortcut -->
+        <a
+          *ngIf="isAdmin"
+          routerLink="/admin/dashboard"
+          class="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs font-bold text-amber-800 transition cursor-pointer shadow-2xs"
+          title="Cổng Quản Trị Hệ Thống"
+        >
+          <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
+          <span class="hidden xl:inline">Quản Trị</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Scrollable Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+      <!-- ================= MENU 1: DỌN DẸP (TASKS) ================= -->
+      <ng-container *ngIf="activeMenu === 'tasks'">
+
+    <!-- ================= EXECUTIVE SHIFT PROGRESS RIBBON ================= -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Progress Description -->
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200">
+              TIẾN ĐỘ CA TRỰC HÔM NAY
+            </span>
+            <span class="text-xs text-slate-400 font-medium">{{ currentTime || 'Ca Hiện Tại' }}</span>
+          </div>
+          <h2 class="text-sm sm:text-base font-black text-slate-900">
+            Đã bàn giao <span class="text-[#0284c7]">{{ completedCount }} / {{ totalAssignedCount }}</span> phòng đạt chuẩn chất lượng 5★
+          </h2>
+          <p class="text-xs text-slate-500">
+            Quy trình đảm bảo kiểm soát đủ 16 bước, kiểm kê minibar và kích hoạt khử khuẩn Ozone phòng trả.
+          </p>
+        </div>
+
+        <!-- Visual Progress Meter -->
+        <div class="w-full md:w-72 space-y-2 flex-shrink-0">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span class="text-slate-600">Hoàn Tất Ca:</span>
+            <span class="text-[#0284c7] font-black text-sm">{{ shiftCompletionRate }}%</span>
+          </div>
+
+          <!-- Illuminated Shimmer Progress Bar -->
+          <div class="w-full h-2.5 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+            <div
+              class="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 shimmer-progress transition-all duration-700"
+              [style.width.%]="shiftCompletionRate"
+            ></div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+            <span class="flex items-center gap-1 text-rose-600 font-bold" *ngIf="rushCount > 0">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+              {{ rushCount }} phòng khách gấp
+            </span>
+            <span *ngIf="rushCount === 0" class="text-emerald-600 font-bold">✓ Đúng tiến độ</span>
+            <span class="text-slate-400">100% Khử Khuẩn Ozone</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 5 TOP KPI METRIC CARDS (ADMIN MANAGER STYLE) ================= -->
+    <section class="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+      <!-- 1. Total Assigned -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between light-card-shadow">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">TỔNG GIAO CA</span>
+            <div class="w-8 h-8 rounded-xl bg-sky-50 text-[#0284c7] flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">assignment</span>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-baseline space-x-1.5">
+            <span class="text-3xl font-black text-slate-900 tracking-tight">{{ totalAssignedCount }}</span>
+            <span class="text-xs text-slate-400 font-bold">phòng</span>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex justify-between">
+          <span>Phân bổ ca trực</span>
+          <span class="font-bold text-[#0284c7]">100% giao việc</span>
+        </div>
+      </div>
+
+      <!-- 2. Rush Urgency (VIP Check-in) -->
+      <div class="bg-white rounded-2xl p-4 border border-rose-200/80 bg-rose-50/20 shadow-xs flex flex-col justify-between light-card-shadow">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-rose-600 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+              KHÁCH GẤP (RUSH)
+            </span>
+            <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">local_fire_department</span>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-baseline space-x-1.5">
+            <span class="text-3xl font-black text-rose-600 tracking-tight">{{ rushCount }}</span>
+            <span class="text-xs text-rose-500/80 font-bold">cần trước 14:00</span>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-rose-100 text-[11px] text-rose-500 flex justify-between font-medium">
+          <span>Khách VIP sắp đến</span>
+          <span class="font-bold text-rose-600">Ưu tiên làm trước</span>
+        </div>
+      </div>
+
+      <!-- 3. In Progress -->
+      <div class="bg-white rounded-2xl p-4 border border-amber-200/80 bg-amber-50/20 shadow-xs flex flex-col justify-between light-card-shadow">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">ĐANG DỌN DẸP</span>
+            <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">pending_actions</span>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-baseline space-x-1.5">
+            <span class="text-3xl font-black text-amber-600 tracking-tight">{{ inProgressCount }}</span>
+            <span class="text-xs text-amber-500/80 font-bold">phòng</span>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-amber-100 text-[11px] text-amber-600 flex justify-between font-medium">
+          <span>Đang thao tác</span>
+          <span class="font-bold text-amber-700">Đang thực hiện</span>
+        </div>
+      </div>
+
+      <!-- 4. Waiting QC -->
+      <div class="bg-white rounded-2xl p-4 border border-sky-200/80 bg-sky-50/20 shadow-xs flex flex-col justify-between light-card-shadow">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-sky-600 uppercase tracking-wider">CHỜ DUYỆT QC</span>
+            <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">fact_check</span>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-baseline space-x-1.5">
+            <span class="text-3xl font-black text-sky-600 tracking-tight">{{ waitingQcCount }}</span>
+            <span class="text-xs text-sky-500/80 font-bold">phòng</span>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-sky-100 text-[11px] text-sky-500 flex justify-between font-medium">
+          <span>Đã dọn xong 16 bước</span>
+          <span class="font-bold text-sky-600">Chờ giám sát</span>
+        </div>
+      </div>
+
+      <!-- 5. Completed -->
+      <div class="bg-white rounded-2xl p-4 border border-emerald-200/80 bg-emerald-50/20 shadow-xs flex flex-col justify-between light-card-shadow col-span-2 lg:col-span-1">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">ĐÃ HOÀN TẤT</span>
+            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            </div>
+          </div>
+          <div class="mt-2.5 flex items-baseline space-x-1.5">
+            <span class="text-3xl font-black text-emerald-600 tracking-tight">{{ completedCount }}</span>
+            <span class="text-xs text-emerald-500/80 font-bold">sẵn sàng</span>
+          </div>
+        </div>
+        <div class="mt-3 pt-2 border-t border-emerald-100 text-[11px] text-emerald-600 flex justify-between font-medium">
+          <span>Phòng sạch đạt chuẩn</span>
+          <span class="font-bold text-emerald-700">Ready</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= COMMAND TOOLBAR (TABS + SEARCH + FILTERS) ================= -->
+    <section class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-4">
+      <!-- Tabs Switcher -->
+      <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+        <div class="inline-flex p-1 rounded-xl bg-slate-100/90 border border-slate-200/80 max-w-full overflow-x-auto">
+          <!-- Tab 1: My Tasks -->
+          <button
+            type="button"
+            (click)="activeTab = 'my-tasks'"
+            class="px-4 sm:px-5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 cursor-pointer flex-shrink-0"
+            [ngClass]="
+              activeTab === 'my-tasks'
+                ? 'bg-[#0284c7] text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            "
+          >
+            <span class="material-symbols-outlined text-[17px]">badge</span>
+            <span>Phòng Của Tôi ({{ myTasks.length }})</span>
+          </button>
+
+          <!-- Tab 2: Available Pool -->
+          <button
+            type="button"
+            (click)="activeTab = 'dirty-pool'"
+            class="px-4 sm:px-5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 cursor-pointer flex-shrink-0"
+            [ngClass]="
+              activeTab === 'dirty-pool'
+                ? 'bg-amber-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            "
+          >
+            <span class="material-symbols-outlined text-[17px]">add_circle</span>
+            <span>Kho Phòng Chờ Nhận ({{ dirtyRooms.length }})</span>
+          </button>
+
+          <!-- Tab 3: RUSH Only -->
+          <button
+            type="button"
+            (click)="activeTab = 'rush-only'"
+            class="px-4 sm:px-5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 cursor-pointer flex-shrink-0"
+            [ngClass]="
+              activeTab === 'rush-only'
+                ? 'bg-rose-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-rose-700 hover:bg-white/60'
+            "
+          >
+            <span class="material-symbols-outlined text-[17px]">bolt</span>
+            <span>Khách Gấp RUSH ({{ rushCount }})</span>
+          </button>
+
+          <!-- Tab 4: Completed History -->
+          <button
+            type="button"
+            (click)="activeTab = 'completed-history'"
+            class="px-4 sm:px-5 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-2 cursor-pointer flex-shrink-0"
+            [ngClass]="
+              activeTab === 'completed-history'
+                ? 'bg-emerald-600 text-white shadow-xs font-bold'
+                : 'text-slate-600 hover:text-emerald-700 hover:bg-white/60'
+            "
+          >
+            <span class="material-symbols-outlined text-[17px]">verified</span>
+            <span>Đã Xong ({{ completedCount }})</span>
+          </button>
+        </div>
+
+        <!-- Quick Summary Display -->
+        <div class="flex items-center space-x-2 text-xs text-slate-500 self-end lg:self-center">
+          <span>Đang hiển thị:</span>
+          <strong class="text-[#0284c7] px-2.5 py-1 rounded-lg bg-sky-50 border border-sky-200">
+            {{ activeTab === 'dirty-pool' ? filteredDirtyRooms.length : filteredMyTasks.length }} phòng
+          </strong>
+        </div>
+      </div>
+
+      <!-- Real-Time Search & Multi-Faceted Filters -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+        <!-- Search Input -->
+        <div class="lg:col-span-4 relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <span class="material-symbols-outlined text-[18px]">search</span>
+          </span>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Tìm theo số phòng, biệt thự, khu vực..."
+            class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0284c7] focus:ring-1 focus:ring-[#0284c7] transition"
+          />
+          <button
+            *ngIf="searchQuery"
+            type="button"
+            (click)="searchQuery = ''"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700"
+          >
+            <span class="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+
+        <!-- Zone Selector -->
+        <div class="lg:col-span-3">
+          <select
+            [(ngModel)]="selectedZone"
+            class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:bg-white focus:outline-none focus:border-[#0284c7] transition cursor-pointer"
+          >
+            <option value="ALL">📍 Tất Cả Khu Vực</option>
+            <option *ngFor="let zone of availableZones" [value]="zone">
+              {{ zone }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Status Selector -->
+        <div class="lg:col-span-3" *ngIf="activeTab !== 'dirty-pool'">
+          <select
+            [(ngModel)]="selectedStatus"
+            class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 focus:bg-white focus:outline-none focus:border-[#0284c7] transition cursor-pointer"
+          >
+            <option value="ALL">🏷️ Tất Cả Trạng Thái</option>
+            <option value="PENDING">Chưa Dọn (Pending)</option>
+            <option value="IN_PROGRESS">Đang Dọn (In Progress)</option>
+            <option value="RE_CLEAN">Cần Dọn Lại (Re-Clean)</option>
+            <option value="WAITING_QC">Chờ Duyệt QC (Waiting QC)</option>
+            <option value="COMPLETED">Đã Hoàn Thành (Completed)</option>
+          </select>
+        </div>
+
+        <!-- Reset Button -->
+        <div class="lg:col-span-2 flex justify-end">
+          <button
+            type="button"
+            *ngIf="hasActiveFilters()"
+            (click)="clearFilters()"
+            class="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition flex items-center justify-center space-x-1.5 cursor-pointer active:scale-95 shadow-2xs"
+          >
+            <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+            <span>Xóa Bộ Lọc</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION: ROOMS LISTING (TAB CONTENT) ================= -->
+
+    <!-- TAB 1, 3, 4: MY TASKS / RUSH ONLY / COMPLETED HISTORY -->
+    <div *ngIf="activeTab !== 'dirty-pool'" class="space-y-6">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="py-20 text-center space-y-3">
+        <div class="w-10 h-10 rounded-full border-2 border-[#0284c7] border-t-transparent animate-spin mx-auto"></div>
+        <p class="text-sm font-bold text-[#0284c7] tracking-wide">Đang đồng bộ dữ liệu buồng phòng từ máy chủ...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="!isLoading && filteredMyTasks.length === 0"
+        class="py-16 px-6 text-center bg-white rounded-2xl border border-slate-200/80 max-w-lg mx-auto shadow-xs space-y-4"
+      >
+        <div class="w-16 h-16 rounded-2xl bg-sky-50 text-[#0284c7] border border-sky-100 flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-[36px]">verified</span>
+        </div>
+        <div>
+          <h3 class="text-base font-black text-slate-900">Không Có Phòng Nào Cần Xử Lý</h3>
+          <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+            {{
+              hasActiveFilters()
+                ? 'Không tìm thấy phòng phù hợp với bộ lọc hiện tại. Hãy bấm "Xóa Bộ Lọc" để xem toàn bộ danh sách.'
+                : 'Bạn đã hoàn tất các nhiệm vụ trong mục này. Hãy chuyển sang tab "Kho Phòng Chờ Nhận" để tiếp nhận thêm phòng vào ca trực.'
+            }}
+          </p>
+        </div>
+        <div class="pt-2 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            *ngIf="hasActiveFilters()"
+            (click)="clearFilters()"
+            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer"
+          >
+            Xóa Bộ Lọc
+          </button>
+          <button
+            type="button"
+            (click)="activeTab = 'dirty-pool'"
+            class="px-5 py-2.5 rounded-xl bg-[#0284c7] hover:bg-[#0369a1] text-white font-bold text-xs transition shadow-xs cursor-pointer active:scale-95"
+          >
+            Nhận Thêm Phòng Mới
+          </button>
+        </div>
+      </div>
+
+      <!-- TASK GRID (BRIGHT LIGHT THEME CARDS WITH REAL PHOTOGRAPHY) -->
+      <div *ngIf="!isLoading && filteredMyTasks.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article
+          *ngFor="let task of filteredMyTasks"
+          class="bg-white rounded-2xl border transition-all duration-300 shadow-xs light-card-shadow overflow-hidden flex flex-col justify-between group"
+          [ngClass]="{
+            'border-rose-300 ring-1 ring-rose-200 bg-rose-50/10': task.priority === 'RUSH' || task.status === 'RE_CLEAN',
+            'border-amber-300': task.status === 'IN_PROGRESS' && task.priority !== 'RUSH',
+            'border-sky-300': task.status === 'WAITING_QC' || task.status === 'INSPECTED',
+            'border-emerald-300': task.status === 'COMPLETED',
+            'border-slate-200/80 hover:border-sky-300': task.status === 'PENDING' && task.priority !== 'RUSH'
+          }"
+        >
+          <!-- Card Photography Header -->
+          <div class="relative h-44 overflow-hidden bg-slate-100">
+            <img
+              [src]="getRoomImage(task)"
+              [alt]="task.villaTypeName || 'Villa Resort'"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onerror="this.src='/assets/images/rooms/grand-oceanfront.jpg'"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
+
+            <!-- Top Floating Badges -->
+            <div class="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+              <!-- Room Number Badge -->
+              <span class="px-2.5 py-1 rounded-xl bg-slate-900/85 backdrop-blur-md text-white font-black text-xs border border-white/20 shadow-xs flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[15px] text-amber-400">door_front</span>
+                {{ task.roomNumber || 'Phòng VIP' }}
+              </span>
+
+              <!-- Status Pill -->
+              <span
+                class="px-2.5 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider backdrop-blur-md flex items-center gap-1.5 shadow-xs"
+                [ngClass]="{
+                  'bg-white text-slate-700 border border-slate-200': task.status === 'PENDING',
+                  'bg-amber-500 text-white shadow-xs': task.status === 'IN_PROGRESS',
+                  'bg-sky-600 text-white shadow-xs': task.status === 'WAITING_QC' || task.status === 'INSPECTED',
+                  'bg-rose-600 text-white shadow-xs': task.status === 'RE_CLEAN',
+                  'bg-emerald-600 text-white shadow-xs': task.status === 'COMPLETED'
+                }"
+              >
+                <span class="w-1.5 h-1.5 rounded-full bg-white"
+                  [ngClass]="{
+                    'animate-pulse': task.status === 'IN_PROGRESS',
+                    'animate-ping': task.status === 'RE_CLEAN'
+                  }"
+                ></span>
+                {{
+                  task.status === 'PENDING'
+                    ? 'CHƯA DỌN'
+                    : task.status === 'IN_PROGRESS'
+                      ? 'ĐANG DỌN'
+                      : task.status === 'RE_CLEAN'
+                        ? 'CẦN DỌN LẠI'
+                        : task.status === 'WAITING_QC'
+                          ? 'CHỜ DUYỆT QC'
+                          : 'HOÀN TẤT 5★'
+                }}
+              </span>
+            </div>
+
+            <!-- Bottom Floating Chips Over Photo -->
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs">
+              <span *ngIf="task.villaZone" class="px-2 py-0.5 rounded-lg bg-white/95 backdrop-blur-md text-[11px] text-slate-800 font-bold border border-slate-200 shadow-2xs">
+                📍 {{ task.villaZone }}
+              </span>
+              <span *ngIf="task.ozoneEnabled" class="px-2 py-0.5 rounded-lg bg-purple-50/95 backdrop-blur-md text-[10px] text-purple-700 font-bold border border-purple-200 shadow-2xs flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">air</span>
+                Ozone 20p
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body Content -->
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <!-- Villa Title & Subtitle -->
+              <h3 class="text-base sm:text-lg font-black text-slate-900 group-hover:text-[#0284c7] transition tracking-tight">
+                {{ task.villaNumber ? 'Villa ' + task.villaNumber : (task.roomName || 'Căn Hộ Resort') }}
+              </h3>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">
+                {{ task.villaTypeName || 'Biệt Thự Hướng Biển Cao Cấp' }}
+              </p>
+
+              <!-- Urgent RUSH Alert Banner -->
+              <div
+                *ngIf="task.priority === 'RUSH'"
+                class="mt-3 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between text-xs text-rose-700 font-bold shadow-2xs"
+              >
+                <span class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[17px] text-rose-600">bolt</span>
+                  <span>KHÁCH CHECK-IN LÚC 14:00</span>
+                </span>
+                <span class="text-[10px] uppercase font-black px-1.5 py-0.5 rounded bg-rose-600 text-white shadow-2xs">
+                  VIP GẤP
+                </span>
+              </div>
+
+              <!-- Re-Clean Feedback Alert Box (If RE_CLEAN) -->
+              <div
+                *ngIf="task.status === 'RE_CLEAN'"
+                class="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl space-y-1 text-xs"
+              >
+                <div class="flex items-center space-x-1.5 text-rose-700 font-bold">
+                  <span class="material-symbols-outlined text-[16px]">report_problem</span>
+                  <span>Giám Sát QC Yêu Cầu Sửa Lại:</span>
+                </div>
+                <p class="text-rose-800 text-[11px] leading-relaxed pl-5 font-medium">
+                  {{ task.reCleanReason || task.supervisorNote || 'Kiểm tra lại gương nhà tắm, thay thảm chân và bổ sung đồ dùng cá nhân.' }}
+                </p>
+              </div>
+
+              <!-- Cleaning Notes / VIP Requests -->
+              <p
+                *ngIf="task.cleaningNote && task.status !== 'RE_CLEAN'"
+                class="mt-3 text-xs text-slate-600 line-clamp-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200"
+              >
+                💬 {{ task.cleaningNote }}
+              </p>
+            </div>
+
+            <!-- Footer: Progress & Action Buttons -->
+            <div class="space-y-3 pt-3 border-t border-slate-100">
+              <!-- 16-Step Progress Meter -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-[11px] font-bold">
+                  <span class="text-slate-500 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px] text-slate-400">checklist</span>
+                    Tiến độ quy trình:
+                  </span>
+                  <span class="text-[#0284c7]">
+                    {{ getCompletedStepsCount(task) }} / 16 bước ({{ getTaskProgress(task) }}%)
+                  </span>
+                </div>
+                <div class="w-full h-1.5 rounded-full bg-slate-100 border border-slate-200 overflow-hidden">
+                  <div
+                    class="h-full rounded-full transition-all duration-500"
+                    [ngClass]="{
+                      'bg-rose-500': task.status === 'RE_CLEAN',
+                      'bg-amber-500': task.status === 'IN_PROGRESS',
+                      'bg-sky-500': task.status === 'WAITING_QC' || task.status === 'INSPECTED',
+                      'bg-emerald-500': task.status === 'COMPLETED',
+                      'bg-slate-300': task.status === 'PENDING'
+                    }"
+                    [style.width.%]="getTaskProgress(task)"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Supervisor Info -->
+              <div class="flex items-center justify-between text-[11px] text-slate-500">
+                <span>Giám sát: <strong class="text-slate-700">{{ task.supervisorName || 'Phạm Văn Minh' }}</strong></span>
+                <span class="text-[#0284c7] font-bold">
+                  {{
+                    task.taskType === 'CHECKOUT_DEEP'
+                      ? 'Dọn Sâu Check-out'
+                      : task.taskType === 'DAILY'
+                        ? 'Dọn Hàng Ngày'
+                        : 'Chỉnh Trang Tối'
+                  }}
+                </span>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="pt-1">
+                <!-- Primary CTA Button -->
+                <button
+                  type="button"
+                  (click)="openTask(task)"
+                  class="w-full py-2.5 px-4 rounded-xl font-bold text-xs transition flex items-center justify-between cursor-pointer shadow-xs active:scale-98 group"
+                  [ngClass]="{
+                    'bg-[#0284c7] hover:bg-[#0369a1] text-white shadow-sky-500/20':
+                      task.status === 'PENDING',
+                    'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20':
+                      task.status === 'IN_PROGRESS',
+                    'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-600/20':
+                      task.status === 'RE_CLEAN',
+                    'bg-sky-600 hover:bg-sky-700 text-white shadow-sky-600/20':
+                      task.status === 'WAITING_QC' || task.status === 'INSPECTED',
+                    'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200':
+                      task.status === 'COMPLETED'
+                  }"
+                >
+                  <span>
+                    {{
+                      task.status === 'PENDING'
+                        ? 'BẮT ĐẦU LÀM PHÒNG'
+                        : task.status === 'IN_PROGRESS'
+                          ? 'TIẾP TỤC QUY TRÌNH'
+                          : task.status === 'RE_CLEAN'
+                            ? 'KHẮC PHỤC LỖI & DỌN LẠI'
+                            : task.status === 'WAITING_QC'
+                              ? 'XEM BIÊN BẢN CHỜ QC'
+                              : 'XEM LỊCH SỬ DỌN PHÒNG'
+                    }}
+                  </span>
+
+                  <!-- Trailing Icon -->
+                  <span class="w-6 h-6 rounded-lg bg-black/10 flex items-center justify-center btn-nested-icon">
+                    <span class="material-symbols-outlined text-[16px]">
+                      {{
+                        task.status === 'PENDING'
+                          ? 'play_arrow'
+                          : task.status === 'IN_PROGRESS'
+                            ? 'arrow_forward'
+                            : task.status === 'RE_CLEAN'
+                              ? 'priority_high'
+                              : task.status === 'WAITING_QC'
+                                ? 'fact_check'
+                                : 'verified'
+                      }}
+                    </span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: KHO PHÒNG CHỜ NHẬN (DIRTY ROOMS POOL) ================= -->
+    <div *ngIf="activeTab === 'dirty-pool'" class="space-y-6">
+      <!-- Operational Ribbon -->
+      <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl flex items-center justify-between text-xs text-amber-800 shadow-xs">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined text-[22px]">hotel</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-amber-900 text-sm">Kho Phòng Trống Chờ Dọn Sau Trả Phòng</h4>
+            <p class="text-amber-700 text-xs mt-0.5">
+              Khách vừa hoàn tất check-out. Nhân viên có thể chủ động bấm "Nhận Dọn Phòng Này" để bổ sung ngay vào ca trực của mình.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State for Pool -->
+      <div
+        *ngIf="filteredDirtyRooms.length === 0"
+        class="py-16 text-center bg-white rounded-2xl border border-slate-200/80 max-w-lg mx-auto shadow-xs space-y-3"
+      >
+        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined text-[36px]">bed</span>
+        </div>
+        <h3 class="text-base font-black text-slate-800">Kho Phòng Đang Trống</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">
+          Tất cả các biệt thự và phòng khách vừa trả hiện đã được giao đủ nhân viên buồng phòng tiếp nhận.
+        </p>
+      </div>
+
+      <!-- Dirty Rooms Grid -->
+      <div *ngIf="filteredDirtyRooms.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <article
+          *ngFor="let room of filteredDirtyRooms"
+          class="bg-white rounded-2xl border border-slate-200/80 hover:border-amber-300 shadow-xs light-card-shadow overflow-hidden flex flex-col justify-between group transition-all"
+        >
+          <!-- Room Image Preview -->
+          <div class="relative h-40 overflow-hidden bg-slate-100">
+            <img
+              [src]="getRoomImage(room)"
+              [alt]="room.villaTypeName || 'Villa Resort'"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onerror="this.src='/assets/images/rooms/sunset-lagoon.jpg'"
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30"></div>
+
+            <div class="absolute top-3 left-3 right-3 flex items-start justify-between">
+              <span class="px-2.5 py-1 rounded-xl bg-slate-900/85 backdrop-blur-md text-white font-black text-xs border border-white/20">
+                #{{ room.roomNumber || 'Phòng Trống' }}
+              </span>
+              <span class="px-2.5 py-1 rounded-xl bg-rose-600 text-white text-[10px] font-black uppercase shadow-xs">
+                CẦN TIẾP NHẬN
+              </span>
+            </div>
+          </div>
+
+          <!-- Content Details -->
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="text-base sm:text-lg font-black text-slate-900">
+                {{ room.villaNumber ? 'Villa ' + room.villaNumber : (room.roomName || 'Căn Hộ Resort') }}
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ room.villaTypeName }} • 📍 {{ room.villaZone || 'Khu Biển Đông' }}
+              </p>
+
+              <div class="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Quy trình yêu cầu:</span>
+                <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[15px] text-amber-600">cleaning_services</span>
+                  {{ room.taskType === 'CHECKOUT_DEEP' ? 'Dọn Sâu Sau Check-out (16 Bước)' : 'Dọn Định Kỳ Trong Ngày' }}
+                </span>
+                <p *ngIf="room.cleaningNote" class="text-[11px] text-slate-500 pt-1">
+                  {{ room.cleaningNote }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Claim Button -->
+            <button
+              type="button"
+              (click)="claimRoom(room)"
+              class="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition flex items-center justify-between cursor-pointer shadow-xs active:scale-98 group"
+            >
+              <span>NHẬN DỌN PHÒNG NÀY VÀO CA</span>
+              <span class="w-6 h-6 rounded-lg bg-black/10 flex items-center justify-center btn-nested-icon">
+                <span class="material-symbols-outlined text-[16px]">add_task</span>
+              </span>
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+      </ng-container>
+
+      <!-- ================= MENU 2: LỊCH LÀM VIỆC & ĐĂNG KÝ PHÂN CA (SHIFTS) ================= -->
+      <ng-container *ngIf="activeMenu === 'shifts'">
+        <section class="space-y-6">
+
+          <!-- 1. HEADER & SUB-TAB NAVIGATION -->
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-100 pb-4">
+              <div>
+                <h2 class="text-xl font-black text-slate-900 flex items-center gap-2.5">
+                  <span class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[22px]">calendar_month</span>
+                  </span>
+                  <span>Lịch Làm Việc & Đăng Ký Phân Ca Buồng Phòng</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-1">
+                  Quản lý đầy đủ 7 ngày ca trực trong tuần, chấm công GPS vào ca, và đăng ký lịch làm việc tuần tới.
+                </p>
+              </div>
+
+              <!-- Top Action: Swap Shift -->
+              <div class="flex items-center gap-2">
+                <button (click)="openSwapModal()" 
+                        class="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 border border-amber-200 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-2xs cursor-pointer active:scale-95">
+                  <span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+                  <span>+ Tạo Yêu Cầu Đổi Ca</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Subtab pills -->
+            <div class="flex flex-wrap items-center gap-2 pt-4">
+              <button (click)="shiftSubTab = 'current-week'"
+                      class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+                      [ngClass]="shiftSubTab === 'current-week' ? 'bg-[#0284c7] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <span class="material-symbols-outlined text-[16px]">view_week</span>
+                <span>Ca Trực Tuần Này (7 Ngày)</span>
+              </button>
+
+              <button (click)="shiftSubTab = 'register-next'"
+                      class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer relative"
+                      [ngClass]="shiftSubTab === 'register-next' ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <span class="material-symbols-outlined text-[16px]">edit_calendar</span>
+                <span>Đăng Ký Ca Tuần Mới (Đầy Đủ 7 Ngày)</span>
+                <span *ngIf="isRegSubmitted" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              </button>
+
+              <button (click)="shiftSubTab = 'swap-history'"
+                      class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+                      [ngClass]="shiftSubTab === 'swap-history' ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
+                <span class="material-symbols-outlined text-[16px]">history</span>
+                <span>Yêu Cầu Đổi Ca</span>
+                <span *ngIf="pendingSwapsCount > 0" class="px-1.5 py-0.2 bg-amber-500 text-white text-[10px] rounded-full font-black">
+                  {{ pendingSwapsCount }}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. SHIFT STATISTICS OVERVIEW -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[24px]">calendar_today</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ca Trực Tuần Này</div>
+                <div class="text-xl font-black text-slate-800">6 Ca <span class="text-xs font-semibold text-slate-400">• 1 OFF</span></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[24px]">check_circle</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Đã Hoàn Thành</div>
+                <div class="text-xl font-black text-emerald-600">2 Ca <span class="text-xs font-semibold text-slate-400">(16h)</span></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[24px]">schedule</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Định Mức Tuần</div>
+                <div class="text-xl font-black text-slate-800">48.0 <span class="text-xs font-semibold text-slate-400">Giờ</span></div>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[24px]">more_time</span>
+              </div>
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tăng Ca (OT)</div>
+                <div class="text-xl font-black text-indigo-600">2.5h <span class="text-xs font-semibold text-emerald-600">+350k</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= SUB-TAB 1: LỊCH CA TRỰC 7 NGÀY TUẦN NÀY ================= -->
+          <div *ngIf="shiftSubTab === 'current-week'" class="space-y-4">
+            
+            <!-- Week Navigation Bar -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="flex items-center space-x-2">
+                <button (click)="changeShiftWeek(-1)" 
+                        class="p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition cursor-pointer flex items-center" 
+                        title="Xem tuần trước">
+                  <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                </button>
+
+                <div class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center space-x-2">
+                  <span class="material-symbols-outlined text-[16px] text-sky-600">date_range</span>
+                  <span class="text-xs font-bold text-slate-800">
+                    Tuần {{ shiftWeekOffset === 0 ? 'Hiện Tại' : (shiftWeekOffset > 0 ? '+' + shiftWeekOffset + ' Tuần' : shiftWeekOffset + ' Tuần') }}: {{ weekDateLabel }}
+                  </span>
+                </div>
+
+                <button (click)="changeShiftWeek(1)" 
+                        class="p-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl transition cursor-pointer flex items-center" 
+                        title="Xem tuần sau">
+                  <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                </button>
+
+                <button *ngIf="shiftWeekOffset !== 0" 
+                        (click)="resetShiftWeek()" 
+                        class="px-2.5 py-1 text-xs font-semibold text-sky-600 hover:bg-sky-50 rounded-lg transition cursor-pointer">
+                  Về tuần này
+                </button>
+              </div>
+
+              <!-- Shift Legend -->
+              <div class="flex items-center flex-wrap gap-2 text-[11px] font-semibold text-slate-600">
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                  <span class="material-symbols-outlined text-[14px]">wb_sunny</span> Sáng (06:00-14:30)
+                </div>
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-sky-50 text-sky-700 border border-sky-200">
+                  <span class="material-symbols-outlined text-[14px]">wb_twilight</span> Chiều (14:00-22:30)
+                </div>
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  <span class="material-symbols-outlined text-[14px]">bedtime</span> Đêm (22:00-06:30)
+                </div>
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100 text-slate-500 border border-slate-200">
+                  <span class="material-symbols-outlined text-[14px]">weekend</span> Nghỉ OFF
+                </div>
+              </div>
+            </div>
+
+            <!-- 7-Day Grid Cards View (Full Monday to Sunday) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3.5">
+              <div *ngFor="let day of currentWeekShifts" 
+                   class="bg-white rounded-2xl border p-4 shadow-2xs flex flex-col justify-between transition-all hover:shadow-md relative overflow-hidden"
+                   [ngClass]="{
+                     'border-sky-500 ring-2 ring-sky-500/20 bg-gradient-to-b from-sky-50/40 to-white': day.isToday,
+                     'border-slate-200/80': !day.isToday,
+                     'opacity-90 bg-slate-50/50': day.shiftType === 'OFF'
+                   }">
+
+                <!-- Today Highlight Banner -->
+                <div *ngIf="day.isToday" class="absolute top-0 right-0 bg-[#0284c7] text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-bl-lg tracking-wider shadow-2xs">
+                  HÔM NAY
+                </div>
+
+                <div>
+                  <!-- Day Header -->
+                  <div class="flex items-center justify-between border-b border-slate-100 pb-2.5 mb-3">
+                    <div class="flex items-center gap-2">
+                      <div class="w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs"
+                           [ngClass]="day.isToday ? 'bg-[#0284c7] text-white shadow-2xs' : 'bg-slate-100 text-slate-700'">
+                        {{ day.dayOfWeek }}
+                      </div>
+                      <div>
+                        <div class="font-bold text-xs text-slate-800 leading-tight">{{ day.dayName }}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">{{ day.dateStr }}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Shift Details Badge -->
+                  <div class="p-2.5 rounded-xl border text-xs mb-3 space-y-1.5" [ngClass]="getShiftBadgeClass(day.shiftType)">
+                    <div class="font-bold flex items-center justify-between">
+                      <span class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">{{ getShiftIcon(day.shiftType) }}</span>
+                        <span>{{ day.shiftLabel }}</span>
+                      </span>
+                    </div>
+                    <div class="text-[10px] opacity-80 flex items-center gap-1 font-medium">
+                      <span class="material-symbols-outlined text-[12px]">schedule</span>
+                      <span>{{ day.timeRange }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Zone Assignment -->
+                  <div class="text-xs mb-3 space-y-1">
+                    <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Khu Vực Phân Bổ</div>
+                    <div class="font-semibold text-slate-800 flex items-center gap-1 text-[11px] truncate" [title]="day.zone">
+                      <span class="material-symbols-outlined text-[14px] text-slate-400">location_on</span>
+                      <span>{{ day.zone }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Co-workers -->
+                  <div *ngIf="day.coWorkers && day.coWorkers.length > 0" class="text-xs mb-3 space-y-1">
+                    <div class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Bạn Cùng Ca</div>
+                    <div class="flex items-center gap-1 text-[11px] text-slate-600 truncate" [title]="day.coWorkers.join(', ')">
+                      <span class="material-symbols-outlined text-[13px] text-slate-400">group</span>
+                      <span>{{ day.coWorkers[0] }}</span>
+                      <span *ngIf="day.coWorkers.length > 1" class="text-[10px] font-bold text-sky-600">+{{ day.coWorkers.length - 1 }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Status info -->
+                  <div class="pt-2 border-t border-slate-100 text-[11px] flex items-center justify-between">
+                    <div *ngIf="day.status === 'COMPLETED'" class="flex items-center gap-1 text-emerald-600 font-bold">
+                      <span class="material-symbols-outlined text-[15px]">check_circle</span>
+                      <span>Đã hoàn thành</span>
+                    </div>
+                    <div *ngIf="day.status === 'IN_PROGRESS'" class="flex items-center gap-1.5 text-sky-600 font-bold">
+                      <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Đang trực ca</span>
+                    </div>
+                    <div *ngIf="day.status === 'SCHEDULED'" class="flex items-center gap-1 text-slate-500 font-medium">
+                      <span class="material-symbols-outlined text-[14px]">schedule</span>
+                      <span>Dự kiến</span>
+                    </div>
+                    <div *ngIf="day.status === 'OFF'" class="flex items-center gap-1 text-slate-400 font-medium italic">
+                      <span class="material-symbols-outlined text-[14px]">bed</span>
+                      <span>Nghỉ tiêu chuẩn</span>
+                    </div>
+                    
+                    <span *ngIf="day.checkInTime" class="text-[10px] text-slate-400 font-medium">
+                      In: {{ day.checkInTime }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Action Button in Card Footer -->
+                <div class="pt-3 mt-3 border-t border-slate-100">
+                  <button *ngIf="day.isToday && day.status === 'SCHEDULED'" 
+                          (click)="checkInShift(day)" 
+                          class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1 shadow-2xs cursor-pointer active:scale-95">
+                    <span class="material-symbols-outlined text-[14px]">login</span>
+                    <span>Chấm Công Vào Ca</span>
+                  </button>
+
+                  <button *ngIf="day.status === 'SCHEDULED' && !day.isToday" 
+                          (click)="openSwapModal(day)" 
+                          class="w-full py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-[13px] text-amber-500">swap_horiz</span>
+                    <span>Yêu Cầu Đổi Ca</span>
+                  </button>
+
+                  <div *ngIf="day.status === 'COMPLETED' || day.status === 'OFF'" class="text-[10px] text-center text-slate-400 py-1">
+                    {{ day.status === 'COMPLETED' ? 'Đã nghiệm thu ca làm' : 'Ngày nghỉ định kỳ' }}
+                  </div>
+
+                  <div *ngIf="day.isToday && day.status === 'IN_PROGRESS'" class="text-[10px] text-center text-sky-700 font-bold py-1 flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-[13px] text-sky-500">timer</span>
+                    <span>Đang tính công</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ================= SUB-TAB 2: ĐĂNG KÝ PHÂN CA TUẦN MỚI (ĐẦY ĐỦ 7 NGÀY) ================= -->
+          <div *ngIf="shiftSubTab === 'register-next'" class="space-y-6">
+
+            <!-- Banner thông tin đăng ký -->
+            <div class="p-5 bg-gradient-to-r from-amber-50 via-sky-50 to-emerald-50 border border-amber-200/80 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+              <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-sm flex-shrink-0">
+                  <span class="material-symbols-outlined text-[26px]">edit_calendar</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-black text-slate-900 text-sm">Đăng Ký Phân Ca Tuần Sau: {{ nextWeekDateLabel }}</h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-200 text-amber-900 border border-amber-300">
+                      HẠN CHÓT: 17:00 THỨ 6
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-600 mt-0.5">
+                    Hãy lựa chọn ca làm việc mong muốn cho toàn bộ 7 ngày (Thứ 2 đến Chủ Nhật). Quản lý buồng phòng sẽ duyệt và chốt lịch vào Thứ 7.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Quick Templates Button Group -->
+              <div class="flex flex-wrap items-center gap-2 flex-shrink-0">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Mẫu Nhanh:</span>
+                <button (click)="applyQuickTemplate('ALL_MORNING')" 
+                        class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
+                  ☀️ Chuyên Sáng
+                </button>
+                <button (click)="applyQuickTemplate('ALL_AFTERNOON')" 
+                        class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
+                  🌤️ Chuyên Chiều
+                </button>
+                <button (click)="applyQuickTemplate('ROTATING')" 
+                        class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
+                  🔄 Xoay Ca Sáng - Chiều
+                </button>
+                <button (click)="applyQuickTemplate('STANDARD_OFF_WEEKEND')" 
+                        class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer">
+                  💤 Nghỉ T7 - CN
+                </button>
+              </div>
+            </div>
+
+            <!-- Status Alert if already submitted -->
+            <div *ngIf="isRegSubmitted" 
+                 class="p-4 rounded-2xl flex items-center justify-between text-xs border"
+                 [ngClass]="{
+                   'bg-emerald-50 border-emerald-200 text-emerald-800': regStatus === 'APPROVED',
+                   'bg-amber-50 border-amber-200 text-amber-800': regStatus === 'PENDING' || !regStatus,
+                   'bg-rose-50 border-rose-200 text-rose-800': regStatus === 'REJECTED'
+                 }">
+              <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[22px]"
+                      [ngClass]="regStatus === 'APPROVED' ? 'text-emerald-600' : regStatus === 'REJECTED' ? 'text-rose-600' : 'text-amber-600'">
+                  {{ regStatus === 'APPROVED' ? 'verified' : regStatus === 'REJECTED' ? 'error' : 'hourglass_top' }}
+                </span>
+                <div>
+                  <span class="font-bold">Đơn đăng ký ca tuần {{ regSubmittedTime ? 'gửi lúc ' + regSubmittedTime : '' }}.</span>
+                  <span class="ml-1" [ngClass]="regStatus === 'APPROVED' ? 'text-emerald-700 font-extrabold' : regStatus === 'REJECTED' ? 'text-rose-700 font-extrabold' : 'text-slate-600'">
+                    {{ regStatus === 'APPROVED' ? 'Trạng thái: ĐÃ ĐƯỢC QUẢN LÝ PHÊ DUYỆT! Lịch trực đã được ghi nhận vào hệ thống.' : regStatus === 'REJECTED' ? ('Trạng thái: BỊ TỪ CHỐI (' + (regRejectionReason || 'Vui lòng điều chỉnh lại') + ')') : 'Trạng thái: Đang chờ Quản lý phê duyệt chính thức.' }}
+                  </span>
+                </div>
+              </div>
+              <button *ngIf="regStatus !== 'APPROVED'" (click)="editShiftRegistration()" 
+                      class="px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg font-bold transition cursor-pointer">
+                ✏️ Chỉnh Sửa Lại
+              </button>
+            </div>
+
+            <!-- Full 7 Days Registration Grid -->
+            <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h4 class="text-xs font-black uppercase tracking-wider text-slate-500">
+                  Lựa chọn ca làm việc cho từng ngày (7 ngày trong tuần)
+                </h4>
+                <div class="text-xs font-bold text-slate-700">
+                  Đã chọn: <span class="text-sky-600 font-black">{{ registeredWorkingDaysCount }} ca làm việc</span> • 
+                  <span class="text-slate-500">{{ registeredOffDaysCount }} ngày nghỉ OFF</span>
+                </div>
+              </div>
+
+              <!-- 7 Days Items -->
+              <div class="divide-y divide-slate-100">
+                <div *ngFor="let item of nextWeekDays; let i = index" 
+                     class="py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50/50 p-2 rounded-xl transition">
+                  
+                  <!-- Date & Day Info -->
+                  <div class="flex items-center gap-3 min-w-[160px]">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex flex-col items-center justify-center font-bold text-slate-700 flex-shrink-0">
+                      <span class="text-[10px] text-slate-400 leading-none">{{ item.dayOfWeek }}</span>
+                      <span class="text-sm font-black leading-none mt-0.5">{{ item.dateNumber }}</span>
+                    </div>
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">{{ item.dayName }}</div>
+                      <div class="text-[11px] text-slate-400">{{ item.dateStr }}</div>
+                    </div>
+                  </div>
+
+                  <!-- 4 Shift Choice Buttons (Radio Pills) -->
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 flex-1 max-w-2xl">
+                    <!-- Morning Shift -->
+                    <button type="button" 
+                            (click)="setDayShift(i, 'MORNING')"
+                            class="px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            [ngClass]="item.shiftType === 'MORNING' 
+                              ? 'bg-amber-500 text-white border-amber-600 shadow-xs' 
+                              : 'bg-white hover:bg-amber-50 text-slate-700 border-slate-200'">
+                      <span class="material-symbols-outlined text-[15px]">wb_sunny</span>
+                      <span>Ca Sáng (06:00-14:30)</span>
+                    </button>
+
+                    <!-- Afternoon Shift -->
+                    <button type="button" 
+                            (click)="setDayShift(i, 'AFTERNOON')"
+                            class="px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            [ngClass]="item.shiftType === 'AFTERNOON' 
+                              ? 'bg-sky-600 text-white border-sky-700 shadow-xs' 
+                              : 'bg-white hover:bg-sky-50 text-slate-700 border-slate-200'">
+                      <span class="material-symbols-outlined text-[15px]">wb_twilight</span>
+                      <span>Ca Chiều (14:00-22:30)</span>
+                    </button>
+
+                    <!-- Night Shift -->
+                    <button type="button" 
+                            (click)="setDayShift(i, 'NIGHT')"
+                            class="px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            [ngClass]="item.shiftType === 'NIGHT' 
+                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs' 
+                              : 'bg-white hover:bg-indigo-50 text-slate-700 border-slate-200'">
+                      <span class="material-symbols-outlined text-[15px]">bedtime</span>
+                      <span>Ca Đêm (22:00-06:30)</span>
+                    </button>
+
+                    <!-- Off Day -->
+                    <button type="button" 
+                            (click)="setDayShift(i, 'OFF')"
+                            class="px-3 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer"
+                            [ngClass]="item.shiftType === 'OFF' 
+                              ? 'bg-slate-800 text-white border-slate-900 shadow-xs' 
+                              : 'bg-white hover:bg-slate-100 text-slate-600 border-slate-200'">
+                      <span class="material-symbols-outlined text-[15px]">weekend</span>
+                      <span>Nghỉ Tuần (OFF)</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- General Registration Preferences Form -->
+              <div class="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                    Khu vực ưu tiên mong muốn làm việc trong tuần
+                  </label>
+                  <select [(ngModel)]="regPreferredZone" 
+                          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-sky-500">
+                    <option value="ALL">Tất cả khu vực (Theo phân công của Quản lý)</option>
+                    <option value="NT">Zone Ngọc Trai (NT) - Khu Biệt Thự Tổng Thống & View Biển</option>
+                    <option value="SB">Zone Sông Băng (SB) - Khu Biệt Thự Ven Hồ & Thác Nước</option>
+                    <option value="SH">Zone San Hô (SH) - Khu Biệt Thự Gia Đình</option>
+                    <option value="CENTRAL">Tòa Khách Sạn Central & Phòng Suite</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                    Ghi chú & Nguyện vọng đặc biệt gửi Quản lý
+                  </label>
+                  <input type="text" [(ngModel)]="regNotes" 
+                         placeholder="Ví dụ: Xin nghỉ Thứ 7 việc gia đình, xin trực cùng bạn Mai..." 
+                         class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:border-sky-500">
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div class="text-xs text-slate-500">
+                  Lưu ý: Tiêu chuẩn lao động resort yêu cầu tối thiểu 1 ngày nghỉ OFF / tuần và tối đa 6 ca làm việc.
+                </div>
+                <button (click)="submitShiftRegistration()" 
+                        class="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-xl shadow-md shadow-amber-600/20 transition flex items-center gap-2 cursor-pointer active:scale-95">
+                  <span class="material-symbols-outlined text-[18px]">send</span>
+                  <span>Gửi Đăng Ký Lịch Ca Tuần Sau</span>
+                </button>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- ================= SUB-TAB 3: YÊU CẦU ĐỔI CA & LỊCH SỬ ================= -->
+          <div *ngIf="shiftSubTab === 'swap-history'" class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-sm font-black text-slate-900">Danh Sách Yêu Cầu Đổi Ca & Chờ Phê Duyệt</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Các yêu cầu đổi ca đã gửi tới đồng nghiệp và quản lý buồng phòng.</p>
+              </div>
+              <button (click)="openSwapModal()" class="px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-[15px]">add</span>
+                <span>Tạo yêu cầu mới</span>
+              </button>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="swapRequests.length === 0" class="py-12 text-center text-slate-400">
+              <span class="material-symbols-outlined text-4xl block mb-2 text-slate-300">swap_horiz</span>
+              <p class="text-xs font-bold text-slate-600">Chưa có yêu cầu đổi ca nào</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Bấm nút "Tạo yêu cầu mới" ở trên khi bạn có nhu cầu đổi ca với đồng nghiệp.</p>
+            </div>
+
+            <!-- Swaps List -->
+            <div *ngIf="swapRequests.length > 0" class="divide-y divide-slate-100">
+              <div *ngFor="let swap of swapRequests" class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
+                  </div>
+                  <div>
+                    <div class="font-bold text-xs text-slate-800 flex items-center gap-2">
+                      <span>Đổi ca với <b>{{ swap.targetColleague }}</b></span>
+                      <span class="px-2 py-0.2 rounded-full text-[10px] font-bold"
+                            [ngClass]="{
+                              'bg-amber-100 text-amber-800': swap.status === 'PENDING',
+                              'bg-emerald-100 text-emerald-800': swap.status === 'APPROVED',
+                              'bg-rose-100 text-rose-800': swap.status === 'REJECTED'
+                            }">
+                        {{ swap.status === 'PENDING' ? 'Chờ Duyệt' : (swap.status === 'APPROVED' ? 'Đã Chấp Thuận' : 'Từ Chối') }}
+                      </span>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-1 flex flex-wrap items-center gap-2">
+                      <span>Ca của tôi: <b>{{ swap.myDate }} ({{ swap.myShift }})</b></span>
+                      <span class="text-slate-300">➔</span>
+                      <span>Đổi lấy: <b>{{ swap.targetDate }} ({{ swap.targetShift }})</b></span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 italic mt-0.5">
+                      Lý do: "{{ swap.reason }}" • Tạo lúc: {{ swap.createdAt }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <button *ngIf="swap.status === 'PENDING'" 
+                          (click)="cancelSwapRequest(swap.id)" 
+                          class="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded-lg font-semibold transition cursor-pointer">
+                    Hủy yêu cầu
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- MODAL: YÊU CẦU ĐỔI CA (SHIFT SWAP MODAL) -->
+        <div *ngIf="activeSwapModal" 
+             class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-150">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[20px]">swap_horiz</span>
+                </div>
+                <div>
+                  <h3 class="font-black text-sm text-slate-900">Yêu Cầu Đổi Ca Trực Buồng Phòng</h3>
+                  <p class="text-[11px] text-slate-400">Gửi lời mời đổi ca tới đồng nghiệp cùng tổ buồng phòng</p>
+                </div>
+              </div>
+              <button (click)="closeSwapModal()" class="w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            <!-- Form -->
+            <div class="space-y-3.5 text-xs">
+              <!-- Ca của bạn cần đổi -->
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Ca trực của bạn cần đổi</label>
+                <input type="text" [(ngModel)]="swapForm.myShiftLabel" 
+                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-sky-500">
+              </div>
+
+              <!-- Đồng nghiệp muốn đổi cùng -->
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Đồng nghiệp muốn đổi ca cùng</label>
+                <select [(ngModel)]="swapForm.targetColleague" 
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-sky-500">
+                  <option *ngFor="let col of colleagueList" [value]="col.name + ' (' + col.role + ')'">
+                    {{ col.name }} - {{ col.role }} ({{ col.zone }})
+                  </option>
+                </select>
+              </div>
+
+              <!-- Ca mong muốn nhận lại -->
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Ca mong muốn nhận</label>
+                  <select [(ngModel)]="swapForm.targetShiftType" 
+                          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-sky-500">
+                    <option value="MORNING">Ca Sáng (06:00 - 14:30)</option>
+                    <option value="AFTERNOON">Ca Chiều (14:00 - 22:30)</option>
+                    <option value="NIGHT">Ca Đêm (22:00 - 06:30)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Ngày đổi tương ứng</label>
+                  <input type="text" [(ngModel)]="swapForm.targetShiftDate" placeholder="Ví dụ: Thứ Sáu (09/10)"
+                         class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none focus:border-sky-500">
+                </div>
+              </div>
+
+              <!-- Lý do đổi ca -->
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Lý do xin đổi ca <span class="text-rose-500">*</span></label>
+                <textarea [(ngModel)]="swapForm.reason" rows="3" 
+                          placeholder="Nhập lý do cụ thể (Bận việc gia đình, khám sức khỏe, hỗ trợ ca khác...)"
+                          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-700 focus:outline-none focus:border-sky-500"></textarea>
+              </div>
+            </div>
+
+            <!-- Footer Buttons -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+              <button (click)="closeSwapModal()" 
+                      class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                Hủy Bỏ
+              </button>
+              <button (click)="submitSwapRequest()" 
+                      class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-black transition shadow-sm cursor-pointer active:scale-95 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px]">send</span>
+                <span>Gửi Yêu Cầu Đổi Ca</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- ================= MENU 3: NGHỈ PHÉP & OT (LEAVES) ================= -->
+      <ng-container *ngIf="activeMenu === 'leaves'">
+        <!-- Leave Info Summary -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Tổng phép năm</p>
+            <p class="text-2xl font-black text-slate-800">{{ remainingAnnualLeave }}</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Đã sử dụng</p>
+            <p class="text-2xl font-black text-rose-500">{{ usedAnnualLeave }}</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Phép còn lại</p>
+            <p class="text-2xl font-black text-emerald-500">{{ remainingAnnualLeave - usedAnnualLeave }}</p>
+          </div>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Số giờ OT tháng</p>
+            <p class="text-2xl font-black text-[#0284c7]">12.5h</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 1. Form Xin Nghỉ Phép -->
+          <section class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+            <h2 class="text-base font-black text-slate-900 flex items-center gap-2 mb-1 border-b border-slate-100 pb-3">
+              <span class="material-symbols-outlined text-rose-500">event_busy</span> Xin Nghỉ Phép
+            </h2>
+            <form class="space-y-4 mt-4 text-sm font-medium">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Loại nghỉ phép</label>
+                <select [(ngModel)]="leaveForm.type" name="leaveType" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-[#0284c7] focus:border-[#0284c7]">
+                  <option value="ANNUAL">Nghỉ phép năm (Có lương)</option>
+                  <option value="SICK">Nghỉ ốm (Có giấy tờ)</option>
+                  <option value="UNPAID">Nghỉ việc riêng (Không lương)</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Từ ngày</label>
+                  <input type="date" [(ngModel)]="leaveForm.startDate" name="startDate" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-[#0284c7] focus:border-[#0284c7]">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Đến ngày (Tùy chọn)</label>
+                  <input type="date" [(ngModel)]="leaveForm.endDate" name="endDate" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-[#0284c7] focus:border-[#0284c7]">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Thời lượng</label>
+                <select [(ngModel)]="leaveForm.duration" name="duration" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-[#0284c7] focus:border-[#0284c7]">
+                  <option value="FULL">Cả ngày</option>
+                  <option value="MORNING">Nửa ngày (Sáng)</option>
+                  <option value="AFTERNOON">Nửa ngày (Chiều)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Lý do nghỉ</label>
+                <textarea [(ngModel)]="leaveForm.reason" name="reason" rows="3" placeholder="Nhập lý do chi tiết..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-[#0284c7] focus:border-[#0284c7]"></textarea>
+              </div>
+              <button type="button" (click)="submitLeave()" class="w-full py-3 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold transition shadow-md shadow-sky-500/30">
+                GỬI ĐƠN NGHỈ PHÉP
+              </button>
+            </form>
+          </section>
+
+          <!-- 2. Form Yêu cầu OT -->
+          <section class="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-xs">
+            <h2 class="text-base font-black text-slate-900 flex items-center gap-2 mb-1 border-b border-slate-100 pb-3">
+              <span class="material-symbols-outlined text-emerald-500">more_time</span> Đăng Ký Làm Thêm Giờ (OT)
+            </h2>
+            <form class="space-y-4 mt-4 text-sm font-medium">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Loại yêu cầu OT</label>
+                <div class="flex gap-4">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" [(ngModel)]="otForm.type" name="otType" value="PRE_APPROVAL" class="text-emerald-500 focus:ring-emerald-500"> 
+                    <span class="text-sm">Đăng ký trước</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" [(ngModel)]="otForm.type" name="otType" value="POST_APPROVAL" class="text-emerald-500 focus:ring-emerald-500"> 
+                    <span class="text-sm">Xác nhận sau ca</span>
+                  </label>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Ngày làm OT</label>
+                  <input type="date" [(ngModel)]="otForm.date" name="otDate" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-600 mb-1">Số giờ OT</label>
+                  <input type="number" step="0.5" min="0.5" [(ngModel)]="otForm.hours" name="otHours" placeholder="VD: 2.5" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Lý do OT chi tiết</label>
+                <textarea [(ngModel)]="otForm.reason" name="otReason" rows="3" placeholder="VD: Hỗ trợ dọn 5 phòng check-out muộn khu Đồi Cọ do thiếu người..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+              </div>
+              
+              <div *ngIf="otForm.type === 'POST_APPROVAL'" class="p-3 border border-dashed border-slate-300 rounded-xl bg-slate-50 text-center">
+                <span class="material-symbols-outlined text-slate-400 block mb-1">add_a_photo</span>
+                <span class="text-[11px] text-slate-500">Đính kèm ảnh minh họa (tùy chọn)</span>
+              </div>
+
+              <button type="button" (click)="submitOt()" class="w-full py-3 bg-slate-900 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-500/20">
+                GỬI YÊU CẦU OT
+              </button>
+            </form>
+          </section>
+        </div>
+      </ng-container>
+
+    </main>
+    </ng-container>
+  </div>
+
+
+  <!-- ================= QUICK INCIDENT REPORT MODAL (LIGHT THEME) ================= -->
+  <div
+    *ngIf="activeIncidentModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+  >
+    <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200">
+            <span class="material-symbols-outlined text-[20px]">handyman</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-black text-slate-900">Báo Cáo Sự Cố Cho Kỹ Thuật</h3>
+            <p class="text-[11px] text-slate-500">Đội kỹ thuật tiếp nhận xử lý trong vòng 15 phút</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="activeIncidentModal = false"
+          class="text-slate-400 hover:text-slate-700"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Số Phòng / Biệt Thự:</label>
+          <input
+            type="text"
+            [(ngModel)]="incidentRoomNumber"
+            placeholder="VD: 101, NT01-Master..."
+            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#0284c7]"
+          />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Hạng Mục Sự Cố:</label>
+          <select
+            [(ngModel)]="incidentType"
+            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:bg-white focus:outline-none focus:border-[#0284c7] cursor-pointer"
+          >
+            <option value="AIR_CONDITIONER">Điều hòa nhiệt độ (Không mát / Kêu to)</option>
+            <option value="PLUMBING">Đường nước & Thiết bị vệ sinh (Rò rỉ / Tắc)</option>
+            <option value="ELECTRICAL">Hệ thống điện & Chiếu sáng</option>
+            <option value="FURNITURE">Đồ gỗ / Kính / Nội thất hư hỏng</option>
+            <option value="SMART_LOCK">Khóa cửa phòng thông minh / Két sắt</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mô Tả Chi Tiết Vấn Đề:</label>
+          <textarea
+            [(ngModel)]="incidentDescription"
+            rows="3"
+            placeholder="Mô tả cụ thể vị trí, tình trạng hỏng hóc để kỹ thuật mang đúng dụng cụ..."
+            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#0284c7]"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <button
+          type="button"
+          (click)="activeIncidentModal = false"
+          class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          type="button"
+          (click)="submitIncident()"
+          class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition shadow-xs cursor-pointer active:scale-95"
+        >
+          GỬI KỸ THUẬT NGAY
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FLOATING TOAST NOTIFICATION ================= -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-5 py-3 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl border border-sky-400 flex items-center space-x-2 animate-in fade-in slide-in-from-bottom-3"
+  >
+    <span class="material-symbols-outlined text-sky-400 text-[18px]">check_circle</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+</div>

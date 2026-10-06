@@ -10,4 +10,5 @@ public interface AdminReviewService {
     ReviewResponse replyReview(Long reviewId, String reply, String managerEmail);
     ServiceRecoveryTicketResponse createRecoveryTicket(ServiceRecoveryRequest request, String managerEmail);
     ServiceRecoveryTicketResponse resolveRecoveryTicket(Long ticketId, Integer resolutionMinutes);
+    void deleteReview(Long id);
 }

@@ -22,6 +22,7 @@ public class HomeBannerResponse {
     private String mobileImageUrl;
     private String ctaText;
     private String ctaLink;
+    private String placement;
     private Integer displayOrder;
     private Boolean isActive;
     private String badgesJson;
@@ -39,6 +40,7 @@ public class HomeBannerResponse {
                 .mobileImageUrl(entity.getMobileImageUrl())
                 .ctaText(entity.getCtaText())
                 .ctaLink(entity.getCtaLink())
+                .placement(entity.getPlacement())
                 .displayOrder(entity.getDisplayOrder())
                 .isActive(entity.getIsActive())
                 .badgesJson(entity.getBadgesJson())

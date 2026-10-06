@@ -1,0 +1,442 @@
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+  <!-- Toast Alert -->
+  <div
+    *ngIf="successMessage"
+    class="fixed top-20 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-2xl shadow-xl border border-emerald-500 animate-bounce"
+  >
+    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+    <span class="text-xs sm:text-sm font-semibold">{{ successMessage }}</span>
+  </div>
+
+  <!-- Header & Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+    <div>
+      <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-1">
+        <span>Bảng Điều Khiển</span>
+        <span>/</span>
+        <span>Nội Dung & Website</span>
+        <span>/</span>
+        <span class="text-amber-700 font-bold">Phân Khu & Danh Mục</span>
+      </div>
+      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+        <span class="material-symbols-outlined text-[26px] text-amber-700">holiday_village</span>
+        <span>Quản Lý Phân Khu Biệt Thự</span>
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+        Quản lý các phân khu biệt thự (Ngọc Trai, Sao Biển, San Hô...), banner chủ đề và trang phân loại riêng biệt cho khách hàng
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        (click)="loadZones()"
+        [disabled]="loading"
+        class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer"
+        title="Tải lại danh sách"
+      >
+        <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="loading">refresh</span>
+        <span class="hidden sm:inline">Làm mới</span>
+      </button>
+
+      <button
+        (click)="openCreateModal()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 via-amber-700 to-amber-800 text-white text-xs sm:text-sm font-bold shadow-md shadow-amber-800/20 hover:from-amber-700 hover:to-amber-900 transition-all transform hover:-translate-y-0.5 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+        <span>Thêm Phân Khu Mới</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Stats Strip -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">holiday_village</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tổng Số Phân Khu</p>
+          <h3 class="text-xl font-black text-slate-900 leading-tight">{{ zones.length }}</h3>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500 font-medium">Khu biệt thự</span>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">villa</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tổng Số Biệt Thự</p>
+          <h3 class="text-xl font-black text-teal-700 leading-tight">{{ totalVillas }}</h3>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500 font-medium">Toàn hệ thống</span>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">web</span>
+        </div>
+        <div>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Trang Phân Loại</p>
+          <h3 class="text-xl font-black text-purple-700 leading-tight">{{ zones.length }} Landing Pages</h3>
+        </div>
+      </div>
+      <span class="text-xs text-slate-500 font-medium">Client /villas/zone/:slug</span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-3">
+    <div class="inline-block w-8 h-8 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-sm font-semibold text-slate-600">Đang tải danh sách phân khu...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !loading" class="bg-red-50 p-6 rounded-2xl border border-red-200 text-center space-y-2">
+    <span class="material-symbols-outlined text-3xl text-red-500">error</span>
+    <p class="text-sm font-semibold text-red-700">{{ errorMessage }}</p>
+    <button (click)="loadZones()" class="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700">
+      Thử lại
+    </button>
+  </div>
+
+  <!-- Zone Cards Grid -->
+  <div *ngIf="!loading && zones.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let z of zones"
+      class="bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col group relative"
+    >
+      <!-- Zone Hero Banner Header -->
+      <div class="relative aspect-16/9 w-full overflow-hidden bg-slate-900">
+        <img
+          [src]="z.bannerUrl || '/assets/images/rooms/villa-beachfront.jpg'"
+          [alt]="z.name"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onerror="this.src='/assets/images/rooms/villa-beachfront.jpg'"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-black/40 to-transparent"></div>
+
+        <!-- Top Badges: Tag & Display Order -->
+        <div class="absolute top-3 left-3 flex items-center gap-1.5">
+          <span class="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-amber-300 text-[11px] font-black tracking-wider uppercase border border-amber-400/30 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">{{ z.icon || 'holiday_village' }}</span>
+            <span>{{ z.tag || z.name }}</span>
+          </span>
+        </div>
+
+        <div class="absolute top-3 right-3 flex items-center gap-1.5">
+          <span class="px-2 py-0.5 rounded-md bg-white/20 backdrop-blur-md text-white text-[10px] font-bold">
+            Thứ tự #{{ z.displayOrder || 1 }}
+          </span>
+        </div>
+
+        <!-- Title & Direct Slug Link -->
+        <div class="absolute bottom-3 left-3 right-3 text-white">
+          <h3 class="text-base sm:text-lg font-extrabold text-white leading-snug drop-shadow-sm flex items-center gap-2">
+            <span>{{ z.name }}</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/80 text-[10px] font-bold">
+              {{ z.villaCount || 0 }} Biệt Thự
+            </span>
+          </h3>
+          <div class="flex items-center gap-1 mt-1 text-[11px] text-amber-200 font-mono">
+            <span>/villas/zone/{{ z.slug }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Body Content -->
+      <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
+        <div>
+          <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+            {{ z.description || 'Khu biệt thự nghỉ dưỡng cao cấp với không gian xanh mát và đầy đủ tiện nghi.' }}
+          </p>
+
+          <!-- Highlights Pills -->
+          <div class="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Đặc Quyền Vị Trí & Tiện Ích:</p>
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                *ngFor="let hl of parseHighlights(z.highlights)"
+                class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200/80"
+              >
+                {{ hl }}
+              </span>
+              <span *ngIf="parseHighlights(z.highlights).length === 0" class="text-[11px] text-slate-400 italic">
+                Chưa thêm điểm nhấn
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Action Footer -->
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <!-- View Live Client Page -->
+          <a
+            [routerLink]="['/villas/zone', z.slug]"
+            target="_blank"
+            class="px-2.5 py-1.5 rounded-lg text-teal-700 hover:text-teal-900 hover:bg-teal-50 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+            title="Mở trang khách xem ngoài website"
+          >
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+            <span>Xem Trang Web</span>
+          </a>
+
+          <div class="flex items-center gap-1.5">
+            <button
+              (click)="openEditModal(z)"
+              class="px-2.5 py-1.5 rounded-lg text-amber-800 hover:bg-amber-50 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+              title="Chỉnh sửa phân khu"
+            >
+              <span class="material-symbols-outlined text-[16px]">edit</span>
+              <span>Sửa</span>
+            </button>
+            <button
+              (click)="deleteZone(z, $event)"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 cursor-pointer transition-colors"
+              title="Xóa phân khu này"
+            >
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div
+    *ngIf="showModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto"
+  >
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full my-8 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">{{ isEditing ? 'edit_location_alt' : 'add_location_alt' }}</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">
+              {{ isEditing ? 'Chỉnh Sửa Phân Khu & Trang Danh Mục' : 'Thêm Mới Phân Khu Biệt Thự' }}
+            </h3>
+            <p class="text-xs text-slate-500">Cập nhật banner, đường dẫn slug và tiện ích đặc trưng</p>
+          </div>
+        </div>
+        <button
+          (click)="closeModal()"
+          class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form (ngSubmit)="saveZone()" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+        <!-- Live Header Banner Mockup -->
+        <div class="rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 relative aspect-21/9 shadow-inner">
+          <img
+            [src]="formModel.bannerUrl || '/assets/images/rooms/villa-beachfront.jpg'"
+            alt="Zone Banner Preview"
+            class="w-full h-full object-cover opacity-85"
+            onerror="this.src='/assets/images/rooms/villa-beachfront.jpg'"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-4 text-white">
+            <div class="flex items-center gap-1.5 text-amber-300 text-[10px] uppercase font-bold tracking-widest">
+              <span class="material-symbols-outlined text-[13px]">{{ formModel.icon || 'holiday_village' }}</span>
+              <span>PHÂN KHU BIỆT THỰ AURA</span>
+            </div>
+            <h4 class="text-base sm:text-lg font-extrabold leading-snug drop-shadow-sm">
+              {{ formModel.name || 'Tên Phân Khu' }}
+            </h4>
+            <p class="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
+              {{ formModel.description || 'Mô tả vị trí và không gian biệt thự tại phân khu này.' }}
+            </p>
+          </div>
+          <span class="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[9px] font-bold backdrop-blur-xs">
+            Ảnh bìa Landing Page
+          </span>
+        </div>
+
+        <!-- Name & Slug -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">
+              Tên Phân Khu <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="formModel.name"
+              (ngModelChange)="onNameChange()"
+              name="name"
+              required
+              placeholder="VD: Ngọc Trai, Sao Biển, San Hô..."
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">
+              Đường Dẫn Slug URL <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="formModel.slug"
+                name="slug"
+                required
+                placeholder="VD: villa-ngoc-trai"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all font-mono"
+              />
+            </div>
+            <p class="text-[10px] text-slate-400">Đường dẫn trang web: /villas/zone/{{ formModel.slug || '...' }}</p>
+          </div>
+        </div>
+
+        <!-- Banner Image Selection: Choose from Folder / Computer or Direct URL -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">
+            Hình Ảnh Banner Bìa Phân Khu
+          </label>
+
+          <!-- Upload Drop/Click Zone from local folder -->
+          <div class="p-4 rounded-2xl border-2 border-dashed border-amber-300/80 bg-amber-50/40 hover:bg-amber-50/70 transition-all flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 shadow-xs">
+                <span class="material-symbols-outlined text-[22px]">drive_folder_upload</span>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-slate-800">
+                  {{ selectedFileName || 'Chọn tệp ảnh từ máy tính / thư mục của bạn' }}
+                </p>
+                <p class="text-[10px] text-slate-500">Hỗ trợ JPG, PNG, WEBP (Khuyến nghị 1920x1080 hoặc tỷ lệ 16:9)</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <input
+                type="file"
+                #zoneFileInput
+                (change)="onFileSelected($event)"
+                accept="image/*"
+                class="hidden"
+              />
+              <button
+                type="button"
+                (click)="zoneFileInput.click()"
+                [disabled]="isUploadingImage"
+                class="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <span *ngIf="!isUploadingImage" class="material-symbols-outlined text-[16px]">folder_open</span>
+                <span *ngIf="isUploadingImage" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>{{ isUploadingImage ? 'Đang tải lên...' : 'Chọn Từ Thư Mục' }}</span>
+              </button>
+
+              <button
+                *ngIf="formModel.bannerUrl"
+                type="button"
+                (click)="removeSelectedImage(); zoneFileInput.value=''"
+                class="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                title="Xóa ảnh này"
+              >
+                <span class="material-symbols-outlined text-[18px]">delete</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Direct URL Input -->
+          <div class="flex items-center gap-2 pt-0.5">
+            <span class="text-[10px] text-slate-400 font-semibold shrink-0">Hoặc URL ảnh:</span>
+            <input
+              type="text"
+              [(ngModel)]="formModel.bannerUrl"
+              name="bannerUrl"
+              placeholder="/assets/images/rooms/villa-beachfront.jpg hoặc link online"
+              class="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] text-slate-700 focus:outline-hidden focus:border-amber-600 bg-white"
+            />
+          </div>
+        </div>
+
+        <!-- Highlights (Đặc quyền vị trí & tiện ích) -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">
+            Điểm Nổi Bật & Đặc Quyền (Cách nhau bằng dấu phẩy)
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="formModel.highlights"
+            name="highlights"
+            placeholder="VD: Gần biển Sầm Sơn, Hồ bơi vô cực riêng, Quản gia 24/7, Sân BBQ ngoài trời"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+          />
+          <p class="text-[10px] text-slate-400">Các tag này sẽ được hiển thị nổi bật trên banner đầu trang của khách hàng</p>
+        </div>
+
+        <!-- Icon & Tag -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Icon Biểu Tượng</label>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <button
+                *ngFor="let ic of iconPresets"
+                type="button"
+                (click)="selectIcon(ic.icon)"
+                class="px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 border transition-all cursor-pointer"
+                [ngClass]="formModel.icon === ic.icon ? 'bg-amber-100 text-amber-900 border-amber-400 font-bold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+              >
+                <span class="material-symbols-outlined text-[15px]">{{ ic.icon }}</span>
+                <span>{{ ic.label }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">Thứ Tự Sắp Xếp</label>
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="formModel.displayOrder"
+              name="displayOrder"
+              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all"
+            />
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">Mô Tả Phân Khu</label>
+          <textarea
+            [(ngModel)]="formModel.description"
+            name="description"
+            rows="2"
+            placeholder="Không gian cảnh quan, phong cách kiến trúc đặc trưng của phân khu..."
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:border-amber-600 focus:ring-1 focus:ring-amber-600 transition-all resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Modal Actions -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="closeModal()"
+            class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Hủy Bỏ
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving || isUploadingImage"
+            class="px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-bold shadow-md shadow-amber-800/20 transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <span *ngIf="saving || isUploadingImage" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ isUploadingImage ? 'Đang Tải Ảnh Lên...' : (isEditing ? 'Lưu Thay Đổi' : 'Tạo Phân Khu') }}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

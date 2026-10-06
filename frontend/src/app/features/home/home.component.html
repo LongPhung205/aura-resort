@@ -1,0 +1,41 @@
+<div class="relative">
+  <!-- 1. Hero Section (Dynamic Banners from Backend) -->
+  <app-hero-section></app-hero-section>
+
+  <!-- 2. Booking Search Widget (overlaps Hero, dynamic dates & zones) -->
+  <app-booking-search-widget (search)="handleSearch($event)"></app-booking-search-widget>
+
+  <div class="mt-8 sm:mt-12">
+    <!-- Explore Destinations -->
+    <app-explore-destinations></app-explore-destinations>
+  </div>
+
+  <!-- 3. Featured Real Villas Collection (Live data from /api/v1/villas) -->
+  <app-featured-resorts></app-featured-resorts>
+
+  <!-- 4. Special Offers Section (Ưu Đãi Đặc Quyền) -->
+  <app-special-offers></app-special-offers>
+
+  <!-- 5. Call To Action Banner -->
+  <app-cta-banner></app-cta-banner>
+
+  <!-- 5. VIP Newsletter Subscription -->
+  <app-newsletter></app-newsletter>
+
+  <!-- Search Toast Notification -->
+  <div
+    *ngIf="showToast"
+    class="fixed bottom-6 right-6 z-50 bg-[#0B1320] text-white px-5 py-4 rounded-xl shadow-2xl border border-[#C5A880]/40 flex items-center space-x-3 toast-animate-in"
+  >
+    <div class="w-8 h-8 rounded-full bg-[#8B6E4E] flex items-center justify-center text-white flex-shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="text-xs font-bold text-[#C5A880] uppercase tracking-wider">Hệ Thống Đang Tìm Kiếm</div>
+      <div class="text-xs text-slate-200 mt-0.5">{{ searchFeedback }}</div>
+    </div>
+    <button (click)="showToast = false" class="text-slate-400 hover:text-white ml-2 text-sm font-bold">✕</button>
+  </div>
+</div>

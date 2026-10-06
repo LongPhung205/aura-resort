@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,8 +20,14 @@ public class PublicBannerController {
     private final HomeBannerService bannerService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<HomeBannerResponse>>> getActiveBanners() {
-        List<HomeBannerResponse> banners = bannerService.getActiveBanners();
-        return ResponseEntity.ok(ApiResponse.success(banners, "Lấy danh sách banner trang chủ thành công"));
+    public ResponseEntity<ApiResponse<List<HomeBannerResponse>>> getActiveBanners(
+            @RequestParam(required = false) String placement) {
+        List<HomeBannerResponse> banners;
+        if (placement != null && !placement.isBlank()) {
+            banners = bannerService.getBannersByPlacement(placement.trim());
+        } else {
+            banners = bannerService.getActiveBanners();
+        }
+        return ResponseEntity.ok(ApiResponse.success(banners, "Lấy danh sách banner thành công"));
     }
 }

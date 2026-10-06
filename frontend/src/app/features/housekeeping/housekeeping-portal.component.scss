@@ -1,0 +1,79 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #0f172a;
+  font-family: inherit;
+}
+
+/* Custom Clean Light Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Shimmer Progress Bar Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2.2s infinite ease-in-out;
+}
+
+
+/* Light Card Elevated Shadow */
+.light-card-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.light-card-shadow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* Micro button-in-button kinetic tension */
+.btn-nested-icon {
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.group:hover .btn-nested-icon {
+  transform: translateX(3px);
+}

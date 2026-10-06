@@ -19,6 +19,8 @@ public class HousekeepingMobileController {
 
     private final AdminHousekeepingService housekeepingService;
     private final HousekeepingInspectionService inspectionService;
+    private final com.phungvanlong.booking_hotel.service.AdminStaffService staffService;
+    private final com.phungvanlong.booking_hotel.repository.UserRepository userRepository;
 
     private String getStaffEmail(Authentication authentication) {
         return authentication != null ? authentication.getName() : "hoa.housekeeping@auraholdings.vn";
@@ -109,5 +111,29 @@ public class HousekeepingMobileController {
         String email = getStaffEmail(authentication);
         MaintenanceTicketResponse response = inspectionService.createMaintenanceTicket(request, email);
         return ResponseEntity.ok(ApiResponse.success(response, "Đã gửi báo cáo sự cố kỹ thuật thành công!"));
+    }
+
+    @PostMapping("/shift-registration")
+    public ResponseEntity<ApiResponse<com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse>> submitShiftRegistration(
+            @Valid @RequestBody com.phungvanlong.booking_hotel.dto.request.WeeklyShiftRegistrationRequest request,
+            Authentication authentication) {
+        String email = getStaffEmail(authentication);
+        com.phungvanlong.booking_hotel.entity.User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new com.phungvanlong.booking_hotel.exception.ResourceNotFoundException("Không tìm thấy nhân viên: " + email));
+        com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse response = staffService.submitWeeklyRegistration(user.getId(), request);
+        return ResponseEntity.ok(ApiResponse.success(response, "Đăng ký ca trực tuần thành công, đang chờ quản lý phê duyệt"));
+    }
+
+    @GetMapping("/shift-registration/my-status")
+    public ResponseEntity<ApiResponse<com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse>> getMyShiftRegistration(
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate weekStartDate,
+            Authentication authentication) {
+        String email = getStaffEmail(authentication);
+        com.phungvanlong.booking_hotel.entity.User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return ResponseEntity.ok(ApiResponse.success(null, "Chưa có thông tin nhân viên"));
+        }
+        com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse response = staffService.getMyWeeklyRegistration(user.getId(), weekStartDate);
+        return ResponseEntity.ok(ApiResponse.success(response, "Lấy trạng thái đăng ký ca thành công"));
     }
 }

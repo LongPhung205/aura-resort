@@ -11,6 +11,8 @@ import com.phungvanlong.booking_hotel.entity.VillaStatus;
 import com.phungvanlong.booking_hotel.entity.VillaType;
 import com.phungvanlong.booking_hotel.entity.Zone;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+import com.phungvanlong.booking_hotel.mapper.VillaMapper;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -84,10 +86,11 @@ public class VillaDtoTest {
                 .amenities("Khử trùng Ozon định kỳ, Quản gia Lead Butler 24/7")
                 .bedroomCount(3)
                 .villaType(villaType)
-                .rooms(List.of(room1))
+                .rooms(java.util.Set.of(room1))
                 .build();
 
-        VillaResponse response = VillaResponse.fromEntity(villa);
+        VillaMapper villaMapper = Mappers.getMapper(VillaMapper.class);
+        VillaResponse response = villaMapper.toResponse(villa);
         assertNotNull(response);
         assertEquals("Villa #101", response.getVillaNumber());
         assertEquals("2 Tầng", response.getStructureType());

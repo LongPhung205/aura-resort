@@ -19,4 +19,6 @@ public interface HousekeepingTaskRepository extends JpaRepository<HousekeepingTa
     List<HousekeepingTask> findByStatusInOrderByCreatedAtDesc(List<String> statuses);
     List<HousekeepingTask> findByHousekeeperIdOrderByCreatedAtDesc(Long housekeeperId);
     List<HousekeepingTask> findByHousekeeperEmailOrderByCreatedAtDesc(String email);
+    
+    boolean existsByVillaIdAndTaskTypeAndCreatedAtAfter(Long villaId, String taskType, java.time.LocalDateTime createdAt);
 }

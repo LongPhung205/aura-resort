@@ -46,4 +46,15 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
             @Param("search") String search,
             Pageable pageable
     );
+
+    // Aggregation queries — dùng SQL thay vì load toàn bộ bookings vào memory
+    @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b WHERE b.user.id = :userId AND b.status != 'CANCELLED'")
+    double sumTotalSpentByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.user.id = :userId")
+    int countBookingsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT MAX(b.createdAt) FROM Booking b WHERE b.user.id = :userId")
+    java.time.LocalDateTime findLastBookingDateByUserId(@Param("userId") Long userId);
 }
+

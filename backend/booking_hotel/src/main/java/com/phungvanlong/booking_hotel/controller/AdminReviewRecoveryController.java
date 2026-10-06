@@ -55,4 +55,10 @@ public class AdminReviewRecoveryController {
         ServiceRecoveryTicketResponse ticket = reviewService.resolveRecoveryTicket(id, minutes);
         return ResponseEntity.ok(ApiResponse.success(ticket, "Đóng sự cố khách hàng thành công"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa đánh giá thành công"));
+    }
 }

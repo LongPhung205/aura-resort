@@ -100,6 +100,7 @@ public class AuthServiceImpl implements AuthService {
                         .accessToken(jwt)
                         .role(role)
                         .fullName(user != null ? user.getFullName() : "")
+                        .avatarUrl(user != null ? user.getAvatar() : null)
                         .build();
             } else {
                 throw new BusinessException("Token Google không hợp lệ");
@@ -129,6 +130,7 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(jwt)
                 .role(role)
                 .fullName(fullName)
+                .avatarUrl(user != null ? user.getAvatar() : null)
                 .build();
     }
 

@@ -1,0 +1,592 @@
+<div class="h-full w-full bg-[#f8fafc] flex flex-col p-6 space-y-6 overflow-y-auto font-sans text-slate-800">
+  
+  <!-- PAGE HEADER & ACTION CONTROLS -->
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div>
+      <div class="flex items-center space-x-2 text-xs font-semibold text-slate-400 mb-1">
+        <a routerLink="/admin/dashboard" class="hover:text-slate-600 transition-colors">Bảng Điều Khiển</a>
+        <span class="text-slate-300">/</span>
+        <span class="text-slate-500">Tài Chính & Kế Toán</span>
+        <span class="text-slate-300">/</span>
+        <span class="text-sky-600 font-bold">Thống Kê Tài Chính</span>
+      </div>
+      <div class="flex items-center space-x-3">
+        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Thống Kê Tài Chính & Dòng Tiền</h1>
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black tracking-wider bg-sky-100 text-sky-700 border border-sky-200 uppercase">
+          PMS FINANCIAL HUB
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-1">
+        Báo cáo doanh thu thời gian thực, cơ cấu dòng tiền, phân tích hiệu suất bán phòng và đối soát cổng thanh toán
+      </p>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="flex items-center flex-wrap gap-2.5">
+      <!-- Reload -->
+      <button 
+        (click)="fetchStats()" 
+        [disabled]="loading"
+        class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-xs transition-all flex items-center space-x-1.5 active:scale-95 disabled:opacity-50"
+      >
+        <span class="material-symbols-outlined text-[18px]" [class.animate-spin]="loading">refresh</span>
+        <span>Làm mới</span>
+      </button>
+
+      <!-- Go to Reconciliation -->
+      <a 
+        routerLink="/admin/reports"
+        class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-xs transition-all flex items-center space-x-1.5 hover:text-sky-700 hover:border-sky-300 active:scale-95"
+      >
+        <span class="material-symbols-outlined text-[18px] text-sky-600">receipt_long</span>
+        <span>Sổ Quỹ Đối Soát</span>
+      </a>
+
+      <!-- Export CSV -->
+      <button 
+        (click)="exportCsv()" 
+        class="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold shadow-md shadow-sky-500/20 transition-all flex items-center space-x-1.5 active:scale-95"
+      >
+        <span class="material-symbols-outlined text-[18px]">download</span>
+        <span>Xuất Báo Cáo Excel</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- LOADING SKELETON -->
+  <div *ngIf="loading" class="flex-1 flex flex-col justify-center items-center py-24 text-slate-400 space-y-3">
+    <span class="material-symbols-outlined animate-spin text-4xl text-sky-600">progress_activity</span>
+    <p class="text-xs font-medium text-slate-500">Đang tổng hợp dữ liệu doanh thu & sổ cái kế toán PMS...</p>
+  </div>
+
+  <!-- MAIN DASHBOARD CONTENT -->
+  <ng-container *ngIf="!loading && stats">
+
+    <!-- ROW 1: 4 KPI CARDS (DOUBLE-BEZEL ARCHITECTURE) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- CARD 1: TỔNG DOANH THU -->
+      <div class="p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+        <div class="bg-white rounded-xl p-4 flex flex-col justify-between h-full space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tổng Doanh Thu</span>
+            <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-2xl font-black text-slate-900 tracking-tight">
+              {{ stats.totalRevenue | number:'1.0-0' }} <span class="text-sm font-semibold text-slate-500">₫</span>
+            </div>
+            <div class="flex items-center space-x-1.5 mt-2">
+              <span class="inline-flex items-center space-x-0.5 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                <span>+{{ stats.growthRate }}%</span>
+              </span>
+              <span class="text-[11px] text-slate-400 font-medium">so với kỳ trước</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Tổng giao dịch</span>
+            <span class="font-bold text-slate-800">{{ stats.totalTransactions }} đơn</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2: PHÂN BỔ VILLA VS DỊCH VỤ -->
+      <div class="p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+        <div class="bg-white rounded-xl p-4 flex flex-col justify-between h-full space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Villa vs Dịch Vụ</span>
+            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">apartment</span>
+            </div>
+          </div>
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-600 font-medium flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                <span>Tiền Villa:</span>
+              </span>
+              <span class="font-bold text-slate-800">{{ stats.roomRevenue | number:'1.0-0' }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-600 font-medium flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                <span>Dịch vụ & Minibar:</span>
+              </span>
+              <span class="font-bold text-slate-800">{{ stats.serviceRevenue | number:'1.0-0' }} ₫</span>
+            </div>
+
+            <!-- Mini Progress bar -->
+            <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden flex mt-2">
+              <div 
+                class="bg-sky-500 h-full" 
+                [style.width.%]="stats.totalRevenue > 0 ? (stats.roomRevenue / stats.totalRevenue) * 100 : 80"
+                title="Tiền Villa"
+              ></div>
+              <div 
+                class="bg-indigo-500 h-full" 
+                [style.width.%]="stats.totalRevenue > 0 ? (stats.serviceRevenue / stats.totalRevenue) * 100 : 20"
+                title="Dịch vụ & Minibar"
+              ></div>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Tỷ trọng Villa</span>
+            <span class="font-bold text-sky-600">
+              {{ stats.totalRevenue > 0 ? ((stats.roomRevenue / stats.totalRevenue) * 100 | number:'1.0-1') : 82 }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3: DÒNG TIỀN (ĐÃ THU - CHỜ THU - HOÀN) -->
+      <div class="p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+        <div class="bg-white rounded-xl p-4 flex flex-col justify-between h-full space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Trạng Thái Dòng Tiền</span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">payments</span>
+            </div>
+          </div>
+          <div class="space-y-1 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Đã thu (Thực tế):</span>
+              </span>
+              <span class="font-bold text-emerald-600">{{ stats.collectedAmount | number:'1.0-0' }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span>Chờ thanh toán:</span>
+              </span>
+              <span class="font-bold text-amber-600">{{ stats.pendingAmount | number:'1.0-0' }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-600 flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                <span>Đã hoàn tiền:</span>
+              </span>
+              <span class="font-bold text-rose-600">{{ stats.refundedAmount | number:'1.0-0' }} ₫</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Tỷ lệ thu tiền</span>
+            <span class="font-bold text-emerald-600">
+              {{ (stats.collectedAmount + stats.pendingAmount) > 0 ? ((stats.collectedAmount / (stats.collectedAmount + stats.pendingAmount)) * 100 | number:'1.0-1') : 95 }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4: AOV & TỶ LỆ THÀNH CÔNG -->
+      <div class="p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+        <div class="bg-white rounded-xl p-4 flex flex-col justify-between h-full space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">AOV & Tỷ Lệ Thành Công</span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">verified</span>
+            </div>
+          </div>
+          <div>
+            <div class="text-xs text-slate-500 font-medium">Giá trị đơn trung bình (AOV):</div>
+            <div class="text-xl font-black text-slate-900 tracking-tight mt-0.5">
+              {{ stats.aov | number:'1.0-0' }} <span class="text-xs font-normal text-slate-500">₫/đơn</span>
+            </div>
+            <div class="flex items-center space-x-2 mt-2">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 flex items-center space-x-1">
+                <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                <span>Tỷ lệ: {{ stats.successRate }}%</span>
+              </span>
+              <span class="text-[11px] text-slate-400">thanh toán thành công</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>Tiêu chuẩn vận hành</span>
+            <span class="font-bold text-emerald-600">5 Sao Quốc Tế</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 2: BENTO ANALYTICS GRID (AREA REVENUE CHART + DONUT GATEWAY CHART) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- COLUMN LEFT (2/3): REVENUE SPLINE AREA CHART -->
+      <div class="col-span-1 lg:col-span-2 p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+        <div class="bg-white rounded-xl p-5 sm:p-6 flex flex-col h-full">
+          
+          <!-- Chart Header & Time Range Switcher -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 gap-3">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="material-symbols-outlined text-sky-600 text-[20px]">show_chart</span>
+                <h2 class="text-base font-bold text-slate-900 tracking-tight">Xu Hướng Tăng Trưởng Doanh Thu</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ activeTimeRange === '30_DAYS' ? 'Biến động doanh thu theo từng ngày trong 30 ngày gần nhất' : 'Tổng hợp doanh thu theo từng tháng trong 12 tháng qua' }}
+              </p>
+            </div>
+
+            <!-- Time Switcher Pills -->
+            <div class="flex items-center p-1 bg-slate-100 rounded-xl space-x-1 self-start sm:self-auto border border-slate-200/60">
+              <button 
+                (click)="setTimeRange('30_DAYS')"
+                [ngClass]="activeTimeRange === '30_DAYS' ? 'bg-white text-sky-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+              >
+                30 Ngày Qua
+              </button>
+              <button 
+                (click)="setTimeRange('12_MONTHS')"
+                [ngClass]="activeTimeRange === '12_MONTHS' ? 'bg-white text-sky-700 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                class="px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer"
+              >
+                12 Tháng Qua
+              </button>
+            </div>
+          </div>
+
+          <!-- Chart Area Container -->
+          <div class="relative w-full h-[260px] mt-4 flex items-center justify-center">
+            
+            <!-- Tooltip Overlay -->
+            <div 
+              *ngIf="hoveredPoint" 
+              class="absolute z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-3 bg-slate-900/90 backdrop-blur-md text-white px-3.5 py-2.5 rounded-xl shadow-xl text-xs space-y-1 border border-white/10"
+              [style.left.px]="(hoveredPoint.x / svgWidth) * 100 + '%'"
+              [style.top.px]="hoveredPoint.y"
+            >
+              <div class="font-bold text-sky-300 flex items-center justify-between space-x-3">
+                <span>{{ hoveredPoint.label }}</span>
+                <span>{{ formatShortVND(hoveredPoint.total) }}</span>
+              </div>
+              <div class="text-[11px] text-slate-300">
+                Villa: <span class="text-white font-medium">{{ formatFullVND(hoveredPoint.room) }}</span>
+              </div>
+              <div class="text-[11px] text-slate-300">
+                Dịch vụ: <span class="text-white font-medium">{{ formatFullVND(hoveredPoint.service) }}</span>
+              </div>
+            </div>
+
+            <!-- SVG Spline Curve -->
+            <svg 
+              [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight" 
+              class="w-full h-full overflow-visible"
+              preserveAspectRatio="none"
+            >
+              <defs>
+                <!-- Area Gradient Fill -->
+                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0284c7" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#0284c7" stop-opacity="0.00" />
+                </linearGradient>
+                <!-- Line Glow Filter -->
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="glow" />
+                  <feComposite in="SourceGraphic" in2="glow" operator="over" />
+                </filter>
+              </defs>
+
+              <!-- Horizontal Grid Lines & Y Ticks -->
+              <g class="grid-lines opacity-40">
+                <ng-container *ngFor="let tick of yAxisTicks">
+                  <line 
+                    [attr.x1]="paddingX" 
+                    [attr.y1]="tick.y" 
+                    [attr.x2]="svgWidth - paddingX" 
+                    [attr.y2]="tick.y" 
+                    stroke="#cbd5e1" 
+                    stroke-dasharray="3,3" 
+                    stroke-width="1"
+                  />
+                  <text 
+                    [attr.x]="paddingX - 8" 
+                    [attr.y]="tick.y + 4" 
+                    text-anchor="end" 
+                    class="text-[10px] fill-slate-400 font-medium"
+                  >
+                    {{ tick.label }}
+                  </text>
+                </ng-container>
+              </g>
+
+              <!-- Gradient Area -->
+              <path 
+                *ngIf="svgAreaPath" 
+                [attr.d]="svgAreaPath" 
+                fill="url(#areaGradient)" 
+              />
+
+              <!-- Spline Stroke -->
+              <path 
+                *ngIf="svgLinePath" 
+                [attr.d]="svgLinePath" 
+                fill="none" 
+                stroke="#0284c7" 
+                stroke-width="2.5" 
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+
+              <!-- Interactive Points -->
+              <g class="chart-points">
+                <ng-container *ngFor="let pt of chartPoints">
+                  <circle 
+                    [attr.cx]="pt.x" 
+                    [attr.cy]="pt.y" 
+                    r="4" 
+                    class="fill-white stroke-[#0284c7] stroke-[2.5] hover:r-6 hover:stroke-[3] transition-all cursor-pointer"
+                    (mouseenter)="onPointHover(pt)"
+                    (mouseleave)="onPointHover(null)"
+                  />
+                </ng-container>
+              </g>
+
+              <!-- X-Axis Labels (Selective to prevent crowd) -->
+              <g class="x-labels">
+                <ng-container *ngFor="let pt of chartPoints; let idx = index">
+                  <text 
+                    *ngIf="activeTimeRange === '12_MONTHS' || idx % 4 === 0 || idx === chartPoints.length - 1"
+                    [attr.x]="pt.x" 
+                    [attr.y]="svgHeight - 10" 
+                    text-anchor="middle" 
+                    class="text-[10px] fill-slate-400 font-semibold"
+                  >
+                    {{ pt.label }}
+                  </text>
+                </ng-container>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Bottom Legend -->
+          <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500">
+            <div class="flex items-center space-x-4">
+              <div class="flex items-center space-x-1.5">
+                <span class="w-3 h-1 bg-sky-600 rounded-full"></span>
+                <span>Doanh thu gộp (Đường cong thực tế)</span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                <span class="w-2.5 h-2.5 bg-sky-200/80 rounded-sm"></span>
+                <span>Dải diện tích dòng tiền</span>
+              </div>
+            </div>
+            <span class="text-[11px] text-slate-400 italic">Rê chuột vào điểm mốc để xem chi tiết tiền phòng và dịch vụ</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN RIGHT (1/3): DONUT GATEWAY BREAKDOWN -->
+      <div class="col-span-1 p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+        <div class="bg-white rounded-xl p-5 sm:p-6 flex flex-col justify-between h-full space-y-4">
+          
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="material-symbols-outlined text-pink-600 text-[20px]">pie_chart</span>
+              <h2 class="text-base font-bold text-slate-900 tracking-tight">Cơ Cấu Cổng Thanh Toán</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Tỷ trọng tiền thực thu theo từng kênh</p>
+          </div>
+
+          <!-- Donut Graphic -->
+          <div class="relative flex items-center justify-center my-2">
+            <svg class="w-48 h-48 transform -rotate-90 overflow-visible" viewBox="0 0 180 180">
+              <!-- Background Ring Track -->
+              <circle
+                cx="90"
+                cy="90"
+                [attr.r]="donutRadius"
+                fill="none"
+                stroke="#f1f5f9"
+                stroke-width="20"
+              />
+
+              <!-- Donut Slices -->
+              <circle
+                *ngFor="let slice of donutSlices"
+                cx="90"
+                cy="90"
+                [attr.r]="donutRadius"
+                fill="none"
+                [attr.stroke]="slice.color"
+                stroke-width="20"
+                stroke-linecap="round"
+                [attr.stroke-dasharray]="slice.dashArray"
+                [attr.stroke-dashoffset]="slice.dashOffset"
+                class="transition-all duration-500 cursor-pointer hover:stroke-[23]"
+                (mouseenter)="onDonutHover(slice)"
+                (mouseleave)="onDonutHover(null)"
+              />
+            </svg>
+
+            <!-- Center KPI in Ring -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                {{ hoveredDonut ? hoveredDonut.label : 'Thực Thu' }}
+              </span>
+              <span class="text-lg font-black text-slate-900 tracking-tight">
+                {{ formatShortVND(hoveredDonut ? hoveredDonut.amount : stats.collectedAmount) }}
+              </span>
+              <span class="text-[11px] font-semibold text-emerald-600">
+                {{ hoveredDonut ? hoveredDonut.percentage + '%' : '100% Khớp' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Legend Breakdown List -->
+          <div class="space-y-2 pt-2 border-t border-slate-100">
+            <div 
+              *ngFor="let slice of donutSlices" 
+              class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition-colors"
+              (mouseenter)="onDonutHover(slice)"
+              (mouseleave)="onDonutHover(null)"
+            >
+              <div class="flex items-center space-x-2.5">
+                <span class="w-3 h-3 rounded-full flex-shrink-0" [ngClass]="slice.bgColorClass"></span>
+                <span class="text-xs font-bold text-slate-700">{{ slice.label }}</span>
+              </div>
+              <div class="text-right">
+                <div class="text-xs font-black text-slate-900">{{ formatShortVND(slice.amount) }}</div>
+                <div class="text-[10px] font-semibold text-slate-400">{{ slice.percentage }}%</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ROW 3: RECONCILIATION DETAILS TABLE -->
+    <div class="p-1 rounded-2xl bg-slate-200/50 border border-slate-200/80 shadow-xs">
+      <div class="bg-white rounded-xl shadow-xs overflow-hidden flex flex-col">
+        
+        <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">account_balance</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-black text-slate-900">Chi Tiết Dòng Tiền & Tình Trạng Đối Soát Cổng</h2>
+              <p class="text-[11px] text-slate-500">Đối chiếu mã chuẩn PMS với sao kê ví điện tử và tài khoản ngân hàng</p>
+            </div>
+          </div>
+
+          <a 
+            routerLink="/admin/reports" 
+            class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold rounded-lg transition-colors"
+          >
+            <span>Mở toàn bộ sổ cái chi tiết</span>
+            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </a>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-100 text-[11px] font-black uppercase tracking-wider text-slate-400">
+                <th class="px-6 py-3.5">Cổng Thanh Toán</th>
+                <th class="px-6 py-3.5 text-center">Số Giao Dịch</th>
+                <th class="px-6 py-3.5">Tỷ Trọng (%)</th>
+                <th class="px-6 py-3.5">Doanh Thu Đã Thu</th>
+                <th class="px-6 py-3.5">Khoản Đang Chờ Thu</th>
+                <th class="px-6 py-3.5 text-center">Tình Trạng</th>
+                <th class="px-6 py-3.5 text-right">Tác Vụ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-xs">
+              <tr *ngFor="let method of stats.methodStats" class="hover:bg-slate-50/70 transition-colors group">
+                
+                <!-- Cổng thanh toán -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center space-x-3">
+                    <div 
+                      class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold"
+                      [ngClass]="{
+                        'bg-amber-500': method.method.includes('Tiền mặt'),
+                        'bg-sky-600': method.method.includes('PayOS'),
+                        'bg-pink-600': method.method.includes('MoMo')
+                      }"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">
+                        {{ method.method.includes('Tiền mặt') ? 'local_atm' : (method.method.includes('MoMo') ? 'wallet' : 'qr_code_2') }}
+                      </span>
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900">{{ method.method }}</div>
+                      <div class="text-[11px] text-slate-400">
+                        {{ method.method.includes('Tiền mặt') ? 'Thu trực tiếp Lễ tân' : 'Tự động Webhook IPN 24/7' }}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Số giao dịch -->
+                <td class="px-6 py-4 text-center font-bold text-slate-700">
+                  {{ method.transactionCount }} đơn
+                </td>
+
+                <!-- Tỷ trọng -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center space-x-2">
+                    <span class="font-bold text-slate-800">{{ method.percentage || 33.3 }}%</span>
+                    <div class="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        class="h-full rounded-full" 
+                        [ngClass]="{
+                          'bg-amber-500': method.method.includes('Tiền mặt'),
+                          'bg-sky-600': method.method.includes('PayOS'),
+                          'bg-pink-600': method.method.includes('MoMo')
+                        }"
+                        [style.width.%]="method.percentage || 33.3"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Đã thu -->
+                <td class="px-6 py-4">
+                  <span class="font-bold text-emerald-600">
+                    {{ method.actualRevenue | number:'1.0-0' }} ₫
+                  </span>
+                </td>
+
+                <!-- Chờ thu -->
+                <td class="px-6 py-4">
+                  <span class="font-bold text-amber-600">
+                    {{ method.pendingRevenue | number:'1.0-0' }} ₫
+                  </span>
+                </td>
+
+                <!-- Tình trạng -->
+                <td class="px-6 py-4 text-center">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                    KẾT NỐI TỐT
+                  </span>
+                </td>
+
+                <!-- Action -->
+                <td class="px-6 py-4 text-right">
+                  <a 
+                    routerLink="/admin/reports" 
+                    [queryParams]="{ method: method.method.includes('Tiền mặt') ? 'CASH' : (method.method.includes('MoMo') ? 'MOMO' : 'PAYOS') }"
+                    class="inline-flex items-center space-x-1 text-xs font-bold text-sky-600 hover:text-sky-800 group-hover:underline cursor-pointer"
+                  >
+                    <span>Xem đối soát</span>
+                    <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </ng-container>
+</div>

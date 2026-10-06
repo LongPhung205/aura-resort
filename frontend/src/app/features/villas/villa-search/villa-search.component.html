@@ -1,0 +1,264 @@
+<div class="bg-[#F2F5F8] min-h-screen pb-20 font-sans">
+  <!-- Image Banner Header -->
+  <div class="w-full bg-white">
+    <div class="relative w-full h-[250px] md:h-[350px] lg:h-[400px]">
+      <img [src]="bannerImageUrl" alt="Tìm kiếm biệt thự" class="w-full h-full object-cover object-center" />
+    </div>
+  </div>
+
+  <!-- Shared Search Widget (Like Home Page) -->
+  <app-booking-search-widget (search)="handleWidgetSearch($event)"></app-booking-search-widget>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+      <!-- Left Sidebar: Filters (Sticky on scroll) -->
+      <aside class="w-full lg:w-[320px] flex-shrink-0 flex flex-col gap-5 lg:sticky lg:top-24 max-h-[calc(100vh-7rem)] overflow-y-auto filter-sidebar pr-1">
+
+        <!-- Filters Box -->
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200">
+          <div class="p-4 border-b border-slate-200">
+            <h3 class="font-extrabold text-slate-900 text-lg">Chọn lọc theo:</h3>
+          </div>
+
+          <!-- Filter: Ngân sách -->
+          <div class="p-4 border-b border-slate-200">
+            <h4 class="font-bold text-slate-800 mb-3">Ngân sách của bạn (mỗi đêm)</h4>
+            <div class="flex flex-col gap-3">
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" name="priceRange" value="all" [ngModel]="filterPriceRange"
+                  (ngModelChange)="onPriceRangeChange($event)"
+                  class="w-5 h-5 text-[#0071C2] border-slate-300 focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Tất cả ngân sách</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" name="priceRange" value="lt2m" [ngModel]="filterPriceRange"
+                  (ngModelChange)="onPriceRangeChange($event)"
+                  class="w-5 h-5 text-[#0071C2] border-slate-300 focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Dưới 2.000.000 đ</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" name="priceRange" value="2m_to_5m" [ngModel]="filterPriceRange"
+                  (ngModelChange)="onPriceRangeChange($event)"
+                  class="w-5 h-5 text-[#0071C2] border-slate-300 focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">2.000.000 đ - 5.000.000 đ</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="radio" name="priceRange" value="gt5m" [ngModel]="filterPriceRange"
+                  (ngModelChange)="onPriceRangeChange($event)"
+                  class="w-5 h-5 text-[#0071C2] border-slate-300 focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Trên 5.000.000 đ</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Filter: Số phòng ngủ -->
+          <div class="p-4 border-b border-slate-200" *ngIf="availableBedrooms.length > 0">
+            <h4 class="font-bold text-slate-800 mb-3">Số phòng ngủ</h4>
+            <div class="flex flex-col gap-3">
+              <label *ngFor="let bed of availableBedrooms" class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" [checked]="filterBedrooms.includes(bed)" (change)="toggleBedroomFilter(bed)"
+                  class="w-5 h-5 rounded border-slate-300 text-[#0071C2] focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">{{ bed }} Phòng ngủ</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Filter: Tiện nghi phổ biến -->
+          <div class="p-4">
+            <h4 class="font-bold text-slate-800 mb-3">Tiện nghi phổ biến</h4>
+            <div class="flex flex-col gap-3">
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-[#0071C2] focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Hồ bơi riêng</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-[#0071C2] focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Sân hiên / Ban công</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-[#0071C2] focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Nhà bếp</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-[#0071C2] focus:ring-[#0071C2]">
+                <span class="text-sm text-slate-700 group-hover:text-slate-900">Wi-Fi miễn phí</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Content: Results List -->
+      <main class="w-full flex-1 min-w-0">
+
+        <!-- Top Toolbar: Title & Sort -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+          <h2 class="text-2xl font-extrabold text-slate-900" *ngIf="!loading">
+            {{ zone === 'all' ? 'Tất cả' : zone }}: tìm thấy {{ filteredVillas.length }} chỗ nghỉ
+          </h2>
+          <h2 class="text-2xl font-extrabold text-slate-900" *ngIf="loading">
+            Đang tìm kiếm...
+          </h2>
+
+          <div class="flex items-center gap-2" *ngIf="!loading && filteredVillas.length > 0">
+            <span class="text-sm text-slate-600 font-bold whitespace-nowrap">Sắp xếp theo:</span>
+            <select (change)="onSortChange($event)"
+              class="text-sm font-medium border border-slate-300 rounded-full px-4 py-2 bg-white text-slate-800 focus:ring-[#0071C2] focus:border-[#0071C2] outline-none shadow-sm cursor-pointer transition-shadow hover:shadow">
+              <option value="recommended">Gợi ý hàng đầu của chúng tôi</option>
+              <option value="price_asc">Giá (ưu tiên thấp nhất)</option>
+              <option value="price_desc">Giá (ưu tiên cao nhất)</option>
+              <option value="capacity">Sức chứa (lớn nhất)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="loading"
+          class="flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-slate-200 shadow-sm">
+          <div class="w-10 h-10 border-4 border-slate-200 border-t-[#0071C2] rounded-full animate-spin mb-4"></div>
+          <p class="text-slate-500 font-bold text-sm animate-pulse">Đang tìm các chỗ nghỉ tốt nhất cho bạn...</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="hasError && !loading"
+          class="bg-red-50 text-red-700 p-6 rounded-lg border border-red-200 flex items-start gap-4 shadow-sm">
+          <span class="material-symbols-outlined text-[32px] mt-0.5">error</span>
+          <div>
+            <h3 class="text-lg font-bold mb-1">Đã có lỗi xảy ra</h3>
+            <p class="text-sm">Không thể kết nối đến máy chủ để lấy thông tin đặt phòng. Vui lòng thử lại sau.</p>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!loading && !hasError && filteredVillas.length === 0"
+          class="bg-white p-12 rounded-lg border border-slate-200 text-center shadow-sm">
+          <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-[36px] text-slate-400">search_off</span>
+          </div>
+          <h3 class="text-xl font-extrabold text-slate-900 mb-2">Không tìm thấy chỗ nghỉ nào</h3>
+          <p class="text-slate-500 max-w-md mx-auto">
+            Rất tiếc, không có chỗ nghỉ nào khớp với bộ lọc của bạn. Hãy thử thay đổi ngày, khu vực hoặc xóa bớt bộ lọc.
+          </p>
+        </div>
+
+        <!-- Booking.com Style Result List -->
+        <div *ngIf="!loading && !hasError && filteredVillas.length > 0" class="flex flex-col gap-4">
+
+          <!-- List Item Card -->
+          <div *ngFor="let v of filteredVillas"
+            class="bg-white rounded-lg border border-slate-200 p-4 flex flex-col md:flex-row gap-4 hover:shadow-md transition-shadow">
+
+            <!-- Image Left -->
+            <div
+              class="relative w-full md:w-64 lg:w-[240px] aspect-[4/3] md:aspect-square lg:aspect-[4/3] flex-shrink-0 rounded-lg overflow-hidden cursor-pointer group"
+              [routerLink]="['/villas/detail', v.id || v.villaNumber]"
+              [queryParams]="{checkIn: checkInDate, checkOut: checkOutDate}">
+              <img [src]="getVillaImageUrl(v)" [alt]="v.villaTypeName || v.villaNumber"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onerror="this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80'" />
+
+              <!-- Heart icon like booking -->
+              <button
+                class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 hover:bg-white flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors shadow-sm z-10">
+                <span class="material-symbols-outlined text-xl">favorite</span>
+              </button>
+            </div>
+
+            <!-- Content Center/Right -->
+            <div class="flex-1 flex flex-col justify-between min-w-0">
+
+              <!-- Header -->
+              <div class="flex flex-col sm:flex-row sm:justify-between gap-4">
+                <div class="flex-1">
+                  <!-- Title & Star -->
+                  <div class="flex items-start gap-2 mb-1">
+                    <a [routerLink]="['/villas/detail', v.id || v.villaNumber]"
+                      [queryParams]="{checkIn: checkInDate, checkOut: checkOutDate}"
+                      class="text-xl font-extrabold text-[#0071C2] hover:text-[#005999] hover:underline transition-colors leading-tight line-clamp-2">
+                      Biệt Thự Nghỉ Dưỡng AURA {{ v.villaNumber }}
+                    </a>
+                    <div class="flex text-amber-400 flex-shrink-0 mt-1">
+                      <span class="material-symbols-outlined text-[14px]"
+                        style="font-variation-settings: 'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-[14px]"
+                        style="font-variation-settings: 'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-[14px]"
+                        style="font-variation-settings: 'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-[14px]"
+                        style="font-variation-settings: 'FILL' 1;">star</span>
+                      <span class="material-symbols-outlined text-[14px]"
+                        style="font-variation-settings: 'FILL' 1;">star</span>
+                    </div>
+                  </div>
+
+                  <!-- Location -->
+                  <div
+                    class="flex items-center gap-1.5 text-xs text-[#0071C2] font-bold mb-3 underline cursor-pointer hover:text-[#005999]">
+                    <span class="uppercase">{{ v.zone || 'Khu Biệt Thự' }}</span>
+                    <span class="text-slate-500 font-normal no-underline">· Hiển thị trên bản đồ</span>
+                  </div>
+
+                  <!-- Quick features (Booking style labels) -->
+                  <div class="flex items-center gap-2 mb-3">
+                    <span
+                      class="px-2 py-0.5 rounded border border-[#0071C2] text-[#0071C2] text-xs font-bold whitespace-nowrap hidden sm:inline-block">Biệt
+                      thự nguyên căn</span>
+                    <span
+                      class="px-2 py-0.5 rounded border border-[#0071C2] text-[#0071C2] text-xs font-bold whitespace-nowrap">Hồ
+                      bơi riêng</span>
+                  </div>
+
+                  <p class="text-xs text-slate-800 font-bold mb-1">{{ v.villaTypeName || 'Biệt Thự Nghỉ Dưỡng' }}</p>
+                  <div class="text-xs text-slate-600 space-y-0.5 border-l-2 border-slate-200 pl-3">
+                    <p><span class="font-bold">Sức chứa:</span> Tối đa {{ v.totalCapacity || v.totalAdults || 4 }} người lớn<span *ngIf="v.totalChildren">, {{ v.totalChildren }} trẻ em</span></p>
+                    <p><span class="font-bold">Giường:</span> {{ v.bedroomCount || 1 }} Phòng ngủ, {{ v.totalBeds || 1 }} Giường</p>
+                  </div>
+                </div>
+
+                <!-- Price/Review Right -->
+                <div class="flex flex-col sm:items-end justify-between min-w-[140px] sm:min-w-[180px]">
+
+
+
+                  <!-- Price block -->
+                  <div class="text-left sm:text-right w-full">
+                    <p class="text-xs text-slate-500 mb-0.5">1 đêm, tối đa {{ v.totalCapacity || v.totalAdults || 4 }} người lớn</p>
+                    <div class="text-2xl font-extrabold text-slate-900 mb-1 leading-none">{{ formatPrice(v.basePrice) }}
+                    </div>
+                    <p class="text-[11px] text-slate-500 mb-2">+Đã bao gồm thuế và phí</p>
+
+                    <a [routerLink]="['/villas/detail', v.id || v.villaNumber]"
+                      [queryParams]="{checkIn: checkInDate, checkOut: checkOutDate}"
+                      class="inline-block w-full text-center bg-[#0071C2] hover:bg-[#005999] text-white px-4 py-2 rounded font-bold text-sm transition-colors shadow-sm">
+                      Xem chỗ trống
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Perks -->
+              <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <div class="flex items-center gap-1.5 text-[#008234] text-xs font-bold">
+                  <span class="material-symbols-outlined text-[16px]">check</span>
+                  Miễn phí hủy phòng
+                </div>
+                <div class="flex items-center gap-1.5 text-[#008234] text-xs font-bold">
+                  <span class="material-symbols-outlined text-[16px]">check</span>
+                  Không cần thanh toán trước
+                </div>
+                <div
+                  class="flex items-center gap-1.5 text-red-600 text-xs font-bold mt-1 sm:mt-0 ml-auto bg-red-50 px-2 py-0.5 rounded">
+                  Chỉ còn 1 phòng trống!
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+    </div>
+  </div>
+</div>

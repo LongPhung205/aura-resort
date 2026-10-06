@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -46,9 +48,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_STAFF", "ROLE_ACCOUNTANT")
                         .requestMatchers("/housekeeping/**").permitAll()
-                        .requestMatchers("/room-types/**", "/rooms/**", "/villa-types/**", "/villas/**", "/banners/**", "/zones/**", "/public/**", "/promotions/**", "/reviews/**", "/extra-services/**").permitAll()
+                        .requestMatchers("/room-types/**", "/rooms/**", "/villa-types/**", "/villas/**", "/banners/**", "/zones/**", "/public/**", "/promotions/**", "/reviews/**", "/extra-services/**", "/combo-packages/**").permitAll()
+                        // AI Chat — public (auth optional, AI dùng để create booking nếu đã đăng nhập)
+                        .requestMatchers("/ai/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // MoMo redirect - phải public vì MoMo gọi tới không có JWT
                         .requestMatchers("/payments/momo-return", "/payments/momo-ipn").permitAll()

@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface HomeBannerRepository extends JpaRepository<HomeBanner, Long> {
     List<HomeBanner> findAllByIsActiveTrueOrderByDisplayOrderAsc();
+    List<HomeBanner> findAllByPlacementAndIsActiveTrueOrderByDisplayOrderAsc(String placement);
     List<HomeBanner> findAllByOrderByDisplayOrderAsc();
 }

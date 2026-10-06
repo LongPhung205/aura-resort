@@ -24,4 +24,5 @@ public interface AdminHousekeepingService {
     HousekeepingTaskResponse submitQc(Long taskId, String cleaningNote, String staffEmail);
     HousekeepingTaskResponse startOzoneSterilisation(Long taskId);
     HousekeepingTaskResponse submitChecklist(HousekeepingChecklistRequest request);
+    void clearAllData();
 }

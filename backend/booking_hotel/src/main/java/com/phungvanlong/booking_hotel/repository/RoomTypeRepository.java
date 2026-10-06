@@ -23,7 +23,7 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
            "(:quantity <= (" +
            "   SELECT count(r.id) FROM Room r WHERE r.roomType = rt AND r.status = 'AVAILABLE' AND r.id NOT IN (" +
            "       SELECT bd.room.id FROM BookingDetail bd JOIN bd.booking b " +
-           "       WHERE b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') " +
+           "       WHERE (b.status IN ('CONFIRMED', 'CHECKED_IN') OR (b.status = 'PENDING' AND b.expireAt > CURRENT_TIMESTAMP)) " +
            "       AND b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate" +
            "   )" +
            "))")

@@ -1,0 +1,1358 @@
+<div class="p-4 sm:p-6 lg:p-7 space-y-5 max-w-[1440px] mx-auto font-sans text-slate-800">
+  <!-- TOAST NOTIFICATION -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed top-20 right-6 z-50 flex items-center space-x-2.5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-sky-400 animate-fade-in text-xs font-bold"
+  >
+    <span class="material-symbols-outlined text-sky-400 text-[20px]">check_circle</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- 1. BREADCRUMB & TOP ACTIONS ROW -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <!-- Breadcrumb -->
+    <div class="flex items-center space-x-2 text-xs font-bold text-slate-500">
+      <span class="uppercase tracking-wider">QUẢN TRỊ HỆ THỐNG</span>
+      <span class="text-slate-300">›</span>
+      <span class="text-sky-700">Quản Lý Đặt Phòng (Bookings)</span>
+      <span
+        class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-bold"
+      >
+        Dữ liệu thời gian thực
+      </span>
+    </div>
+
+    <!-- Top Action Buttons -->
+    <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+      <button
+        (click)="importOta()"
+        class="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[16px] text-slate-500">cloud_download</span>
+        <span>Đồng bộ OTA</span>
+      </button>
+
+      <button
+        (click)="exportTodayCheckIn()"
+        class="px-3.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 flex items-center space-x-1.5 transition shadow-2xs cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[16px] text-slate-500">file_download</span>
+        <span>Xuất DS Check-in Hôm Nay</span>
+      </button>
+
+      <button
+        (click)="showCreateModal = true"
+        class="px-4 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[16px]">add_circle</span>
+        <span>Tạo Đặt Phòng Trực Tiếp</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. 4 METRIC CARDS ROW -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Card 1: TỔNG ĐƠN ĐẶT PHÒNG -->
+    <div
+      class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >TỔNG ĐƠN HỆ THỐNG</span
+          >
+          <div class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">hotel_class</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            totalBookingsCount
+          }}</span>
+          <span
+            class="text-[11px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full flex items-center"
+          >
+            Hồ sơ thực
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+        <span>Đã xác nhận & Cọc</span>
+        <span class="font-bold text-[#0284c7]">{{ confirmedCount }} đơn</span>
+      </div>
+    </div>
+
+    <!-- Card 2: ĐẾN HÔM NAY (ARRIVALS) -->
+    <div
+      class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >ĐẾN HÔM NAY (ARRIVALS)</span
+          >
+          <div class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">flight_land</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            arrivalsTodayCount
+          }}</span>
+          <span
+            class="text-[10px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-full"
+          >
+            Khách nhận phòng
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+        <span>Sẵn sàng đón khách</span>
+        <span class="font-bold text-[#0284c7]">100%</span>
+      </div>
+    </div>
+
+    <!-- Card 3: RỜI ĐI HÔM NAY (DEPARTURES) -->
+    <div
+      class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >RỜI ĐI HÔM NAY (DEPARTURES)</span
+          >
+          <div
+            class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-[18px]">flight_takeoff</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            departuresTodayCount
+          }}</span>
+          <span
+            class="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full"
+          >
+            Khách trả phòng
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+        <span>Dọn dẹp & bàn giao</span>
+        <span class="font-bold text-slate-800">Sẵn sàng</span>
+      </div>
+    </div>
+
+    <!-- Card 4: ĐANG LƯU TRÚ (IN-HOUSE) -->
+    <div
+      class="bg-[#0284c7] text-white rounded-2xl p-4 sm:p-5 shadow-md flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-sky-100 uppercase tracking-wider"
+            >ĐANG LƯU TRÚ (IN-HOUSE)</span
+          >
+          <div
+            class="w-8 h-8 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-xs"
+          >
+            <span class="material-symbols-outlined text-[18px]">hotel</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-white tracking-tight">{{ inHouseCount }}</span>
+          <span class="text-[10px] font-bold text-sky-900 bg-sky-100 px-2 py-0.5 rounded-full">
+            Đang ở
+          </span>
+        </div>
+      </div>
+      <div class="mt-4 pt-2 border-t border-white/20 flex justify-between text-xs text-sky-100">
+        <span>Doanh thu thực tế</span>
+        <span class="font-bold text-white text-sm">{{ totalRevenueDisplay }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. SEARCH & FILTER CONTROLS BAR -->
+  <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-3">
+    <!-- Top Filter Inputs Row -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-slate-400"
+          >search</span
+        >
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearch()"
+          placeholder="Tìm mã booking, họ tên khách, số điện thoại, email, số villa..."
+          class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/30 text-slate-800 placeholder-slate-400 transition"
+        />
+      </div>
+
+      <!-- Filters Group -->
+      <div class="flex flex-wrap items-center gap-2.5 text-xs">
+        <!-- Room/Villa Category Filter -->
+        <div class="relative">
+          <select
+            [(ngModel)]="selectedRoomCategory"
+            (ngModelChange)="onCategoryChange()"
+            class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500/30 pr-8"
+          >
+            <option value="ALL">Tất cả phân khu & hạng villa</option>
+            <option value="NT">Phân khu Ngọc Trai (NT)</option>
+            <option value="SB">Phân khu Sông Băng (SB)</option>
+            <option value="SH">Phân khu San Hô (SH)</option>
+          </select>
+        </div>
+
+        <!-- Status Filter Dropdown -->
+        <div class="relative">
+          <select
+            [(ngModel)]="selectedStatus"
+            (ngModelChange)="onStatusChange()"
+            class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500/30 pr-8"
+          >
+            <option value="ALL">Toàn bộ trạng thái</option>
+            <option value="CONFIRMED">Đã Xác Nhận (Confirmed)</option>
+            <option value="CHECKED_IN">Đang Lưu Trú (Checked-In)</option>
+            <option value="PENDING">Chờ Thanh Toán (Pending)</option>
+            <option value="CHECKED_OUT">Đã Trả Phòng (Checked-Out)</option>
+            <option value="CANCELLED">Đã Hủy (Cancelled)</option>
+          </select>
+        </div>
+
+        <!-- Date Range Pill -->
+        <div
+          class="flex items-center space-x-1.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold"
+        >
+          <span class="material-symbols-outlined text-[16px] text-slate-500">calendar_month</span>
+          <span>{{ dateRangeLabel }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Quick Filter Pills Row (Real business states) -->
+    <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2 text-xs">
+      <span class="font-bold text-slate-400 text-[11px] uppercase tracking-wider mr-1"
+        >LỌC NHANH:</span
+      >
+
+      <button
+        (click)="setQuickFilter('ALL')"
+        [class.bg-[#0284c7]]="activeQuickFilter === 'ALL'"
+        [class.text-white]="activeQuickFilter === 'ALL'"
+        [class.bg-white]="activeQuickFilter !== 'ALL'"
+        [class.border]="activeQuickFilter !== 'ALL'"
+        [class.border-slate-200]="activeQuickFilter !== 'ALL'"
+        [class.text-slate-700]="activeQuickFilter !== 'ALL'"
+        class="px-3 py-1 rounded-lg font-bold transition shadow-2xs cursor-pointer"
+      >
+        Tất Cả ({{ totalBookingsCount }})
+      </button>
+
+      <button
+        (click)="setQuickFilter('CONFIRMED')"
+        [class.bg-[#0284c7]]="activeQuickFilter === 'CONFIRMED'"
+        [class.text-white]="activeQuickFilter === 'CONFIRMED'"
+        [class.bg-white]="activeQuickFilter !== 'CONFIRMED'"
+        [class.border]="activeQuickFilter !== 'CONFIRMED'"
+        [class.border-slate-200]="activeQuickFilter !== 'CONFIRMED'"
+        [class.text-slate-700]="activeQuickFilter !== 'CONFIRMED'"
+        class="px-3 py-1 rounded-lg font-semibold transition hover:bg-slate-50 shadow-2xs cursor-pointer"
+      >
+        Đã Xác Nhận ({{ confirmedCount }})
+      </button>
+
+      <button
+        (click)="setQuickFilter('CHECKED_IN')"
+        [class.bg-[#0284c7]]="activeQuickFilter === 'CHECKED_IN'"
+        [class.text-white]="activeQuickFilter === 'CHECKED_IN'"
+        [class.bg-white]="activeQuickFilter !== 'CHECKED_IN'"
+        [class.border]="activeQuickFilter !== 'CHECKED_IN'"
+        [class.border-slate-200]="activeQuickFilter !== 'CHECKED_IN'"
+        [class.text-slate-700]="activeQuickFilter !== 'CHECKED_IN'"
+        class="px-3 py-1 rounded-lg font-semibold transition hover:bg-slate-50 shadow-2xs cursor-pointer"
+      >
+        Đang Lưu Trú ({{ inHouseCount }})
+      </button>
+
+      <button
+        (click)="setQuickFilter('PENDING')"
+        [class.bg-[#0284c7]]="activeQuickFilter === 'PENDING'"
+        [class.text-white]="activeQuickFilter === 'PENDING'"
+        [class.bg-white]="activeQuickFilter !== 'PENDING'"
+        [class.border]="activeQuickFilter !== 'PENDING'"
+        [class.border-slate-200]="activeQuickFilter !== 'PENDING'"
+        [class.text-slate-700]="activeQuickFilter !== 'PENDING'"
+        class="px-3 py-1 rounded-lg font-semibold transition hover:bg-slate-50 shadow-2xs cursor-pointer"
+      >
+        Chờ Thanh Toán ({{ pendingCount }})
+      </button>
+
+      <button
+        (click)="setQuickFilter('CHECKED_OUT')"
+        [class.bg-[#0284c7]]="activeQuickFilter === 'CHECKED_OUT'"
+        [class.text-white]="activeQuickFilter === 'CHECKED_OUT'"
+        [class.bg-white]="activeQuickFilter !== 'CHECKED_OUT'"
+        [class.border]="activeQuickFilter !== 'CHECKED_OUT'"
+        [class.border-slate-200]="activeQuickFilter !== 'CHECKED_OUT'"
+        [class.text-slate-700]="activeQuickFilter !== 'CHECKED_OUT'"
+        class="px-3 py-1 rounded-lg font-semibold transition hover:bg-slate-50 shadow-2xs cursor-pointer"
+      >
+        Đã Trả Phòng ({{ checkedOutCount }})
+      </button>
+
+      <button
+        (click)="setQuickFilter('CANCELLED')"
+        [class.bg-[#0284c7]]="activeQuickFilter === 'CANCELLED'"
+        [class.text-white]="activeQuickFilter === 'CANCELLED'"
+        [class.bg-white]="activeQuickFilter !== 'CANCELLED'"
+        [class.border]="activeQuickFilter !== 'CANCELLED'"
+        [class.border-slate-200]="activeQuickFilter !== 'CANCELLED'"
+        [class.text-slate-700]="activeQuickFilter !== 'CANCELLED'"
+        class="px-3 py-1 rounded-lg font-semibold transition hover:bg-slate-50 shadow-2xs cursor-pointer"
+      >
+        Đã Hủy ({{ cancelledCount }})
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. LỊCH BIỆT THỰ TRỰC QUAN (ROOM AVAILABILITY GANTT) -->
+  <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs space-y-4">
+    <!-- Gantt Header Toolbar -->
+    <div
+      class="flex flex-col lg:flex-row lg:items-center lg:justify-between pb-3 border-b border-slate-100 gap-3"
+    >
+      <div class="flex items-center space-x-2.5">
+        <div
+          class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-[20px]">calendar_view_week</span>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">
+            Lịch Biệt Thự Trực Quan (Room Availability Gantt)
+          </h2>
+          <p class="text-[11px] text-slate-400 font-medium">
+            Theo dõi tình trạng {{ filteredGanttList.length }} / {{ ganttList.length }} biệt thự trong 7 ngày tới ({{ dateRangeLabel }})
+          </p>
+        </div>
+      </div>
+
+      <!-- Gantt Controls & Legend -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Navigation Buttons -->
+        <div class="flex items-center space-x-1 bg-slate-50 p-0.5 rounded-lg border border-slate-200">
+          <button
+            (click)="prevWeek()"
+            title="7 ngày trước"
+            class="px-2 py-1 text-xs font-bold text-slate-700 hover:bg-white hover:shadow-2xs rounded-md transition cursor-pointer flex items-center space-x-0.5"
+          >
+            <span class="material-symbols-outlined text-[15px]">chevron_left</span>
+            <span class="hidden sm:inline">Trước</span>
+          </button>
+          <button
+            (click)="todayWeek()"
+            class="px-2.5 py-1 text-xs font-bold bg-white text-sky-700 shadow-2xs rounded-md transition cursor-pointer"
+          >
+            Hôm nay
+          </button>
+          <button
+            (click)="nextWeek()"
+            title="7 ngày tiếp theo"
+            class="px-2 py-1 text-xs font-bold text-slate-700 hover:bg-white hover:shadow-2xs rounded-md transition cursor-pointer flex items-center space-x-0.5"
+          >
+            <span class="hidden sm:inline">Sau</span>
+            <span class="material-symbols-outlined text-[15px]">chevron_right</span>
+          </button>
+        </div>
+
+        <!-- Filter Zone Dropdown -->
+        <select
+          [(ngModel)]="selectedGanttZone"
+          (ngModelChange)="applyGanttFilter()"
+          class="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+        >
+          <option value="ALL">Tất cả phân khu</option>
+          <option value="Ngọc Trai">PK Ngọc Trai (NT)</option>
+          <option value="Sao Biển">PK Sao Biển (SB)</option>
+          <option value="San Hô">PK San Hô (SH)</option>
+        </select>
+
+        <!-- Filter Status Dropdown -->
+        <select
+          [(ngModel)]="selectedGanttStatus"
+          (ngModelChange)="applyGanttFilter()"
+          class="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 font-medium focus:outline-none focus:ring-1 focus:ring-sky-500 cursor-pointer"
+        >
+          <option value="ALL">Tất cả trạng thái</option>
+          <option value="Đang Có Khách">Đang có khách</option>
+          <option value="Đã Đặt">Đã đặt</option>
+          <option value="Sẵn Sàng">Sẵn sàng</option>
+          <option value="Đang Dọn">Đang dọn</option>
+          <option value="Bảo Trì">Bảo trì</option>
+        </select>
+
+        <!-- Filter Villa / Guest Search -->
+        <div class="relative w-40">
+          <input
+            type="text"
+            [(ngModel)]="ganttSearch"
+            (ngModelChange)="applyGanttFilter()"
+            placeholder="Tìm villa, khách..."
+            class="w-full pl-7 pr-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500"
+          />
+          <span class="material-symbols-outlined text-[14px] text-slate-400 absolute left-2 top-1.5 pointer-events-none">search</span>
+        </div>
+
+        <!-- Gantt Legend -->
+        <div class="flex flex-wrap items-center gap-2.5 text-[11px] font-medium text-slate-600 ml-auto">
+          <div class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
+            <span>Đang ở</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+            <span>Đã đặt</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+            <span>Trống</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+            <span>Đang dọn</span>
+          </div>
+          <div class="flex items-center space-x-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+            <span>Bảo trì</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gantt Scrollable Grid with Dynamic Headers and 7 Real Cells per Villa -->
+    <div class="overflow-x-auto max-h-[500px] overflow-y-auto rounded-xl border border-slate-200/80">
+      <table class="w-full text-xs text-left border-collapse min-w-[960px]">
+        <thead class="sticky top-0 z-20">
+          <tr class="border-b border-slate-200 bg-slate-50 text-slate-700 font-bold text-[11px]">
+            <th
+              class="py-2.5 px-4 w-56 sticky left-0 bg-slate-100 z-30 border-r border-slate-200"
+            >
+              BIỆT THỰ & PHÂN KHU
+            </th>
+            <th
+              *ngFor="let th of timelineHeaders"
+              class="py-2.5 px-2 text-center border-r border-slate-200 w-24"
+              [class.text-[#0284c7]]="th.isToday"
+              [class.font-black]="th.isToday"
+              [class.bg-sky-50]="th.isToday"
+            >
+              {{ th.label }}
+            </th>
+            <th class="py-2.5 px-4 text-center w-32 bg-slate-100">TRẠNG THÁI</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngIf="isLoadingGantt">
+            <td [attr.colspan]="9" class="py-12 text-center text-slate-400">
+              <span class="inline-block w-5 h-5 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mb-1"></span>
+              <p class="text-xs font-medium">Đang tải biểu đồ Gantt từ máy chủ...</p>
+            </td>
+          </tr>
+
+          <tr *ngIf="!isLoadingGantt && filteredGanttList.length === 0">
+            <td [attr.colspan]="9" class="py-12 text-center text-slate-400">
+              <span class="material-symbols-outlined text-3xl text-slate-300 block mb-1"
+                >calendar_month</span
+              >
+              <p class="text-xs font-medium">Không tìm thấy biệt thự nào khớp bộ lọc</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let g of filteredGanttList" class="hover:bg-slate-50/60 transition-colors">
+            <!-- Villa Name sticky cell -->
+            <td class="py-2.5 px-4 sticky left-0 bg-white z-10 border-r border-slate-200">
+              <div class="flex items-center justify-between gap-1">
+                <div class="flex items-center space-x-1.5">
+                  <span class="font-bold text-slate-900 text-xs">{{ g.villaNumber }}</span>
+                  <span
+                    *ngIf="g.villaNumber.includes('VIP')"
+                    class="text-[9px] px-1.5 py-0.2 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black rounded-sm shadow-2xs"
+                  >
+                    VIP
+                  </span>
+                </div>
+                <span
+                  *ngIf="g.zoneName"
+                  class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold truncate max-w-[105px]"
+                  [title]="g.zoneName"
+                >
+                  {{ g.zoneName.replace('Phân khu ', '') }}
+                </span>
+              </div>
+              <span class="text-[10px] text-slate-500 font-medium truncate block mt-0.5" [title]="g.villaName">
+                {{ g.villaName }}
+              </span>
+            </td>
+
+            <!-- 7 Daily Cells perfectly aligned -->
+            <td
+              *ngFor="let slot of g.slots"
+              class="py-1.5 px-1 text-center align-middle border-r border-slate-100"
+            >
+              <div
+                class="h-8 rounded-lg flex items-center justify-center font-bold text-[10px] px-2 shadow-xs transition truncate select-none"
+                [ngClass]="slot.class"
+                [class.cursor-pointer]="slot.bookingId || slot.bookingCode"
+                [class.hover:ring-2]="slot.bookingId || slot.bookingCode"
+                [class.hover:ring-sky-300]="slot.bookingId || slot.bookingCode"
+                [title]="slot.tooltip"
+                (click)="onGanttSlotClick(slot)"
+              >
+                <span class="truncate">{{ slot.label }}</span>
+              </div>
+            </td>
+
+            <!-- Current Villa Status -->
+            <td class="py-2 px-3 text-center align-middle">
+              <span
+                class="inline-flex items-center space-x-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                [ngClass]="g.statusClass"
+              >
+                <span class="w-1.5 h-1.5 rounded-full" [ngClass]="g.statusDot"></span>
+                <span>{{ g.status }}</span>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. DANH SÁCH CHI TIẾT HỒ SƠ ĐẶT PHÒNG (TABLE) -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+    <!-- Table Header Toolbar -->
+    <div
+      class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+    >
+      <div class="flex items-center space-x-2.5">
+        <h2 class="text-sm font-bold text-slate-900">Danh Sách Chi Tiết Hồ Sơ Đặt Phòng</h2>
+        <span
+          class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200"
+        >
+          Hiện {{ filteredBookings.length }} / {{ bookings.length }} hồ sơ
+        </span>
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div class="flex items-center space-x-2 text-xs text-slate-500 font-semibold">
+        <span>Sắp xếp:</span>
+        <select
+          [(ngModel)]="selectedSort"
+          (ngModelChange)="onSortChange()"
+          class="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none"
+        >
+          <option value="checkInAsc">Ngày Check-in gần nhất</option>
+          <option value="checkInDesc">Ngày Check-in xa nhất</option>
+          <option value="amountDesc">Tổng tiền cao nhất</option>
+          <option value="newest">Mã đơn mới nhất</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-600">
+        <thead
+          class="bg-slate-50/80 text-slate-600 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200"
+        >
+          <tr>
+            <th class="py-3 px-4">MÃ BOOKING & NGÀY ĐẶT</th>
+            <th class="py-3 px-4">KHÁCH HÀNG</th>
+            <th class="py-3 px-4">BIỆT THỰ</th>
+            <th class="py-3 px-4">LƯU TRÚ (CHECK-IN/OUT)</th>
+            <th class="py-3 px-4">KÊNH & TT</th>
+            <th class="py-3 px-4">TỔNG TIỀN</th>
+            <th class="py-3 px-4">DỊCH VỤ THÊM</th>
+            <th class="py-3 px-4 text-center">TRẠNG THÁI & THAO TÁC</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 font-medium">
+          <!-- Loading State -->
+          <tr *ngIf="isLoadingBookings">
+            <td colspan="8" class="py-16 text-center text-slate-400">
+              <span class="inline-block w-6 h-6 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mb-2"></span>
+              <p class="text-xs font-semibold text-slate-600">Đang tải danh sách đặt phòng...</p>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="!isLoadingBookings && paginatedBookings.length === 0">
+            <td colspan="8" class="py-16 text-center text-slate-400">
+              <span class="material-symbols-outlined text-4xl text-slate-300 block mb-2"
+                >event_busy</span
+              >
+              <p class="text-sm font-bold text-slate-600 mb-1">Chưa có hồ sơ đặt phòng nào</p>
+              <p class="text-xs text-slate-400">
+                Hệ thống chưa ghi nhận đơn đặt phòng nào hoặc không khớp bộ lọc.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Row Item -->
+          <tr *ngFor="let item of paginatedBookings" class="hover:bg-slate-50/70 transition-colors">
+            <!-- Col 1: Mã Booking & Ngày đặt -->
+            <td class="py-3.5 px-4">
+              <span
+                class="font-mono font-bold text-[#0284c7] block hover:underline cursor-pointer"
+                (click)="openDetail(item)"
+              >
+                {{ item.code }}
+              </span>
+              <span class="text-[10px] text-slate-400 font-normal">
+                {{ item.bookingDate }} {{ item.bookingTime ? '• ' + item.bookingTime : '' }}
+              </span>
+            </td>
+
+            <!-- Col 2: Khách Hàng -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center space-x-2.5">
+                <img
+                  [src]="item.guestAvatar"
+                  [alt]="item.guestName"
+                  class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs flex-shrink-0"
+                />
+                <div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="font-bold text-slate-900">{{ item.guestName }}</span>
+                    <span
+                      class="text-[9px] font-bold px-1.5 py-0.2 rounded-full"
+                      [ngClass]="item.vipBadgeClass"
+                    >
+                      {{ item.vipTier }}
+                    </span>
+                  </div>
+                  <div class="text-[10px] text-slate-400 font-normal mt-0.5">
+                    {{ item.phone }} <span *ngIf="item.guestEmail">• {{ item.guestEmail }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Col 3: Hạng Biệt Thự -->
+            <td class="py-3.5 px-4">
+              <span class="font-bold text-slate-800 block">{{ item.villaNumber }}</span>
+              <span class="text-[10px] text-slate-400 truncate block max-w-[140px]">{{ item.villaName }}</span>
+            </td>
+
+            <!-- Col 4: Lưu Trú (Check-in/out) -->
+            <td class="py-3.5 px-4">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-bold text-slate-800"
+                  >{{ item.checkInDate }} - {{ item.checkOutDate }}</span
+                >
+                <span
+                  class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200"
+                >
+                  {{ item.nights }} Đêm
+                </span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">{{ item.occupants }}</div>
+            </td>
+
+            <!-- Col 5: Kênh & Phương thức thanh toán -->
+            <td class="py-3.5 px-4">
+              <span
+                class="text-[10px] font-bold px-2 py-0.5 rounded-full border inline-block"
+                [ngClass]="item.channelClass"
+              >
+                {{ item.channel }}
+              </span>
+              <span *ngIf="item.paymentMethod" class="text-[9.5px] font-semibold text-slate-500 block mt-0.5 uppercase">
+                {{ item.paymentMethod }}
+              </span>
+            </td>
+
+            <!-- Col 6: Tổng Tiền & Thanh Toán -->
+            <td class="py-3.5 px-4">
+              <span class="font-bold text-slate-900 block text-xs">{{ item.totalAmount }}</span>
+              <span class="text-[10px] font-medium block mt-0.5" [ngClass]="item.paymentClass">
+                {{ item.paymentNote }}
+              </span>
+            </td>
+
+            <!-- Col 7: Dịch Vụ Thêm & Butler -->
+            <td class="py-3.5 px-4 text-[11px]">
+              <div *ngIf="item.service1" class="flex items-center space-x-1 text-slate-700 font-medium">
+                <span class="material-symbols-outlined text-[14px] text-slate-400">{{
+                  item.service1Icon
+                }}</span>
+                <span>{{ item.service1 }}</span>
+              </div>
+              <div *ngIf="item.butler" class="flex items-center space-x-1 text-slate-500 text-[10px] mt-0.5">
+                <span class="material-symbols-outlined text-[13px] text-slate-400">person</span>
+                <span>{{ item.butler }}</span>
+              </div>
+              <span *ngIf="!item.service1 && !item.butler" class="text-slate-400 italic text-[10px]">
+                Tiêu chuẩn
+              </span>
+            </td>
+
+            <!-- Col 8: Trạng Thái & Thao Tác -->
+            <td class="py-3.5 px-4 text-center">
+              <div class="flex items-center justify-center space-x-1.5">
+                <span
+                  class="inline-flex items-center space-x-1 text-[10px] font-bold px-2.5 py-1 rounded-full border cursor-pointer hover:shadow-2xs transition"
+                  (click)="openDetail(item)"
+                  [ngClass]="item.statusClass"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full" [ngClass]="item.statusDot"></span>
+                  <span>{{ item.status }}</span>
+                </span>
+
+                <!-- Quick Check-in Button if Confirmed -->
+                <button
+                  *ngIf="item.statusCode === 'CONFIRMED'"
+                  (click)="performCheckIn(item)"
+                  title="Nhận phòng ngay"
+                  class="px-2 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg text-[10px] font-bold shadow-2xs transition cursor-pointer"
+                >
+                  Check-in
+                </button>
+
+                <!-- Quick Check-out Button if Checked In -->
+                <button
+                  *ngIf="item.statusCode === 'CHECKED_IN'"
+                  (click)="performCheckOut(item)"
+                  title="Trả phòng ngay"
+                  class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-bold shadow-2xs transition cursor-pointer"
+                >
+                  Trả phòng
+                </button>
+
+                <!-- Detail View Icon -->
+                <button
+                  (click)="openDetail(item)"
+                  title="Xem chi tiết"
+                  class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table Footer / Pagination -->
+    <div
+      class="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500 gap-3"
+    >
+      <div class="flex items-center space-x-2">
+        <span>Hiển thị</span>
+        <select
+          [(ngModel)]="pageSize"
+          (ngModelChange)="updatePagination()"
+          class="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-bold text-xs"
+        >
+          <option [ngValue]="10">10 hồ sơ / trang</option>
+          <option [ngValue]="20">20 hồ sơ / trang</option>
+          <option [ngValue]="50">50 hồ sơ / trang</option>
+        </select>
+        <span>trong tổng số {{ totalFilteredElements }} lượt đặt phòng</span>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="flex items-center space-x-1" *ngIf="totalPages > 1">
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+        </button>
+
+        <button
+          *ngFor="let p of pagesArray"
+          (click)="goToPage(p)"
+          [class.bg-[#0284c7]]="currentPage === p"
+          [class.text-white]="currentPage === p"
+          [class.font-bold]="currentPage === p"
+          [class.border]="currentPage !== p"
+          [class.border-slate-200]="currentPage !== p"
+          [class.text-slate-700]="currentPage !== p"
+          class="w-7 h-7 rounded-lg text-xs transition cursor-pointer"
+        >
+          {{ p }}
+        </button>
+
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="w-7 h-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div
+  *ngIf="showDetailModal && selectedBooking"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs"
+>
+  <div
+    class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-fade-in"
+  >
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div>
+        <span class="text-xs font-mono font-bold text-[#0284c7]">{{ selectedBooking.code }}</span>
+        <h3 class="text-base font-bold text-slate-900">Chi Tiết Hồ Sơ Đặt Phòng</h3>
+      </div>
+      <button
+        (click)="closeDetail()"
+        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+
+    <div class="space-y-3 text-xs text-slate-700">
+      <!-- Guest Profile -->
+      <div class="p-3 bg-slate-50 rounded-xl flex items-center space-x-3">
+        <img
+          [src]="selectedBooking.guestAvatar"
+          class="w-10 h-10 rounded-full object-cover border border-slate-200"
+          alt="Avatar"
+        />
+        <div class="min-w-0">
+          <div class="font-bold text-slate-900 text-sm flex items-center space-x-2">
+            <span>{{ selectedBooking.guestName }}</span>
+            <span
+              class="text-[9px] font-bold px-1.5 py-0.2 rounded-full"
+              [ngClass]="selectedBooking.vipBadgeClass"
+            >
+              {{ selectedBooking.vipTier }}
+            </span>
+          </div>
+          <p class="text-slate-500 text-[11px] truncate">
+            {{ selectedBooking.phone }} <span *ngIf="selectedBooking.guestEmail">• {{ selectedBooking.guestEmail }}</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3 border border-slate-200 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-bold">Biệt thự</span>
+          <p class="font-bold text-slate-900">{{ selectedBooking.villaNumber }}</p>
+          <p class="text-slate-500 text-[11px] truncate">{{ selectedBooking.villaName }}</p>
+        </div>
+        <div class="p-3 border border-slate-200 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-bold">Lưu trú</span>
+          <p class="font-bold text-slate-900">{{ selectedBooking.nights }} Đêm nghỉ dưỡng</p>
+          <p class="text-slate-500 text-[11px]">
+            {{ selectedBooking.checkInDate }} ➔ {{ selectedBooking.checkOutDate }}
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="p-3 border border-slate-200 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-bold">Thanh toán</span>
+          <p class="font-bold text-slate-900 text-sm">{{ selectedBooking.totalAmount }}</p>
+          <p class="text-emerald-700 text-[11px] font-semibold">
+            {{ selectedBooking.paymentNote }} {{ selectedBooking.paymentMethod ? '(' + selectedBooking.paymentMethod + ')' : '' }}
+          </p>
+        </div>
+        <div class="p-3 border border-slate-200 rounded-xl">
+          <span class="text-[10px] text-slate-400 uppercase font-bold">Dịch vụ & Ghi chú</span>
+          <p class="font-bold text-slate-900">{{ selectedBooking.service1 || 'Tiêu chuẩn' }}</p>
+          <p class="text-slate-500 text-[11px] truncate">
+            {{ selectedBooking.note || 'Không có ghi chú thêm' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOUSEKEEPING & MINIBAR CONSUMPTIONS INTEGRATION -->
+    <div class="border border-slate-200/90 rounded-2xl p-3.5 bg-slate-50/70 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[18px] text-sky-600">liquor</span>
+          <span class="text-xs font-black uppercase tracking-wider text-slate-800">
+            Kiểm Kê Minibar & Tài Sản Buồng Phòng
+          </span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span
+            *ngIf="pendingConsumptionsCount > 0"
+            class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 animate-pulse"
+          >
+            {{ pendingConsumptionsCount }} món chờ chốt (+{{
+              pendingConsumptionsTotal | number: '1.0-0'
+            }}₫)
+          </span>
+          <span
+            *ngIf="pendingConsumptionsCount === 0 && consumptions.length > 0"
+            class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700"
+          >
+            Đã chốt xong (+{{ approvedConsumptionsTotal | number: '1.0-0' }}₫)
+          </span>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoadingConsumptions" class="py-4 text-center text-xs text-slate-400">
+        <span
+          class="inline-block w-4 h-4 border-2 border-sky-500 border-t-transparent rounded-full animate-spin mr-1.5 align-middle"
+        ></span>
+        Đang tải dữ liệu kiểm phòng từ Buồng phòng...
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="!isLoadingConsumptions && consumptions.length === 0"
+        class="py-3 px-3 rounded-xl bg-white border border-slate-200/80 text-center text-xs text-slate-500"
+      >
+        <span class="material-symbols-outlined text-[20px] text-slate-300 block mb-0.5"
+          >check_circle</span
+        >
+        Chưa ghi nhận tiêu thụ minibar hoặc hỏng hóc đồ dùng từ Buồng phòng cho phòng này.
+      </div>
+
+      <!-- Consumptions List -->
+      <div
+        *ngIf="!isLoadingConsumptions && consumptions.length > 0"
+        class="space-y-1.5 max-h-48 overflow-y-auto pr-1"
+      >
+        <div
+          *ngFor="let item of consumptions"
+          class="p-2.5 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between text-xs hover:border-slate-300 transition"
+        >
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <div
+              class="relative w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center"
+              [ngClass]="
+                item.itemType === 'MINIBAR_CONSUMED'
+                  ? 'bg-sky-100 text-sky-700'
+                  : 'bg-rose-100 text-rose-700'
+              "
+            >
+              <img
+                *ngIf="item.evidencePhotoUrl"
+                [src]="item.evidencePhotoUrl"
+                alt="Evidence"
+                class="w-full h-full object-cover"
+              />
+              <span *ngIf="!item.evidencePhotoUrl" class="material-symbols-outlined text-[18px]">
+                {{ item.itemType === 'MINIBAR_CONSUMED' ? 'local_bar' : 'broken_image' }}
+              </span>
+            </div>
+
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <span class="font-bold text-slate-900 truncate">{{ item.itemName }}</span>
+                <span
+                  class="px-1.5 py-0.2 rounded text-[9.5px] font-black uppercase"
+                  [ngClass]="
+                    item.itemType === 'MINIBAR_CONSUMED'
+                      ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                      : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  "
+                >
+                  {{
+                    item.itemType === 'MINIBAR_CONSUMED'
+                      ? 'Minibar'
+                      : item.itemType === 'ASSET_DAMAGED'
+                        ? 'Hỏng'
+                        : 'Mất đồ'
+                  }}
+                </span>
+              </div>
+              <div class="text-[11px] text-slate-500">
+                SL: <strong class="text-slate-800">{{ item.quantity }}</strong> ×
+                {{ item.unitPrice | number: '1.0-0' }}₫ =
+                <strong class="text-rose-600">{{ item.totalPrice | number: '1.0-0' }}₫</strong>
+                <span *ngIf="item.note" class="italic text-slate-400 ml-1">({{ item.note }})</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-1.5 flex-shrink-0 ml-2">
+            <ng-container *ngIf="item.status === 'PENDING_RECEPTION_APPROVAL'">
+              <button
+                (click)="approveConsumptionItem(item)"
+                title="Tính tiền vào hóa đơn phòng"
+                class="px-2.5 py-1 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-lg font-bold text-[11px] shadow-2xs transition flex items-center space-x-1 cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[14px]">add_circle</span>
+                <span>Tính phí</span>
+              </button>
+              <button
+                (click)="waiveConsumptionItem(item)"
+                title="Bỏ qua / Miễn phí"
+                class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-bold text-[11px] transition cursor-pointer"
+              >
+                <span>Miễn phí</span>
+              </button>
+            </ng-container>
+
+            <span
+              *ngIf="item.status === 'APPROVED_CHARGED'"
+              class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+            >
+              <span class="material-symbols-outlined text-[13px]">check_circle</span>
+              <span>Đã tính</span>
+            </span>
+
+            <span
+              *ngIf="item.status === 'WAIVED'"
+              class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10.5px] font-bold bg-slate-100 text-slate-600 border border-slate-200"
+            >
+              <span class="material-symbols-outlined text-[13px]">block</span>
+              <span>Miễn phí</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL FOOTER ACTIONS -->
+    <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
+      <span class="font-bold" [ngClass]="selectedBooking.paymentClass">
+        Trạng thái: {{ selectedBooking.status }}
+      </span>
+      <div class="flex items-center space-x-2">
+        <button
+          (click)="closeDetail()"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-bold transition cursor-pointer"
+        >
+          Đóng
+        </button>
+
+        <!-- Check-in Action -->
+        <button
+          *ngIf="selectedBooking.statusCode === 'CONFIRMED'"
+          (click)="performCheckIn(selectedBooking)"
+          class="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl font-bold shadow-xs transition cursor-pointer flex items-center space-x-1"
+        >
+          <span class="material-symbols-outlined text-[16px]">how_to_reg</span>
+          <span>Xác Nhận Check-in</span>
+        </button>
+
+        <!-- Fast Check-out Action for Confirmed Booking -->
+        <button
+          *ngIf="selectedBooking.statusCode === 'CONFIRMED'"
+          (click)="performCheckOut(selectedBooking)"
+          title="Xác nhận nhận phòng và trả phòng ngay"
+          class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition cursor-pointer flex items-center space-x-1 text-xs"
+        >
+          <span class="material-symbols-outlined text-[16px]">task_alt</span>
+          <span>Trả phòng ngay</span>
+        </button>
+
+        <!-- Check-out Action for Checked-in Booking -->
+        <button
+          *ngIf="selectedBooking.statusCode === 'CHECKED_IN'"
+          (click)="performCheckOut(selectedBooking)"
+          class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-xs transition flex items-center space-x-1 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">logout</span>
+          <span>Trả Phòng (Check-out)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE BOOKING MODAL (REAL DATABASE CREATION) -->
+<div
+  *ngIf="showCreateModal"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs"
+>
+  <div
+    class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-slate-200 space-y-4 animate-fade-in"
+  >
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-[#0284c7] text-[22px]">add_circle</span>
+        <h3 class="text-base font-bold text-slate-900">Tạo Đặt Phòng Trực Tiếp</h3>
+      </div>
+      <button
+        (click)="showCreateModal = false"
+        class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">close</span>
+      </button>
+    </div>
+
+    <div class="space-y-3 text-xs text-slate-700">
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Họ Tên Khách Hàng *</label>
+        <input
+          type="text"
+          [(ngModel)]="newBookingForm.guestName"
+          placeholder="Ví dụ: Ông Trần Gia Huy"
+          class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:outline-none"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Số Điện Thoại</label>
+          <input
+            type="text"
+            [(ngModel)]="newBookingForm.phone"
+            placeholder="0918 223 999"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Email</label>
+          <input
+            type="email"
+            [(ngModel)]="newBookingForm.email"
+            placeholder="khachhang@gmail.com"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Chọn Biệt Thự *</label>
+          <select
+            [(ngModel)]="newBookingForm.villaNumber"
+            (change)="onVillaChange()"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 font-medium"
+          >
+            <ng-container *ngIf="availableVillas.length > 0; else fallbackGantt">
+              <option *ngFor="let v of availableVillas" [value]="v.villaNumber">
+                Villa {{ v.villaNumber }} ({{ v.zone || v.zoneTag || v.villaTypeName || 'Resort' }})
+              </option>
+            </ng-container>
+            <ng-template #fallbackGantt>
+              <ng-container *ngIf="ganttList.length > 0; else hardcodedVillas">
+                <option *ngFor="let g of ganttList" [value]="g.villaNumber">
+                  Villa {{ g.villaNumber }} ({{ g.zoneName || g.villaName || 'Resort' }})
+                </option>
+              </ng-container>
+            </ng-template>
+            <ng-template #hardcodedVillas>
+              <option value="NT-001">Villa NT-001 (Ngọc Trai)</option>
+              <option value="NT-002">Villa NT-002 (Ngọc Trai)</option>
+              <option value="NT-003">Villa NT-003 (Ngọc Trai)</option>
+              <option value="SB-001">Villa SB-001 (Sông Băng)</option>
+              <option value="SB-002">Villa SB-002 (Sông Băng)</option>
+              <option value="SH-001">Villa SH-001 (San Hô)</option>
+              <option value="SH-002">Villa SH-002 (San Hô)</option>
+            </ng-template>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Phương Thức Thanh Toán</label>
+          <select
+            [(ngModel)]="newBookingForm.paymentMethod"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30"
+          >
+            <option value="CASH">Tiền mặt tại quầy (CASH)</option>
+            <option value="VNPAY">Cổng VNPAY</option>
+            <option value="MOMO">Ví MoMo</option>
+            <option value="BANK_TRANSFER">Chuyển khoản ngân hàng</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ngày Check-in *</label>
+          <input
+            type="date"
+            [(ngModel)]="newBookingForm.checkInDate"
+            (change)="onDateChange()"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30"
+          />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Ngày Check-out *</label>
+          <input
+            type="date"
+            [(ngModel)]="newBookingForm.checkOutDate"
+            (change)="onDateChange()"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30"
+          />
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block font-bold text-slate-700">Tổng Tiền (VNĐ) *</label>
+          <span class="text-[11px] text-sky-600 font-semibold" *ngIf="calculateNights() > 0">
+            {{ calculateNights() }} đêm × {{ getSelectedVillaPrice().toLocaleString('vi-VN') }}₫/đêm
+          </span>
+        </div>
+        <div class="relative">
+          <input
+            type="number"
+            [(ngModel)]="newBookingForm.amount"
+            placeholder="5000000"
+            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 font-bold text-slate-900"
+          />
+          <button
+            type="button"
+            (click)="calculateTotalAmount()"
+            title="Tự động tính lại theo số đêm và đơn giá villa"
+            class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition cursor-pointer"
+          >
+            Tự tính lại
+          </button>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-1 italic">
+          * Tự động tính: <b>{{ calculateNights() }} đêm × Đơn giá</b>. Bạn có thể tự chỉnh sửa số tiền nếu áp dụng ưu đãi riêng.
+        </p>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-700 mb-1">Yêu Cầu Đặc Biệt & Ghi Chú</label>
+        <textarea
+          rows="2"
+          [(ngModel)]="newBookingForm.requests"
+          placeholder="Ví dụ: Giường phụ, xe đưa đón, dị ứng thực phẩm..."
+          class="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:outline-none"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+      <button
+        (click)="showCreateModal = false"
+        class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+      >
+        Hủy
+      </button>
+      <button
+        (click)="submitCreate()"
+        class="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition cursor-pointer"
+      >
+        Xác Nhận Tạo Đơn
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Check-in Verification Modal -->
+<div
+  *ngIf="showCheckInModal && bookingToCheckIn"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
+>
+  <div
+    class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 animate-scale-up"
+  >
+    <!-- Modal Header -->
+    <div class="px-6 py-5 bg-gradient-to-r from-sky-600 to-[#0369a1] text-white flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+          <span class="material-symbols-outlined text-[24px]">verified_user</span>
+        </div>
+        <div>
+          <h3 class="font-black text-base uppercase tracking-wider">Xác Thực Làm Thủ Tục Check-in</h3>
+          <p class="text-xs text-sky-100 font-medium">Đối chiếu mã check-in hoặc số điện thoại khách hàng</p>
+        </div>
+      </div>
+      <button
+        (click)="closeCheckInModal()"
+        class="w-8 h-8 rounded-full hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 space-y-5">
+      <!-- Guest & Room Summary Card -->
+      <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Khách hàng:</span>
+          <span class="font-extrabold text-sm text-slate-900">{{ bookingToCheckIn.guestName }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Căn biệt thự / Phòng:</span>
+          <span class="px-2.5 py-1 bg-sky-100 text-[#0369a1] font-black text-xs rounded-lg">
+            {{ bookingToCheckIn.villaNumber }} - {{ bookingToCheckIn.villaName }}
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Thời gian lưu trú:</span>
+          <span class="text-xs font-semibold text-slate-700">
+            {{ bookingToCheckIn.checkInDate }} ➔ {{ bookingToCheckIn.checkOutDate }} ({{ bookingToCheckIn.nights }} đêm)
+          </span>
+        </div>
+        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái thanh toán:</span>
+          <span class="text-xs font-bold" [ngClass]="bookingToCheckIn.paymentClass">
+            {{ bookingToCheckIn.paymentNote }} ({{ bookingToCheckIn.totalAmount }})
+          </span>
+        </div>
+      </div>
+
+      <!-- Verification Input Field -->
+      <div>
+        <label class="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
+          Nhập Mã Check-in hoặc Số Điện Thoại của khách <span class="text-rose-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
+            pin
+          </span>
+          <input
+            type="text"
+            [(ngModel)]="checkInInputCode"
+            (keyup.enter)="confirmCheckIn()"
+            placeholder="Ví dụ: BK-20261004-XXXX hoặc 0961..."
+            class="w-full pl-11 pr-4 py-3 bg-white border border-slate-300 rounded-2xl text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition shadow-inner"
+            autofocus
+          />
+        </div>
+        <p class="text-[11px] text-slate-500 mt-2 flex items-center gap-1">
+          <span class="material-symbols-outlined text-[14px] text-sky-600">info</span>
+          Nhân viên yêu cầu khách đọc mã Check-in từ email hoặc số điện thoại khi đặt phòng.
+        </p>
+      </div>
+
+      <!-- Error Alert -->
+      <div
+        *ngIf="checkInErrorMessage"
+        class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold flex items-center gap-2"
+      >
+        <span class="material-symbols-outlined text-[18px] text-rose-600">error</span>
+        <span>{{ checkInErrorMessage }}</span>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end space-x-3">
+      <button
+        (click)="closeCheckInModal()"
+        [disabled]="isVerifyingCheckIn"
+        class="px-5 py-2.5 rounded-xl font-bold text-xs text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+      >
+        Hủy Bỏ
+      </button>
+      <button
+        (click)="confirmCheckIn()"
+        [disabled]="isVerifyingCheckIn"
+        class="px-6 py-2.5 bg-gradient-to-r from-sky-600 to-[#0369a1] hover:from-sky-700 hover:to-[#075985] text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-md transition cursor-pointer flex items-center space-x-2 disabled:opacity-50"
+      >
+        <span *ngIf="isVerifyingCheckIn" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+        <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+        <span>{{ isVerifyingCheckIn ? 'Đang xác thực...' : 'Xác Nhận Check-in' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

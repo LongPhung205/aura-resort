@@ -58,4 +58,33 @@ public class AdminStaffController {
         ShiftSwapResponse response = staffService.processSwapRequest(request, approverEmail);
         return ResponseEntity.ok(ApiResponse.success(response, "Xử lý yêu cầu đổi ca/OT thành công"));
     }
+
+    @PostMapping("/schedule/cell")
+    public ResponseEntity<ApiResponse<Void>> updateScheduleCell(
+            @Valid @RequestBody com.phungvanlong.booking_hotel.dto.request.UpdateScheduleCellRequest request) {
+        staffService.updateScheduleCell(request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Cập nhật ca trực thành công"));
+    }
+
+    @PostMapping("/schedule/ai-generate")
+    public ResponseEntity<ApiResponse<StaffRosterResponse>> generateAiWeeklyRoster(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate) {
+        StaffRosterResponse roster = staffService.generateAiWeeklyRoster(startDate);
+        return ResponseEntity.ok(ApiResponse.success(roster, "AI tự động tối ưu và lưu bảng phân ca tuần thành công"));
+    }
+
+    @GetMapping("/weekly-registrations")
+    public ResponseEntity<ApiResponse<List<com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse>>> getWeeklyRegistrations() {
+        List<com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse> list = staffService.getPendingWeeklyRegistrations();
+        return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách đơn đăng ký ca tuần chờ duyệt thành công"));
+    }
+
+    @PostMapping("/weekly-registrations/action")
+    public ResponseEntity<ApiResponse<com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse>> processWeeklyRegistration(
+            @Valid @RequestBody com.phungvanlong.booking_hotel.dto.request.ApproveWeeklyRegistrationRequest request,
+            Authentication authentication) {
+        String approverEmail = authentication != null ? authentication.getName() : null;
+        com.phungvanlong.booking_hotel.dto.response.WeeklyShiftRegistrationResponse response = staffService.processWeeklyRegistration(request, approverEmail);
+        return ResponseEntity.ok(ApiResponse.success(response, "Xử lý đơn đăng ký ca tuần thành công"));
+    }
 }

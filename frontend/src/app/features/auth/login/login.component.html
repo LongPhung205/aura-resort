@@ -1,0 +1,113 @@
+<div class="w-full bg-slate-50 flex flex-col font-sans text-slate-800 relative py-2 lg:py-4 min-h-[calc(100vh-130px)] justify-center">
+
+  <!-- Custom Toast Notification -->
+  <div *ngIf="notification.show"
+       class="fixed top-24 right-6 z-[9999] flex items-center p-4 min-w-[320px] max-w-sm rounded-2xl shadow-2xl backdrop-blur-xl border border-white/20 overflow-hidden toast-animate-in group"
+       [ngClass]="{
+         'bg-emerald-600/90 text-white shadow-emerald-600/30': notification.type === 'success',
+         'bg-rose-600/90 text-white shadow-rose-600/30': notification.type === 'error',
+         'bg-amber-500/90 text-white shadow-amber-500/30': notification.type === 'warning'
+       }"
+       role="alert">
+    
+    <!-- Progress Bar -->
+    <div class="absolute bottom-0 left-0 h-1 bg-white/40 toast-progress"></div>
+
+    <!-- Icon -->
+    <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 shadow-inner">
+      <svg *ngIf="notification.type === 'success'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+      <svg *ngIf="notification.type === 'error'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      <svg *ngIf="notification.type === 'warning'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+    </div>
+    
+    <!-- Message -->
+    <div class="ml-4 mr-6 flex flex-col justify-center">
+      <div class="text-[14px] font-semibold text-white leading-snug">
+        {{ notification.message }}
+      </div>
+    </div>
+    
+    <!-- Close Button -->
+    <button type="button" (click)="notification.show = false" class="ml-auto -mx-1.5 -my-1.5 rounded-full focus:ring-2 p-1.5 inline-flex h-8 w-8 text-white/70 hover:text-white hover:bg-white/20 transition-all opacity-0 group-hover:opacity-100">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+    </button>
+  </div>
+
+  <div
+    class="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-8 items-center justify-center px-4 lg:px-8 min-h-0">
+    <!-- LEFT COLUMN -->
+    <div class="hidden lg:flex lg:w-1/2 h-full flex-col justify-center">
+      <img src="/assets/images/logologin/1742110359884485918965472479566268397447068n-16716986493441931749227.jpg"
+           alt="Aura Login Logo" 
+           class="w-full h-auto max-h-[550px] object-cover rounded-[32px] shadow-2xl" />
+    </div>
+
+    <!-- RIGHT COLUMN (LOGIN FORM) -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center h-full">
+      <div
+        class="w-full max-w-md bg-white border border-slate-200 shadow-xl shadow-slate-200/50 rounded-2xl p-6 flex flex-col justify-center text-slate-800 mx-auto lg:mx-0 my-auto">
+        <div class="text-center mb-5 mt-0">
+          <h2 class="text-2xl lg:text-[26px] font-bold text-slate-800 mb-1.5 tracking-tight">Đăng Nhập Hệ Thống</h2>
+          <p class="text-slate-500 text-xs px-2">
+            Chào đón Quý hội viên & Cán bộ điều hành quay trở lại.
+          </p>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="submit()" class="flex flex-col flex-1">
+          <div class="mb-4">
+            <div class="flex justify-between items-end mb-1.5">
+              <label for="identifier" class="text-[13px] font-medium text-slate-700">Email</label>
+            </div>
+            <input id="identifier" type="text" formControlName="identifier" placeholder="Nhập thông tin"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-brand-ocean focus:ring-1 focus:ring-brand-ocean outline-none transition-all" />
+          </div>
+
+          <div class="mb-5">
+            <div class="flex justify-between items-end mb-1.5">
+              <label for="password" class="text-[13px] font-medium text-slate-700">Mật khẩu</label>
+              <a routerLink="/forgot-password"
+                class="text-[11px] font-medium text-[#0369A1] hover:text-sky-700 transition-colors">Quên mật khẩu?</a>
+            </div>
+            <input id="password" type="password" formControlName="password" placeholder="Nhập mật khẩu"
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 text-sm focus:bg-white focus:border-brand-ocean focus:ring-1 focus:ring-brand-ocean outline-none transition-all" />
+          </div>
+
+          <div class="mb-4 flex items-center gap-2.5 shrink-0">
+            <input id="rememberMe" type="checkbox" formControlName="rememberMe"
+              class="w-4 h-4 text-brand-ocean bg-slate-50 border-slate-300 rounded focus:ring-brand-ocean focus:ring-2" />
+            <label for="rememberMe" class="text-[11px] font-semibold text-slate-600 cursor-pointer">Ghi nhớ đăng nhập trên thiết
+              bị</label>
+          </div>
+
+          <button type="submit" [disabled]="loginForm.invalid"
+            class="w-full bg-brand-ocean text-white text-[13px] font-bold py-3.5 rounded-lg hover:bg-[#0369A1] transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:bg-brand-ocean shrink-0 mt-2 shadow-sm shadow-brand-ocean/20">
+            Đăng Nhập
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5"
+              stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        </form>
+
+        <div class="mt-6 relative shrink-0">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-slate-200"></div>
+          </div>
+          <div class="relative flex justify-center text-xs italic text-slate-500">
+            <span class="bg-white px-4">hoặc</span>
+          </div>
+        </div>
+
+        <div class="mt-4 mb-3 shrink-0 flex justify-center">
+          <asl-google-signin-button type="standard" shape="rectangular" theme="outline" size="large" text="continue_with" [width]="400"></asl-google-signin-button>
+        </div>
+
+        <div class="mt-2 flex flex-col items-center shrink-0">
+          <p class="text-sm text-slate-500 font-medium">Chưa có tài khoản? <a routerLink="/register"
+              class="text-[#0369A1] hover:text-sky-700 transition-colors underline decoration-[#0369A1]/30 underline-offset-4">Đăng
+              ký ngay</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

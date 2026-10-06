@@ -18,10 +18,4 @@ public interface BookingService {
     void cancelBooking(Long id, String userEmail);
     BookingResponse mockPaymentSuccess(Long id);
     void cancelExpiredBookings();
-    BookingResponse checkInBooking(Long id);
-    BookingResponse checkOutBooking(Long id);
-
-    PageResponse<AdminBookingItemResponse> getAdminBookings(AdminBookingFilterRequest filterRequest);
-    List<GanttVillaAvailabilityResponse> getGanttVillaAvailability(LocalDate startDate, int days);
-    List<GanttRoomAvailabilityResponse> getGanttAvailability(LocalDate startDate, int days);
 }

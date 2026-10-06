@@ -22,32 +22,58 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     // 1. Tìm các căn Villa trống theo Hạng Villa và khoảng ngày
     @Query("SELECT v FROM Villa v WHERE v.villaType.id = :villaTypeId " +
-           "AND v.status = 'AVAILABLE' " +
+           "AND v.status != 'MAINTENANCE' " +
            "AND v.id NOT IN (" +
            "    SELECT bd.villa.id FROM BookingDetail bd JOIN bd.booking b " +
-           "    WHERE bd.villa IS NOT NULL AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') " +
+           "    WHERE bd.villa IS NOT NULL AND (b.status IN ('CONFIRMED', 'CHECKED_IN') OR (b.status = 'PENDING' AND (b.expireAt IS NULL OR b.expireAt > :now))) " +
            "    AND b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate" +
            ")")
     List<Villa> findAvailableVillas(
             @Param("villaTypeId") Long villaTypeId,
             @Param("checkInDate") LocalDate checkInDate,
-            @Param("checkOutDate") LocalDate checkOutDate);
+            @Param("checkOutDate") LocalDate checkOutDate,
+            @Param("now") LocalDateTime now);
 
-    // 2. Tìm các phòng trống (backward compatibility)
+    default List<Villa> findAvailableVillas(Long villaTypeId, LocalDate checkInDate, LocalDate checkOutDate) {
+        return findAvailableVillas(villaTypeId, checkInDate, checkOutDate, LocalDateTime.now());
+    }
+
+    // 2. Kiểm tra số đơn đặt phòng trùng lịch cho 1 căn Villa cụ thể
+    @Query("SELECT COUNT(bd) FROM BookingDetail bd JOIN bd.booking b " +
+           "WHERE bd.villa.id = :villaId " +
+           "AND (b.status IN ('CONFIRMED', 'CHECKED_IN') OR (b.status = 'PENDING' AND (b.expireAt IS NULL OR b.expireAt > :now))) " +
+           "AND b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate")
+    long countOverlappingBookingsForVilla(
+            @Param("villaId") Long villaId,
+            @Param("checkInDate") LocalDate checkInDate,
+            @Param("checkOutDate") LocalDate checkOutDate,
+            @Param("now") LocalDateTime now);
+
+    default long countOverlappingBookingsForVilla(Long villaId, LocalDate checkInDate, LocalDate checkOutDate) {
+        return countOverlappingBookingsForVilla(villaId, checkInDate, checkOutDate, LocalDateTime.now());
+    }
+
+    // 3. Tìm các phòng trống (backward compatibility)
     @Query("SELECT r FROM Room r WHERE r.roomType.id = :roomTypeId " +
-           "AND r.status = 'AVAILABLE' " +
+           "AND r.status != 'MAINTENANCE' " +
            "AND r.id NOT IN (" +
            "    SELECT bd.room.id FROM BookingDetail bd JOIN bd.booking b " +
-           "    WHERE bd.room IS NOT NULL AND b.status IN ('PENDING', 'CONFIRMED', 'CHECKED_IN') " +
+           "    WHERE bd.room IS NOT NULL AND (b.status IN ('CONFIRMED', 'CHECKED_IN') OR (b.status = 'PENDING' AND (b.expireAt IS NULL OR b.expireAt > :now))) " +
            "    AND b.checkInDate < :checkOutDate AND b.checkOutDate > :checkInDate" +
            ")")
     List<Room> findAvailableRooms(
             @Param("roomTypeId") Long roomTypeId,
             @Param("checkInDate") LocalDate checkInDate,
-            @Param("checkOutDate") LocalDate checkOutDate);
+            @Param("checkOutDate") LocalDate checkOutDate,
+            @Param("now") LocalDateTime now);
+
+    default List<Room> findAvailableRooms(Long roomTypeId, LocalDate checkInDate, LocalDate checkOutDate) {
+        return findAvailableRooms(roomTypeId, checkInDate, checkOutDate, LocalDateTime.now());
+    }
 
     List<Booking> findByStatusAndExpireAtBefore(BookingStatus status, LocalDateTime now);
-    
+
+    @EntityGraph(attributePaths = {"user", "bookingDetails.villa", "bookingDetails.room"})
     List<Booking> findByUserId(Long userId);
 
     @EntityGraph(attributePaths = {"user", "bookingDetails.villa.villaType"})
@@ -71,7 +97,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     long countByStatus(BookingStatus status);
 
-    @Query("SELECT COUNT(b) FROM Booking b WHERE b.checkInDate = :today AND b.status IN ('CONFIRMED', 'PENDING')")
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.checkInDate = :today AND b.status = 'CONFIRMED'")
     long countArrivalsToday(@Param("today") LocalDate today);
 
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.checkOutDate = :today AND b.status = 'CHECKED_IN'")
@@ -82,11 +108,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query("SELECT COALESCE(SUM(b.totalAmount), 0) FROM Booking b WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT') AND b.createdAt >= :startOfDay")
     BigDecimal calculateTodayRevenue(@Param("startOfDay") LocalDateTime startOfDay);
-    @Query("SELECT b FROM Booking b WHERE b.status != 'CANCELLED' " +
+
+    @Query("SELECT b FROM Booking b WHERE b.status IN ('CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT') " +
            "AND b.checkInDate <= :endDate AND b.checkOutDate >= :startDate")
     List<Booking> findActiveBookingsBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-    @Query("SELECT b FROM Booking b WHERE b.status != 'CANCELLED' " +
+    @Query("SELECT b FROM Booking b WHERE b.status IN ('CONFIRMED', 'CHECKED_IN') " +
            "AND (b.checkInDate = :today OR b.checkOutDate = :today)")
     List<Booking> findArrivalDepartureToday(@Param("today") LocalDate today);
 

@@ -26,6 +26,7 @@ public class HousekeepingTask extends BaseEntity {
     // Quản lý dọn dẹp theo phòng ngủ con (nullable)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.SET_NULL)
     private Room room;
 
     @ManyToOne(fetch = FetchType.LAZY)

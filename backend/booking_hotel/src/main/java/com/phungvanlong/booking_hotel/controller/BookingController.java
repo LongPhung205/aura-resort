@@ -4,6 +4,7 @@ import com.phungvanlong.booking_hotel.dto.request.BookingRequest;
 import com.phungvanlong.booking_hotel.dto.response.ApiResponse;
 import com.phungvanlong.booking_hotel.dto.response.BookingResponse;
 import com.phungvanlong.booking_hotel.service.BookingService;
+import com.phungvanlong.booking_hotel.service.AdminBookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final AdminBookingService adminBookingService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<BookingResponse>> createBooking(
@@ -63,15 +65,17 @@ public class BookingController {
 
     @PostMapping("/{id}/check-in")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
-    public ResponseEntity<ApiResponse<BookingResponse>> checkIn(@PathVariable Long id) {
-        BookingResponse booking = bookingService.checkInBooking(id);
+    public ResponseEntity<ApiResponse<BookingResponse>> checkIn(
+            @PathVariable Long id,
+            @RequestParam(required = false) String verifyCode) {
+        BookingResponse booking = adminBookingService.checkInBooking(id, verifyCode);
         return ResponseEntity.ok(ApiResponse.success(booking, "Check-in thành công"));
     }
 
     @PostMapping("/{id}/check-out")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     public ResponseEntity<ApiResponse<BookingResponse>> checkOut(@PathVariable Long id) {
-        BookingResponse booking = bookingService.checkOutBooking(id);
+        BookingResponse booking = adminBookingService.checkOutBooking(id);
         return ResponseEntity.ok(ApiResponse.success(booking, "Check-out thành công"));
     }
 }

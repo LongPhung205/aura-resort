@@ -29,8 +29,9 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     private final UserRepository userRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public ReviewAnalyticsResponse getAnalytics() {
-        List<Review> reviews = reviewRepository.findAll();
+        List<Review> reviews = reviewRepository.findAllWithDetails();
         int total = reviews.size();
         long positive = reviews.stream().filter(r -> "POSITIVE".equalsIgnoreCase(r.getSentiment()) || (r.getRating() != null && r.getRating() >= 4)).count();
         long neutral = reviews.stream().filter(r -> "NEUTRAL".equalsIgnoreCase(r.getSentiment()) || (r.getRating() != null && r.getRating() == 3)).count();
@@ -63,7 +64,7 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         List<ReviewResponse> latest = reviews.stream()
                 .filter(r -> r.getCreatedAt() != null)
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-                .limit(10)
+                .limit(200)
                 .map(ReviewResponse::fromEntity)
                 .collect(Collectors.toList());
 
@@ -91,6 +92,15 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         review.setRepliedAt(LocalDateTime.now());
 
         return ReviewResponse.fromEntity(reviewRepository.save(review));
+    }
+
+    @Override
+    @Transactional
+    public void deleteReview(Long id) {
+        if (!reviewRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Không tìm thấy đánh giá ID: " + id);
+        }
+        reviewRepository.deleteById(id);
     }
 
     @Override

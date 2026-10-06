@@ -1,0 +1,125 @@
+<div class="p-4 sm:p-6 lg:p-8 space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-black text-slate-900 tracking-tight">Bộ Sưu Tập (Marketing)</h1>
+      <p class="text-sm text-slate-500 mt-1">Quản lý các phong cách nghỉ dưỡng hiển thị ở trang chủ để thu hút khách.</p>
+    </div>
+    <button
+      (click)="openCreateModal()"
+      class="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm transition"
+    >
+      <span class="material-symbols-outlined text-[20px]">add</span>
+      <span>Thêm Bộ Sưu Tập</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex justify-center p-12">
+    <span class="material-symbols-outlined text-purple-500 animate-spin text-4xl">progress_activity</span>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && collections.length === 0" class="bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-xs">
+    <div class="w-20 h-20 bg-purple-50 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4">
+      <span class="material-symbols-outlined text-[40px]">auto_awesome</span>
+    </div>
+    <h3 class="text-lg font-bold text-slate-800">Chưa có Bộ Sưu Tập nào</h3>
+    <p class="text-sm text-slate-500 mt-2 mb-6">Tạo các phong cách nghỉ dưỡng (VD: Lãng Mạn, Thiên Nhiên) để tăng tỷ lệ đặt phòng.</p>
+    <button (click)="openCreateModal()" class="text-purple-600 bg-purple-50 font-bold px-4 py-2 rounded-lg hover:bg-purple-100 transition">
+      Tạo bộ sưu tập đầu tiên
+    </button>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="!loading && collections.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <div *ngFor="let col of collections" class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden group hover:shadow-md transition">
+      <div class="h-48 relative overflow-hidden bg-slate-100">
+        <img *ngIf="col.imageUrl" [src]="col.imageUrl" [alt]="col.name" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+        <div *ngIf="!col.imageUrl" class="absolute inset-0 flex items-center justify-center text-slate-400">
+          <span class="material-symbols-outlined text-5xl">image_not_supported</span>
+        </div>
+        
+        <div class="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/50 shadow-sm font-bold text-[10px] uppercase text-slate-600 flex items-center">
+          <span class="w-2 h-2 rounded-full mr-1.5" [ngClass]="col.isActive ? 'bg-emerald-500' : 'bg-rose-500'"></span>
+          {{ col.isActive ? 'Đang bật' : 'Đang tắt' }}
+        </div>
+      </div>
+
+      <div class="p-5">
+        <div>
+          <h3 class="text-lg font-black text-slate-900 group-hover:text-purple-600 transition">{{ col.name }}</h3>
+          <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ col.description || 'Chưa có mô tả' }}</p>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-100 flex items-center space-x-2">
+          <button (click)="openEditModal(col)" class="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold py-2 rounded-xl border border-slate-200 transition">
+            Chỉnh Sửa
+          </button>
+          <button (click)="deleteCollection(col)" class="w-10 h-10 flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition">
+            <span class="material-symbols-outlined text-[20px]">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form -->
+<div *ngIf="showModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+  <div class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 mt-10">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+      <h3 class="text-xl font-black text-slate-900">{{ isEditing ? 'Chỉnh Sửa Bộ Sưu Tập' : 'Tạo Bộ Sưu Tập' }}</h3>
+      <button (click)="closeModal()" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition cursor-pointer">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <form (ngSubmit)="saveCollection()" class="space-y-4 text-sm">
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tên Phong Cách / Bộ Sưu Tập (*)</label>
+          <input type="text" [(ngModel)]="formModel.name" name="name" required placeholder="VD: Biệt Thự Lãng Mạn..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-purple-500 font-medium" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Đường dẫn (Slug)</label>
+          <input type="text" [(ngModel)]="formModel.slug" name="slug" placeholder="Để trống để tự tạo..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-purple-500 text-slate-500" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Hình ảnh (URL)</label>
+          <input type="text" [(ngModel)]="formModel.imageUrl" name="imageUrl" placeholder="Nhập đường dẫn hình ảnh..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-purple-500" />
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Thứ tự hiển thị</label>
+            <input type="number" [(ngModel)]="formModel.displayOrder" name="displayOrder" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-purple-500" />
+          </div>
+          <div class="flex flex-col justify-end pb-2">
+            <label class="flex items-center space-x-2 cursor-pointer bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              <input type="checkbox" [(ngModel)]="formModel.isActive" name="isActive" class="w-4 h-4 text-purple-600 rounded" />
+              <span class="font-bold text-slate-700">Hiển thị ở trang chủ</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Mô tả giới thiệu</label>
+          <textarea [(ngModel)]="formModel.description" name="desc" rows="3" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-purple-500"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100 mt-6">
+        <button type="button" (click)="closeModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold transition">
+          Hủy Bỏ
+        </button>
+        <button type="submit" [disabled]="saving" class="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition disabled:opacity-50">
+          <span *ngIf="saving" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+          <span>Lưu Thay Đổi</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

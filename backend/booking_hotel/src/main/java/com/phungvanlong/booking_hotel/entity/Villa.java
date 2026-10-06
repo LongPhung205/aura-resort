@@ -5,8 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Entity
 @Table(name = "villas", uniqueConstraints = {
@@ -78,15 +78,15 @@ public class Villa extends BaseEntity {
     // 1 Villa có nhiều phòng ngủ con (Master Bedroom, Bedroom 2...)
     @OneToMany(mappedBy = "villa", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Room> rooms = new ArrayList<>();
+    private Set<Room> rooms = new LinkedHashSet<>();
 
     // Bộ sưu tập ảnh của Villa
     @OneToMany(mappedBy = "villa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<VillaImage> images = new ArrayList<>();
+    private Set<VillaImage> images = new LinkedHashSet<>();
 
     // Danh sách dịch vụ được cung cấp tại Villa này
     @OneToMany(mappedBy = "villa", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<VillaService> villaServices = new ArrayList<>();
+    private Set<VillaService> villaServices = new LinkedHashSet<>();
 }

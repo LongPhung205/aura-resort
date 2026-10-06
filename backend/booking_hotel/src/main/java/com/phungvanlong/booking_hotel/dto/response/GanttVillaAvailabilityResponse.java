@@ -16,6 +16,8 @@ public class GanttVillaAvailabilityResponse implements Serializable {
     private String villaNumber; // e.g. "Villa #801", "Pine-01"
     private String villaTypeName; // e.g. "Grand Oceanfront Pool Villa"
     private String zone; // e.g. "Khu A - Biển Đông"
+    private String statusTag; 
+    private String statusTagClass;
     private List<GanttDaySlot> daySlots;
 
     @Data
@@ -30,6 +32,8 @@ public class GanttVillaAvailabilityResponse implements Serializable {
         private Boolean isSpanStart;
         private String blockLabel;
         private String colorClass;
+        private Long bookingId;
+        private String bookingCode;
     }
 
     // Backward compatibility getter

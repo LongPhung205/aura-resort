@@ -1,0 +1,88 @@
+<section id="elite-club" class="bg-white text-slate-800 py-20 lg:py-24 border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <!-- Outer Card with clean solid background and crisp border -->
+    <div class="bg-slate-50 rounded-3xl border border-slate-200 p-8 sm:p-12 shadow-sm">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left Column: Intro & Buttons (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="inline-flex items-center space-x-2 bg-amber-100 border border-amber-300 px-4 py-1.5 rounded-full text-[10px] font-extrabold tracking-widest text-amber-900 uppercase shadow-sm">
+            <span class="material-symbols-outlined text-[16px] text-amber-700">workspace_premium</span>
+            <span>HỘI VIÊN ĐẶC QUYỀN NGHỈ DƯỠNG CAO CẤP</span>
+          </div>
+
+          <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            Aura <span class="text-amber-800">Elite Club</span>
+          </h2>
+
+          <p class="text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+            Trở thành thành viên của câu lạc bộ nghỉ dưỡng đẳng cấp để nhận được những quyền lợi tuyệt đối và trải nghiệm thượng lưu không giới hạn tại toàn bộ hệ thống resort.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-4 pt-2">
+            <button class="bg-amber-800 hover:bg-amber-900 text-white px-7 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center space-x-2 shadow-md transition">
+              <span class="material-symbols-outlined text-[18px]">card_membership</span>
+              <span>Gia Nhập Hội Viên Ngay</span>
+            </button>
+            <button class="bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-sm">
+              Tìm Hiểu Các Hạng Thẻ
+            </button>
+          </div>
+
+          <!-- Trust Member Count -->
+          <div class="pt-4 flex items-center space-x-3 text-xs text-slate-600 border-t border-slate-200">
+            <div class="flex -space-x-2">
+              <img src="/assets/images/staff/avatar-hoa.jpg" alt="VIP Member" class="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm" />
+              <img src="/assets/images/staff/avatar-nam.jpg" alt="VIP Member" class="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm" />
+              <img src="/assets/images/staff/avatar-thao.jpg" alt="VIP Member" class="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm" />
+            </div>
+            <span>Hơn <strong class="text-slate-900 font-bold">25.000+</strong> hội viên thượng lưu đang tận hưởng đặc quyền</span>
+          </div>
+        </div>
+
+        <!-- Right Column: 2x2 Grid with Luxury Benefit Images (7 cols) -->
+        <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
+          
+          <div
+            *ngFor="let benefit of benefits"
+            class="bg-white rounded-2xl border border-slate-200 hover:border-amber-400 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col justify-between group"
+          >
+            <!-- Image Header with Tag & Icon -->
+            <div class="relative h-36 sm:h-40 overflow-hidden bg-slate-100">
+              <img
+                [src]="benefit.imageUrl"
+                [alt]="benefit.title"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              
+              <!-- Tag Badge -->
+              <div class="absolute top-2.5 left-2.5 z-10" *ngIf="benefit.tag">
+                <span class="text-[9px] font-bold tracking-wider px-2.5 py-0.5 rounded-md bg-white/95 text-amber-900 uppercase shadow-sm border border-slate-200">
+                  {{ benefit.tag }}
+                </span>
+              </div>
+
+              <!-- Google Symbol Solid Pill Icon -->
+              <div class="absolute bottom-2.5 right-2.5 w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-amber-800 shadow-md">
+                <span class="material-symbols-outlined text-[20px]">{{ benefit.icon }}</span>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-5 flex-grow flex flex-col justify-between space-y-2">
+              <h4 class="font-bold text-sm sm:text-base text-slate-900 group-hover:text-amber-800 transition">
+                {{ benefit.title }}
+              </h4>
+              <p class="text-xs text-slate-600 leading-relaxed font-normal">
+                {{ benefit.description }}
+              </p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>

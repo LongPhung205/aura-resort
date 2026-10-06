@@ -1,0 +1,3647 @@
+<div class="p-4 sm:p-6 lg:p-7 space-y-6 max-w-[1440px] mx-auto font-sans text-slate-800">
+  <!-- TOAST NOTIFICATION -->
+  <div
+    *ngIf="toastMessage"
+    class="fixed top-20 right-6 z-50 flex items-center space-x-2.5 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl border border-sky-400 animate-fade-in text-xs font-bold"
+  >
+    <span class="material-symbols-outlined text-sky-400 text-[20px]">check_circle</span>
+    <span>{{ toastMessage }}</span>
+  </div>
+
+  <!-- 1. 5 TOP KPI METRIC CARDS (ĐƯỢC ĐƯA LÊN ĐẦU TRANG) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+    <!-- Card 1: TỔNG BIỆT THỰ -->
+    <div
+      class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >TỔNG BIỆT THỰ</span
+          >
+          <div class="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">hotel</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-1.5">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            totalVillasCount
+          }}</span>
+          <span class="text-xs text-slate-400 font-bold">căn</span>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between text-xs">
+        <span class="text-slate-400">{{ customZones.length }} Phân khu</span>
+        <span class="font-bold text-[#0284c7]">{{
+          totalVillasCount > 0 ? '100% Hoạt động' : 'Chưa có phòng'
+        }}</span>
+      </div>
+    </div>
+
+    <!-- Card 2: ĐANG CÓ KHÁCH (OCCUPIED) -->
+    <div
+      class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >ĐANG CÓ KHÁCH (OCCUPIED)</span
+          >
+          <div
+            class="w-8 h-8 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-[18px]">group</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-1.5">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            occupiedVillasCount
+          }}</span>
+          <span class="text-xs text-slate-400 font-bold">/ {{ totalVillasCount }} Căn</span>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-slate-100 flex items-center space-x-2 text-xs">
+        <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div class="h-full bg-[#0284c7] rounded-full" [style.width.%]="occupancyPercentage"></div>
+        </div>
+        <span class="font-bold text-slate-700">{{ occupancyPercentage }}% Công suất</span>
+      </div>
+    </div>
+
+    <!-- Card 3: SẴN SÀNG ĐÓN KHÁCH -->
+    <div
+      class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >SẴN SÀNG ĐÓN KHÁCH</span
+          >
+          <div
+            class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-1.5">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            availableVillasCount
+          }}</span>
+          <span class="text-xs text-emerald-700 font-bold">Căn sạch</span>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+        <span>{{ totalVillasCount > 0 ? '100% Phòng Đã Dọn Sạch' : 'Chưa có phòng' }}</span>
+        <span class="font-bold text-slate-700">{{ availablePercentage }}% Trống</span>
+      </div>
+    </div>
+
+    <!-- Card 4: ĐANG DỌN / HOUSEKEEPING -->
+    <div
+      class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >ĐANG DỌN / HOUSEKEEPING</span
+          >
+          <div
+            class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-[18px]">cleaning_services</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-1.5">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            cleaningVillasCount
+          }}</span>
+          <span class="text-xs text-amber-800 font-bold">Đang xử lý</span>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+        <span>{{
+          cleaningVillasCount === 0
+            ? '0 tác vụ đang chạy'
+            : cleaningVillasCount + ' phòng đang xử lý'
+        }}</span>
+        <span class="font-bold text-amber-800">{{
+          cleaningVillasCount === 0 ? 'Đã hoàn tất' : 'Xong < 13:30'
+        }}</span>
+      </div>
+    </div>
+
+    <!-- Card 5: BẢO TRÌ / KHÓA PHÒNG -->
+    <div
+      class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs flex flex-col justify-between"
+    >
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+            >BẢO TRÌ / KHÓA PHÒNG</span
+          >
+          <div
+            class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-[18px]">key_off</span>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline space-x-1.5">
+          <span class="text-3xl font-black text-slate-900 tracking-tight">{{
+            maintenanceVillasCount
+          }}</span>
+          <span class="text-xs text-slate-400 font-bold">Căn ngưng dùng</span>
+        </div>
+      </div>
+      <div class="mt-3 pt-2 border-t border-slate-100 flex justify-between text-xs text-slate-500">
+        <span>{{
+          maintenanceVillasCount === 0
+            ? '0 căn bảo trì'
+            : maintenanceVillasCount + ' căn cần sửa chữa'
+        }}</span>
+        <span
+          class="font-bold"
+          [ngClass]="maintenanceVillasCount === 0 ? 'text-emerald-700' : 'text-rose-600'"
+        >
+          {{ maintenanceVillasCount === 0 ? 'Sẵn sàng' : 'Cần bảo trì' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. QUẢN LÝ PHÂN KHU NGHỈ DƯỠNG & THANH TÁC VỤ -->
+  <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs space-y-4">
+    <!-- Top Bar: Title & Action Buttons -->
+    <div
+      class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-3 border-b border-slate-100"
+    >
+      <div class="flex items-center space-x-3">
+        <div
+          class="w-10 h-10 rounded-xl bg-sky-50 text-[#0284c7] flex items-center justify-center flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-[22px]">holiday_village</span>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h2 class="text-base font-black text-slate-900 tracking-tight">
+              Quản Lý Phân Khu Nghỉ Dưỡng
+            </h2>
+            <span
+              class="px-2 py-0.5 rounded-full bg-sky-50 text-[#0284c7] border border-sky-200 text-[11px] font-bold"
+            >
+              {{ customZones.length }} Phân Khu
+            </span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Quy hoạch các phân khu biệt lập, thêm sửa xóa phân khu và điều phối vận hành
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+
+        <button
+          (click)="openCreateZoneModal()"
+          class="px-4 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs flex items-center space-x-1.5 transition cursor-pointer font-bold"
+        >
+          <span class="material-symbols-outlined text-[16px]">add_circle</span>
+          <span>+ Thêm Phân Khu Mới</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Thông báo khi chưa có phân khu nào -->
+    <div
+      *ngIf="customZones.length === 0"
+      class="p-3 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-500"
+    >
+      Chưa có phân khu nào được tạo. Bấm
+      <strong class="text-[#0284c7] cursor-pointer hover:underline" (click)="openCreateZoneModal()" tabindex="0" (keydown.enter)="openCreateZoneModal()"
+        >+ Thêm Phân Khu</strong
+      >
+      để bắt đầu phân cụm biệt thự.
+    </div>
+
+    <!-- Zone Cards Grid: Thêm, Sửa, Xóa từng phân khu -->
+    <div
+      *ngIf="customZones.length > 0"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3"
+    >
+      <div
+        *ngFor="let z of customZones"
+        class="p-3 rounded-xl border border-slate-200/80 bg-slate-50/60 hover:bg-white hover:border-sky-300 hover:shadow-2xs transition-all flex flex-col justify-between group"
+      >
+        <div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5 truncate">
+
+              <h4 class="font-bold text-xs text-slate-900 truncate" [title]="z.name">
+                {{ z.name }}
+              </h4>
+            </div>
+            <span
+              class="text-[9px] font-bold px-1.5 py-0.5 rounded border shrink-0"
+              [ngClass]="z.badgeClass || 'bg-slate-100 text-slate-600 border-slate-200'"
+              >{{ z.tag }}</span
+            >
+          </div>
+          <p class="text-[10px] text-slate-400 line-clamp-1 mt-1">{{ z.desc }}</p>
+        </div>
+
+        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-[11px] font-extrabold text-[#0284c7]">
+            {{ getZoneRoomCount(z) }}
+            <span class="font-normal text-slate-400 text-[10px]">biệt thự</span>
+          </span>
+          <div class="flex items-center space-x-1">
+            <button
+              type="button"
+              (click)="openEditZoneModal(z, $event)"
+              class="p-1 rounded-md text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition cursor-pointer"
+              title="Cấu hình / Sửa phân khu"
+            >
+              <span class="material-symbols-outlined text-[14px]">edit</span>
+            </button>
+            <button
+              type="button"
+              (click)="openDeleteZoneConfirm(z, $event)"
+              class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+              title="Xóa phân khu"
+            >
+              <span class="material-symbols-outlined text-[14px]">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Add Zone Card Button -->
+      <button
+        type="button"
+        (click)="openCreateZoneModal()"
+        class="p-3 rounded-xl border border-dashed border-slate-300 hover:border-[#0284c7] bg-slate-50/30 hover:bg-sky-50/50 flex flex-col items-center justify-center text-slate-500 hover:text-[#0284c7] transition-all cursor-pointer min-h-[82px] group"
+      >
+        <span
+          class="w-7 h-7 rounded-lg bg-sky-100/70 text-[#0284c7] flex items-center justify-center mb-1 group-hover:scale-110 transition-transform"
+        >
+          <span class="material-symbols-outlined text-[18px]">add</span>
+        </span>
+        <span class="text-[11px] font-bold">+ Thêm Phân Khu Mới</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. TỔNG QUAN CÁC LOẠI GIƯỜNG -->
+  <div class="space-y-3">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+      <div class="flex items-center space-x-2">
+        <span class="material-symbols-outlined text-amber-500 text-[20px]">hotel</span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Tổng Quan Các Loại Giường</h2>
+          <p class="text-[11px] text-slate-400">
+            Tiêu chuẩn quy cách giường ngủ, sức chứa và phân bổ không gian nghỉ dưỡng
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2.5 text-xs font-semibold">
+        <button
+          (click)="openCreateRoomTypeModal()"
+          class="px-3.5 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs flex items-center space-x-1.5 transition font-bold cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">add_circle</span>
+          <span>+ Thêm Loại Giường</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State khi roomTypes.length === 0 -->
+    <div
+      *ngIf="roomTypes.length === 0"
+      class="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-3"
+    >
+      <div
+        class="w-14 h-14 mx-auto rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center"
+      >
+        <span class="material-symbols-outlined text-[32px]">hotel</span>
+      </div>
+      <div>
+        <h3 class="text-sm font-bold text-slate-800">Chưa Có Danh Mục Loại Giường</h3>
+        <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+          Hệ thống chưa có tiêu chuẩn loại giường và sức chứa. Vui lòng khởi tạo loại giường đầu
+          tiên để sẵn sàng gán cho các căn biệt thự.
+        </p>
+      </div>
+      <button
+        type="button"
+        (click)="openCreateRoomTypeModal()"
+        class="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition font-bold text-xs inline-flex items-center space-x-1.5 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[16px]">add_circle</span>
+        <span>+ Thêm Loại Giường Đầu Tiên</span>
+      </button>
+    </div>
+
+    <!-- 4 Showcase Cards Grid -->
+    <div *ngIf="roomTypes.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        *ngFor="let rt of roomTypes"
+        class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all"
+      >
+        <!-- Image with tags & title overlay -->
+        <div class="relative h-36 overflow-hidden bg-slate-900">
+          <img
+            *ngIf="rt.imageUrl && !rt.imageError"
+            [src]="getImageUrl(rt.imageUrl)"
+            [alt]="rt.title"
+            (error)="onCardImageError(rt)"
+            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div
+            *ngIf="!rt.imageUrl || rt.imageError"
+            class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-sky-950 text-slate-300"
+          >
+            <span class="material-symbols-outlined text-[36px] text-amber-400/80 mb-1">bed</span>
+            <span class="text-[10px] font-semibold text-slate-400"
+              >Tiêu Chuẩn Giường Nghỉ Dưỡng</span
+            >
+          </div>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent pointer-events-none"
+          ></div>
+
+          <!-- Top Tags -->
+          <div
+            class="absolute top-2.5 left-2.5 right-2.5 flex items-center text-[10px] font-bold text-white"
+          >
+            <div class="flex items-center space-x-1.5">
+              <span class="px-2 py-0.5 rounded bg-slate-900/80 backdrop-blur-xs">{{
+                rt.count
+              }}</span>
+              <span
+                class="px-2 py-0.5 rounded bg-slate-900/80 backdrop-blur-xs flex items-center space-x-1 text-amber-300 font-semibold"
+                title="Kích thước giường: Rộng × Dài"
+              >
+                <span class="material-symbols-outlined text-[11px]">straighten</span>
+                <span>{{ rt.dimensions || rt.area }}</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Bottom Title & Bed Info -->
+          <div
+            class="absolute bottom-2.5 left-2.5 right-2.5 flex items-end justify-between text-white gap-2"
+          >
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center space-x-1 text-amber-300 mb-0.5">
+                <span class="material-symbols-outlined text-[13px] shrink-0">bed</span>
+                <span
+                  class="text-[9px] uppercase font-bold tracking-wider truncate block"
+                  [title]="rt.bedInfo || rt.section"
+                >
+                  {{ rt.bedInfo || rt.section }}
+                </span>
+              </div>
+              <h3 class="text-xs font-bold text-white truncate" [title]="rt.title">
+                {{ rt.title }}
+              </h3>
+            </div>
+            <div class="text-right flex-shrink-0">
+              <span
+                class="px-2 py-0.5 rounded-md bg-amber-400/20 backdrop-blur-xs text-[10px] font-bold text-amber-300 border border-amber-400/30 flex items-center space-x-1"
+                [title]="
+                  'Sức chứa: ' +
+                  (rt.adults || 2) +
+                  ' người lớn' +
+                  (rt.children ? ', ' + rt.children + ' trẻ nhỏ' : '')
+                "
+              >
+                <span class="material-symbols-outlined text-[12px]">group</span>
+                <span>{{
+                  rt.children && rt.children > 0
+                    ? (rt.adults || 2) + ' Lớn • ' + rt.children + ' Nhỏ'
+                    : (rt.adults || 2) + ' Người lớn'
+                }}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description & Sức Chứa (Đã xóa bỏ Butler 24/7, Hồ bơi riêng, View toàn cảnh) -->
+        <div class="p-3.5 space-y-2 flex-1 flex flex-col justify-between">
+          <div class="space-y-1.5">
+            <div class="flex items-center space-x-3 text-slate-600 text-xs">
+              <span class="flex items-center space-x-1">
+                <span class="material-symbols-outlined text-slate-400 text-[15px]">person</span>
+                <span
+                  >Người lớn:
+                  <strong class="text-slate-800 font-bold">{{ rt.adults || 2 }}</strong></span
+                >
+              </span>
+              <span class="text-slate-300">•</span>
+              <span class="flex items-center space-x-1">
+                <span class="material-symbols-outlined text-slate-400 text-[15px]">child_care</span>
+                <span
+                  >Trẻ nhỏ:
+                  <strong class="text-slate-800 font-bold">{{ rt.children || 0 }}</strong></span
+                >
+              </span>
+            </div>
+            <p *ngIf="rt.desc" class="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+              {{ rt.desc }}
+            </p>
+          </div>
+
+          <!-- Footer Action: Cân đối toàn bộ chiều rộng thẻ -->
+          <div class="pt-3 border-t border-slate-100 flex items-center space-x-2">
+            <button
+              type="button"
+              (click)="openEditRoomTypeModal(rt)"
+              class="flex-1 h-8 px-3 rounded-xl border font-bold text-xs flex items-center justify-center space-x-1.5 transition cursor-pointer shadow-2xs hover:opacity-95"
+              [ngClass]="
+                rt.btnAmber
+                  ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-500'
+                  : 'bg-sky-50 hover:bg-sky-100 text-[#0284c7] hover:text-[#0369a1] border-sky-200/80'
+              "
+              title="Cấu hình loại giường"
+            >
+              <span class="material-symbols-outlined text-[16px]">settings</span>
+              <span>Cấu hình giường</span>
+            </button>
+            <button
+              type="button"
+              (click)="openDeleteRoomTypeConfirm(rt, $event)"
+              class="w-8 h-8 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition flex items-center justify-center cursor-pointer shrink-0 shadow-2xs"
+              title="Xóa loại giường"
+            >
+              <span class="material-symbols-outlined text-[16px]">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE KHI CHƯA CÓ BIỆT THỰ NÀO TRONG HỆ THỐNG -->
+  <div
+    *ngIf="rooms.length === 0"
+    class="bg-white border border-slate-200/80 rounded-2xl p-8 sm:p-12 shadow-2xs text-center space-y-6"
+  >
+    <div
+      class="w-16 h-16 mx-auto rounded-2xl bg-sky-50 text-[#0284c7] flex items-center justify-center shadow-xs"
+    >
+      <span class="material-symbols-outlined text-[36px]">holiday_village</span>
+    </div>
+    <div class="max-w-md mx-auto">
+      <h3 class="text-base font-bold text-slate-900">Chưa Có Biệt Thự Nào Trong Hệ Thống</h3>
+      <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+        Dữ liệu mẫu đã được dọn sạch hoàn toàn. Bạn có thể bắt đầu thiết lập resort nghỉ dưỡng theo
+        quy trình 3 bước chuẩn bên dưới:
+      </p>
+    </div>
+
+    <!-- Sơ đồ 3 bước thiết lập -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 max-w-2xl mx-auto text-left">
+      <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl space-y-1.5">
+        <div class="flex items-center space-x-2 text-amber-600 font-bold text-xs">
+          <span
+            class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-[11px]"
+            >1</span
+          >
+          <span>Loại Giường</span>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Tạo quy cách giường ngủ và số khách tối đa (sức chứa).
+        </p>
+      </div>
+      <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl space-y-1.5">
+        <div class="flex items-center space-x-2 text-sky-600 font-bold text-xs">
+          <span class="w-5 h-5 rounded-full bg-sky-100 flex items-center justify-center text-[11px]"
+            >2</span
+          >
+          <span>Phân Khu</span>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Tạo các phân khu nghỉ dưỡng (Biển, Vách Đá, Hồ Nước...).
+        </p>
+      </div>
+      <div class="p-3.5 bg-slate-50 border border-slate-200/70 rounded-xl space-y-1.5">
+        <div class="flex items-center space-x-2 text-emerald-600 font-bold text-xs">
+          <span
+            class="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-[11px]"
+            >3</span
+          >
+          <span>Khởi Tạo Biệt Thự</span>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          Nhập số hiệu biệt thự, chọn loại giường và gán đơn giá thuê.
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <button
+        type="button"
+        (click)="openCreateRoomModal()"
+        class="px-5 py-2.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition font-bold text-xs inline-flex items-center space-x-2 cursor-pointer"
+      >
+        <span class="material-symbols-outlined text-[18px]">add_home</span>
+        <span>Khởi Tạo Biệt Thự Đầu Tiên</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- DANH SÁCH & BỘ LỌC BIỆT THỰ (CHỈ HIỂN THỊ KHI CÓ BIỆT THỰ) -->
+  <ng-container *ngIf="rooms.length > 0">
+    <!-- 4. FILTER TABS & SEARCH BAR FOR ROOM GRID -->
+    <div
+      class="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3"
+    >
+      <!-- Filter Tabs -->
+      <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold">
+        <button
+          (click)="setTab('ALL')"
+          [class.bg-[#0284c7]]="activeTab === 'ALL'"
+          [class.text-white]="activeTab === 'ALL'"
+          [class.bg-slate-100]="activeTab !== 'ALL'"
+          [class.text-slate-600]="activeTab !== 'ALL'"
+          class="px-3 py-1.5 rounded-xl transition"
+        >
+          Tất Cả ({{ rooms.length }})
+        </button>
+
+        <button
+          (click)="setTab('AVAILABLE')"
+          [class.bg-[#0284c7]]="activeTab === 'AVAILABLE'"
+          [class.text-white]="activeTab === 'AVAILABLE'"
+          [class.bg-slate-100]="activeTab !== 'AVAILABLE'"
+          [class.text-slate-600]="activeTab !== 'AVAILABLE'"
+          class="px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5"
+        >
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Sẵn Sàng</span>
+        </button>
+
+        <button
+          (click)="setTab('OCCUPIED')"
+          [class.bg-[#0284c7]]="activeTab === 'OCCUPIED'"
+          [class.text-white]="activeTab === 'OCCUPIED'"
+          [class.bg-slate-100]="activeTab !== 'OCCUPIED'"
+          [class.text-slate-600]="activeTab !== 'OCCUPIED'"
+          class="px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5"
+        >
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          <span>Có Khách</span>
+        </button>
+
+        <button
+          (click)="setTab('CLEANING')"
+          [class.bg-[#0284c7]]="activeTab === 'CLEANING'"
+          [class.text-white]="activeTab === 'CLEANING'"
+          [class.bg-slate-100]="activeTab !== 'CLEANING'"
+          [class.text-slate-600]="activeTab !== 'CLEANING'"
+          class="px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5"
+        >
+          <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+          <span>Đang Dọn</span>
+        </button>
+
+        <button
+          (click)="setTab('MAINTENANCE')"
+          [class.bg-[#0284c7]]="activeTab === 'MAINTENANCE'"
+          [class.text-white]="activeTab === 'MAINTENANCE'"
+          [class.bg-slate-100]="activeTab !== 'MAINTENANCE'"
+          [class.text-slate-600]="activeTab !== 'MAINTENANCE'"
+          class="px-3 py-1.5 rounded-xl transition flex items-center space-x-1.5"
+        >
+          <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+          <span>Bảo Trì</span>
+        </button>
+      </div>
+
+      <!-- Search & Section Dropdown -->
+      <div class="flex items-center space-x-2 text-xs">
+        <div class="relative w-48 sm:w-56">
+          <span class="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-slate-400"
+            >search</span
+          >
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            (keyup.enter)="onSearch()"
+            placeholder="Tìm số phòng, phân khu..."
+            class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/30 text-slate-800 placeholder-slate-400 transition"
+          />
+        </div>
+
+        <select
+          [(ngModel)]="selectedSection"
+          (ngModelChange)="onSectionChange()"
+          class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-semibold focus:outline-none"
+        >
+          <option value="ALL">Tất cả Phân Khu</option>
+          <option *ngFor="let z of customZones" [value]="z.name">{{ z.name }}</option>
+        </select>
+
+        <button
+          (click)="loadRooms()"
+          class="p-1.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition"
+          title="Làm mới dữ liệu"
+        >
+          <span class="material-symbols-outlined text-[18px]">cached</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- View Mode Toggle: Grid ⇋ Table -->
+    <div class="flex justify-end mt-3 mb-1">
+      <div class="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200 shadow-2xs">
+        <button
+          (click)="toggleViewMode('GRID')"
+          [class.bg-white]="viewMode === 'GRID'"
+          [class.text-[#0284c7]]="viewMode === 'GRID'"
+          [class.shadow-xs]="viewMode === 'GRID'"
+          class="px-3 py-1.5 rounded-lg text-slate-600 transition flex items-center space-x-1.5 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">grid_view</span>
+          <span class="hidden sm:inline">Lưới Thẻ</span>
+        </button>
+        <button
+          (click)="toggleViewMode('TABLE')"
+          [class.bg-white]="viewMode === 'TABLE'"
+          [class.text-[#0284c7]]="viewMode === 'TABLE'"
+          [class.shadow-xs]="viewMode === 'TABLE'"
+          class="px-3 py-1.5 rounded-lg text-slate-600 transition flex items-center space-x-1.5 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[16px]">table_rows</span>
+          <span class="hidden sm:inline">Bảng Chi Tiết</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5A. VILLA CARDS GRID ORGANIZED BY ZONE (When viewMode === 'GRID') -->
+    <div *ngIf="viewMode === 'GRID'" class="space-y-6">
+      <!-- Empty state if no villas match filter at all -->
+      <div
+        *ngIf="filteredRooms.length === 0"
+        class="p-10 bg-white rounded-2xl border border-slate-200/80 text-center space-y-3 shadow-2xs"
+      >
+        <div
+          class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto"
+        >
+          <span class="material-symbols-outlined text-[26px]">search_off</span>
+        </div>
+        <h3 class="text-sm font-bold text-slate-800">Không tìm thấy biệt thự nào</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">
+          Không có biệt thự nào phù hợp với điều kiện tìm kiếm hoặc bộ lọc hiện tại. Thử chọn "Tất
+          Cả" trên thanh lọc.
+        </p>
+        <button
+          type="button"
+          (click)="openCreateRoomModal()"
+          class="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold transition shadow-xs"
+        >
+          + Khởi Tạo Biệt Thự Mới
+        </button>
+      </div>
+
+      <!-- Zone Block Loop -->
+      <div *ngFor="let zone of groupedZones" class="space-y-3.5">
+        <!-- Zone Section Banner Header -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs gap-3"
+        >
+          <div class="flex items-center space-x-3">
+            <div>
+              <div class="flex items-center space-x-2">
+                <h3 class="text-sm font-black text-slate-900 tracking-tight">
+                  {{ zone.zoneName }}
+                </h3>
+                <span
+                  class="px-2 py-0.5 rounded text-[10px] font-bold border"
+                  [ngClass]="zone.badgeClass"
+                >
+                  {{ zone.zoneTag }}
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 mt-0.5">{{ zone.description }}</p>
+            </div>
+          </div>
+
+          <!-- Zone Live Status & Action -->
+          <div class="flex items-center space-x-2 sm:space-x-3 text-xs shrink-0">
+            <div class="flex items-center space-x-1.5 text-[11px] font-bold">
+              <span
+                class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200"
+              >
+                {{ zone.availableCount }} Sẵn sàng
+              </span>
+              <span
+                *ngIf="zone.occupiedCount > 0"
+                class="px-2 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200"
+              >
+                {{ zone.occupiedCount }} Có khách
+              </span>
+              <span
+                *ngIf="zone.cleaningCount > 0"
+                class="px-2 py-1 rounded-lg bg-sky-50 text-sky-700 border border-sky-200"
+              >
+                {{ zone.cleaningCount }} Đang dọn
+              </span>
+              <span
+                *ngIf="zone.maintenanceCount > 0"
+                class="px-2 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200"
+              >
+                {{ zone.maintenanceCount }} Bảo trì
+              </span>
+            </div>
+
+            <button
+              type="button"
+              (click)="openCreateRoomModal(zone.zoneName)"
+              class="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-[#0284c7] border border-sky-200 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-2xs"
+            >
+              <span class="material-symbols-outlined text-[15px]">add</span>
+              <span>Thêm Villa</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Villa Cards in this Zone -->
+        <div
+          *ngIf="zone.rooms.length > 0"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          <div
+            *ngFor="let room of zone.rooms"
+            (click)="openRoomModal(room)"
+            (keyup.enter)="openRoomModal(room)"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Xem chi tiết biệt thự ' + room.number"
+            class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs hover:border-[#0284c7] hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative focus:outline-none focus:ring-2 focus:ring-[#0284c7]"
+          >
+            <!-- Top Row: Villa Number Tag + Category + Status Tag & Action Icons -->
+            <div>
+              <div class="flex items-start justify-between mb-2.5">
+                <!-- Circle Tag & Name -->
+                <div class="flex items-center space-x-2.5 min-w-0">
+                  <div
+                    class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0"
+                    [ngClass]="{
+                      'bg-[#0284c7] text-white': room.tagColor === 'blue',
+                      'bg-amber-500 text-slate-950':
+                        room.tagColor === 'amber' || room.tagColor === 'gold',
+                      'bg-emerald-500 text-white': room.tagColor === 'green',
+                      'bg-teal-600 text-white': room.tagColor === 'teal',
+                      'bg-slate-900 text-white': room.tagColor === 'dark',
+                    }"
+                  >
+                    {{ room.number }}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex items-center space-x-1.5">
+                      <h3 class="text-xs font-bold text-slate-900 leading-tight truncate">
+                        Villa #{{ room.number }}
+                      </h3>
+                      <span
+                        class="text-[9px] px-1.5 py-0.2 rounded font-bold bg-sky-50 text-[#0284c7] border border-sky-200 shrink-0"
+                      >
+                        {{ room.category }}
+                      </span>
+                    </div>
+                    <div
+                      class="flex items-center space-x-1.5 mt-0.5 text-[10px] text-slate-500 font-medium truncate"
+                    >
+                      <span
+                        class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 font-semibold shrink-0"
+                      >
+                        {{ room.structureType || (room.floor ? room.floor + ' Tầng' : '1 Tầng') }}
+                      </span>
+                      <span>•</span>
+                      <span class="font-bold text-slate-700 shrink-0">
+                        {{ room.bedroomCount || room.childRooms?.length || 1 }} PN •
+                        {{ room.totalAdults || 2 }} NL
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Quick Action Buttons: Status, Edit, Delete -->
+                <div class="flex items-center space-x-0.5 shrink-0 ml-1">
+                  <button
+                    type="button"
+                    (click)="openQuickStatusModal(room, $event)"
+                    class="p-1 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition"
+                    title="Đổi trạng thái nhanh"
+                  >
+                    <span class="material-symbols-outlined text-[15px]">sync_alt</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openEditRoomModal(room, $event)"
+                    class="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                    title="Chỉnh sửa thông tin phòng"
+                  >
+                    <span class="material-symbols-outlined text-[15px]">edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openDeleteConfirm(room, $event)"
+                    class="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                    title="Xóa phòng"
+                  >
+                    <span class="material-symbols-outlined text-[15px]">delete</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Status Tag Row -->
+              <div class="flex items-center justify-between mt-1 mb-2">
+                <span
+                  class="text-[10px] font-bold px-2 py-0.5 rounded-md border flex items-center space-x-1"
+                  [ngClass]="room.statusTagClass"
+                >
+                  <span
+                    class="w-1.5 h-1.5 rounded-full"
+                    [ngClass]="getStatusDotClass(room.statusRaw)"
+                  ></span>
+                  <span>{{ room.statusTag }}</span>
+                </span>
+                <span *ngIf="room.priceFormatted" class="text-[11px] font-bold text-[#0284c7]">
+                  {{ room.priceFormatted }}
+                </span>
+              </div>
+
+              <!-- Dịch vụ & Tiện ích đi kèm -->
+              <div
+                *ngIf="room.amenities && room.amenities.length > 0"
+                class="flex flex-wrap items-center gap-1.5 mb-2"
+              >
+                <span
+                  *ngFor="let am of room.amenities.slice(0, 3)"
+                  class="text-[9px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/70 font-semibold flex items-center space-x-1 shadow-2xs hover:bg-emerald-100/70 transition-colors"
+                  [title]="am"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span class="whitespace-nowrap">{{ am }}</span>
+                </span>
+                <span
+                  *ngIf="room.amenities.length > 3"
+                  class="text-[9px] px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200 font-bold cursor-default"
+                  [title]="room.amenities.slice(3).join(', ')"
+                >
+                  +{{ room.amenities.length - 3 }}
+                </span>
+              </div>
+
+              <!-- Middle Info Body -->
+              <div
+                class="mt-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 min-h-[72px] flex flex-col justify-center text-xs"
+              >
+                <!-- Guest In-House Profile Card (Đã làm đẹp chuẩn 5 sao) -->
+                <div *ngIf="room.guestName" class="space-y-1.5">
+                  <div class="flex items-center justify-between gap-1.5">
+                    <div class="flex items-center space-x-1.5 min-w-0">
+                      <div
+                        class="w-6 h-6 rounded-full bg-gradient-to-br from-[#0284c7] to-sky-700 text-white font-black text-[9px] flex items-center justify-center shrink-0 shadow-2xs border border-sky-300/60"
+                      >
+                        {{ getGuestInitials(room.guestName) }}
+                      </div>
+                      <span class="font-bold text-slate-900 text-xs truncate" [title]="room.guestName">
+                        {{ room.guestName }}
+                      </span>
+                    </div>
+
+                    <!-- Refined VIP / Member Pill Badge (Bo góc tròn, viền nhẹ, chấm tròn phân cấp) -->
+                    <span
+                      *ngIf="room.guestTier"
+                      class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] shrink-0 shadow-2xs"
+                      [ngClass]="room.guestTierClass || getTierBadgeClass(room.guestTier)"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full"
+                        [ngClass]="
+                          (room.guestTier || '').toLowerCase().includes('diamond')
+                            ? 'bg-amber-500'
+                            : (room.guestTier || '').toLowerCase().includes('gold')
+                              ? 'bg-amber-400'
+                              : 'bg-sky-500'
+                        "
+                      ></span>
+                      <span>{{ room.guestTier }}</span>
+                    </span>
+                  </div>
+
+                  <div class="flex items-center space-x-1.5 text-[10px] text-slate-500 truncate pl-0.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <span class="truncate">{{ room.guestSub || 'Đang lưu trú tại biệt thự' }}</span>
+                  </div>
+                </div>
+
+                <div
+                  *ngIf="!room.guestName && room.details"
+                  class="space-y-1 text-[10px] text-slate-600"
+                >
+                  <div *ngFor="let d of room.details" class="flex items-center space-x-1 truncate">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0"></span>
+                    <span class="truncate">{{ d }}</span>
+                  </div>
+                </div>
+
+                <!-- Danh sách Phòng ngủ con bên trong Villa -->
+                <div
+                  *ngIf="room.childRooms && room.childRooms.length > 0"
+                  class="mt-2 pt-1.5 border-t border-slate-200/60"
+                >
+                  <div
+                    class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1 flex items-center justify-between"
+                  >
+                    <span>Phòng ngủ trong Villa:</span>
+                    <span class="text-[#0284c7] font-black"
+                      >{{ room.childRooms.length }} phòng</span
+                    >
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    <span
+                      *ngFor="let cr of room.childRooms"
+                      class="text-[9px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 font-semibold truncate max-w-[135px]"
+                      [title]="cr.name + ' (' + cr.roomNumber + '): ' + (cr.description || '')"
+                    >
+                      🛏️ {{ cr.name }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div
+              class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs"
+            >
+              <span class="text-[10px] text-slate-400 font-medium truncate">{{
+                room.footerLeft
+              }}</span>
+
+              <div class="flex items-center space-x-1">
+                <button
+                  type="button"
+                  (click)="$event.stopPropagation(); openEditRoomModal(room)"
+                  class="px-2 py-1 text-[10px] text-slate-600 hover:bg-slate-100 rounded-lg font-bold transition flex items-center space-x-0.5"
+                >
+                  <span class="material-symbols-outlined text-[13px]">edit</span>
+                  <span>Sửa</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="$event.stopPropagation(); openRoomModal(room)"
+                  [ngClass]="room.btnClass"
+                >
+                  {{ room.btnLabel }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Zone hint -->
+        <div
+          *ngIf="zone.rooms.length === 0"
+          class="p-5 bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 text-center text-xs text-slate-400 font-medium"
+        >
+          Không có biệt thự nào trong {{ zone.zoneName }} phù hợp với bộ lọc hiện tại.
+        </div>
+      </div>
+    </div>
+
+    <!-- 5B. DATA TABLE VIEW (When viewMode === 'TABLE') -->
+    <div
+      *ngIf="viewMode === 'TABLE'"
+      class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead
+            class="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200"
+          >
+            <tr>
+              <th class="py-3.5 px-4">MÃ BIỆT THỰ / PHÒNG</th>
+              <th class="py-3.5 px-4">HẠNG PHÒNG & GIÁ</th>
+              <th class="py-3.5 px-4">TẦNG & PHÂN KHU</th>
+              <th class="py-3.5 px-4">KHÁCH LƯU TRÚ</th>
+              <th class="py-3.5 px-4">VỆ SINH & OZON</th>
+              <th class="py-3.5 px-4 text-center">TRẠNG THÁI</th>
+              <th class="py-3.5 px-4 text-right">THAO TÁC</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium">
+            <ng-container *ngFor="let zone of groupedZones">
+              <!-- Zone Subheader in Table -->
+              <tr *ngIf="zone.rooms.length > 0" class="bg-slate-50/90 border-y border-slate-200">
+                <td colspan="7" class="py-2.5 px-4 font-bold text-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+
+                      <span class="text-slate-900 font-black">{{ zone.zoneName }}</span>
+                      <span
+                        class="text-[10px] font-bold px-2 py-0.5 rounded border"
+                        [ngClass]="zone.badgeClass"
+                        >{{ zone.zoneTag }}</span
+                      >
+                    </div>
+                    <div
+                      class="text-[11px] text-slate-500 font-medium flex items-center space-x-2.5"
+                    >
+                      <span
+                        >Tổng:
+                        <strong class="text-slate-800">{{ zone.rooms.length }}</strong> căn</span
+                      >
+                      <span>•</span>
+                      <span class="text-emerald-700 font-bold"
+                        >{{ zone.availableCount }} sẵn sàng</span
+                      >
+                    </div>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Zone Room Rows -->
+              <tr
+                *ngFor="let room of zone.rooms"
+                class="hover:bg-slate-50/80 transition-colors group"
+              >
+                <!-- Col 1: Mã phòng -->
+                <td class="py-3.5 px-4">
+                  <div class="flex items-center space-x-2.5">
+                    <div
+                      class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs"
+                      [ngClass]="{
+                        'bg-[#0284c7] text-white': room.tagColor === 'blue',
+                        'bg-amber-500 text-slate-950':
+                          room.tagColor === 'amber' || room.tagColor === 'gold',
+                        'bg-emerald-500 text-white': room.tagColor === 'green',
+                        'bg-teal-600 text-white': room.tagColor === 'teal',
+                        'bg-slate-900 text-white': room.tagColor === 'dark',
+                      }"
+                    >
+                      {{ room.number }}
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        class="font-mono font-bold text-slate-900 block hover:text-[#0284c7] cursor-pointer text-left"
+                        (click)="openRoomModal(room)"
+                      >
+                        Villa #{{ room.number }}
+                      </button>
+                      <span class="text-[10px] text-slate-400 font-normal">{{ room.area }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Col 2: Hạng biệt thự & Giá -->
+                <td class="py-3.5 px-4">
+                  <div class="flex items-center space-x-1.5">
+                    <span class="font-bold text-slate-800">{{ room.category }}</span>
+                    <span
+                      class="text-[9px] px-1.5 py-0.2 bg-sky-50 text-[#0284c7] rounded border border-sky-200 font-bold shrink-0"
+                    >
+                      {{ room.bedroomCount || room.childRooms?.length || 1 }} PN •
+                      {{ room.totalAdults || 2 }} NL
+                    </span>
+                  </div>
+                  <div class="flex items-center space-x-2 mt-0.5">
+                    <span class="text-[11px] font-semibold text-[#0284c7]">{{
+                      room.priceFormatted || 'Liên hệ'
+                    }}</span>
+                    <span
+                      class="text-[10px] px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded font-medium"
+                    >
+                      {{ room.structureType || (room.floor ? room.floor + ' Tầng' : '1 Tầng') }}
+                    </span>
+                  </div>
+                  <!-- Amenity tags in table if present -->
+                  <div
+                    *ngIf="room.amenities && room.amenities.length > 0"
+                    class="flex flex-wrap gap-1 mt-1"
+                  >
+                    <span
+                      *ngFor="let am of room.amenities.slice(0, 3)"
+                      class="text-[9px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-medium truncate max-w-[120px]"
+                      [title]="am"
+                    >
+                      {{ am }}
+                    </span>
+                    <span
+                      *ngIf="room.amenities.length > 3"
+                      class="text-[9px] text-slate-400 font-medium"
+                    >
+                      +{{ room.amenities.length - 3 }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Col 3: Tầng & Phân khu -->
+                <td class="py-3.5 px-4">
+                  <span class="font-semibold text-slate-700 block">{{ room.zone }}</span>
+                  <span class="text-[10px] text-slate-400">
+                    {{ room.structureType || (room.floor ? 'Tầng ' + room.floor : '1 Tầng') }}
+                  </span>
+                </td>
+
+                <!-- Col 4: Khách lưu trú -->
+                <td class="py-3.5 px-4">
+                  <div *ngIf="room.guestName" class="flex items-center space-x-2">
+                    <div
+                      class="w-7 h-7 rounded-full bg-gradient-to-br from-[#0284c7] to-sky-700 text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs border border-sky-300/50"
+                    >
+                      {{ getGuestInitials(room.guestName) }}
+                    </div>
+                    <div>
+                      <span class="font-bold text-slate-900 block leading-tight">{{
+                        room.guestName
+                      }}</span>
+                      <span
+                        class="inline-flex items-center space-x-1 px-1.5 py-0.2 rounded-full text-[9px] mt-0.5 shadow-2xs"
+                        [ngClass]="room.guestTierClass || getTierBadgeClass(room.guestTier)"
+                      >
+                        <span
+                          class="w-1 h-1 rounded-full"
+                          [ngClass]="
+                            (room.guestTier || '').toLowerCase().includes('diamond')
+                              ? 'bg-amber-500'
+                              : 'bg-[#0284c7]'
+                          "
+                        ></span>
+                        <span>{{ room.guestTier || 'VIP Diamond' }}</span>
+                      </span>
+                    </div>
+                  </div>
+                  <span *ngIf="!room.guestName" class="text-slate-400 italic text-[11px]"
+                    >— Trống —</span
+                  >
+                </td>
+
+                <!-- Col 5: Vệ sinh & Ozon -->
+                <td class="py-3.5 px-4">
+                  <div class="flex items-center space-x-1 text-slate-700">
+                    <span class="material-symbols-outlined text-[15px] text-teal-600">air</span>
+                    <span class="font-medium text-[11px]">
+                      {{
+                        room.ozoneStatus === 'STERILIZED'
+                          ? 'Đã khử trùng Ozon'
+                          : room.ozoneStatus === 'RUNNING'
+                            ? 'Đang khử trùng'
+                            : 'Chưa khử trùng'
+                      }}
+                    </span>
+                  </div>
+                  <span class="text-[10px] text-slate-400 block mt-0.5">{{
+                    room.zone ? 'Phân khu: ' + room.zone : 'Chuẩn 5 sao'
+                  }}</span>
+                </td>
+
+                <!-- Col 6: Trạng thái -->
+                <td class="py-3.5 px-4 text-center">
+                  <button
+                    type="button"
+                    class="inline-flex items-center space-x-1 text-[10px] font-bold px-2.5 py-1 rounded-full border cursor-pointer hover:shadow-2xs transition"
+                    (click)="openQuickStatusModal(room, $event)"
+                    [ngClass]="room.statusTagClass"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full"
+                      [ngClass]="getStatusDotClass(room.statusRaw)"
+                    ></span>
+                    <span>{{ room.statusTag }}</span>
+                  </button>
+                </td>
+
+                <!-- Col 7: Thao tác -->
+                <td class="py-3.5 px-4 text-right">
+                  <div class="flex items-center justify-end space-x-1">
+                    <button
+                      type="button"
+                      (click)="openRoomModal(room)"
+                      class="p-1.5 text-slate-500 hover:text-[#0284c7] hover:bg-sky-50 rounded-lg transition"
+                      title="Xem chi tiết"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">visibility</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openQuickStatusModal(room, $event)"
+                      class="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition"
+                      title="Đổi trạng thái nhanh"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">sync_alt</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openEditRoomModal(room, $event)"
+                      class="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                      title="Chỉnh sửa thông tin"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openDeleteConfirm(room, $event)"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      title="Xóa phòng"
+                    >
+                      <span class="material-symbols-outlined text-[16px]">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Add Villa row at bottom of zone in Table View -->
+              <tr class="bg-slate-50/40 hover:bg-sky-50/50 transition">
+                <td colspan="7" class="py-2.5 px-4 text-right">
+                  <button
+                    type="button"
+                    (click)="openCreateRoomModal(zone.zoneName)"
+                    class="inline-flex items-center space-x-1.5 px-4 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs text-xs font-bold transition cursor-pointer"
+                  >
+                    <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                    <span>+ Khởi Tạo Biệt Thự Mới ({{ zone.zoneName }})</span>
+                  </button>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Footer / Count -->
+      <div
+        class="p-3.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-slate-400 gap-2"
+      >
+        <div>
+          Hiển thị <strong>{{ filteredRooms.length }}</strong> trên tổng số
+          <strong>{{ rooms.length }}</strong> phòng/biệt thự nghỉ dưỡng
+        </div>
+        <div class="flex items-center space-x-1">
+          <button
+            class="w-6 h-6 rounded border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50"
+          >
+            ‹
+          </button>
+          <button class="w-6 h-6 rounded bg-[#0284c7] text-white font-bold text-xs">1</button>
+          <button
+            class="w-6 h-6 rounded border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50"
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+
+
+  <!-- 7. GUEST INFORMATION & VILLA DETAIL MODAL (ĐÚNG CHUẨN THÔNG TIN KHÁCH ĐẶT) -->
+  <div
+    *ngIf="showGuestModal"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="closeGuestModal()"
+      aria-label="Đóng"
+    ></button>
+
+    <!-- TRƯỜNG HỢP 1: HỒ SƠ ĐẶT PHÒNG THỰC TẾ CỦA KHÁCH -->
+    <div
+      *ngIf="!isAvailableRoomView && currentBooking"
+      class="relative z-10 bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in flex flex-col"
+    >
+      <!-- Modal Top Header (Vibrant Sky Blue Bar) -->
+      <div class="bg-[#0284c7] text-white p-5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white flex-shrink-0"
+          >
+            <span class="material-symbols-outlined text-[22px]">confirmation_number</span>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-base font-black tracking-tight">
+                Hồ Sơ Đặt Phòng {{ currentBooking.code }}
+              </h2>
+              <span
+                class="text-[10px] font-black px-2 py-0.5 rounded-full"
+                [ngClass]="currentBooking.vipBadgeClass"
+              >
+                {{ currentBooking.vipTier }}
+              </span>
+              <span
+                *ngIf="currentBooking.statusCode === 'CHECKED_IN'"
+                class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950"
+              >
+                Đang Lưu Trú
+              </span>
+              <span
+                *ngIf="currentBooking.statusCode === 'CONFIRMED'"
+                class="text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-200 text-sky-950"
+              >
+                Đã Xác Nhận
+              </span>
+              <span
+                *ngIf="currentBooking.statusCode === 'PENDING'"
+                class="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-300 text-amber-950"
+              >
+                Chờ Thanh Toán
+              </span>
+            </div>
+            <p class="text-xs text-sky-100 mt-0.5">
+              {{ currentBooking.createdInfo }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Close Button -->
+        <button
+          (click)="closeGuestModal()"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 space-y-5 overflow-y-auto max-h-[80vh] text-xs text-slate-700">
+        <!-- Top 3 Info Boxes Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- Box 1: THÔNG TIN CHỦ ĐƠN -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block"
+              >THÔNG TIN CHỦ ĐƠN</span
+            >
+
+            <div class="flex items-center space-x-2.5">
+              <img
+                *ngIf="currentBooking.avatarUrl"
+                [src]="currentBooking.avatarUrl"
+                alt="Avatar"
+                class="w-10 h-10 rounded-full object-cover border border-slate-200 flex-shrink-0 shadow-2xs"
+              />
+              <div
+                *ngIf="!currentBooking.avatarUrl"
+                class="w-10 h-10 rounded-full bg-gradient-to-br from-[#0284c7] to-sky-700 text-white font-black text-xs flex items-center justify-center border border-sky-300 flex-shrink-0 shadow-2xs"
+              >
+                {{ getGuestInitials(currentBooking.guestName) }}
+              </div>
+              <div class="min-w-0">
+                <h4 class="font-bold text-slate-900 text-xs truncate">{{ currentBooking.guestName }}</h4>
+                <p class="text-[10px] text-slate-500 font-mono">
+                  {{ currentBooking.vipCardNumber }}
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-1 text-[11px] pt-1 text-slate-600">
+              <div class="flex items-center space-x-1.5 truncate">
+                <span class="material-symbols-outlined text-[14px] text-slate-400">call</span>
+                <span class="text-slate-800 font-medium">{{ currentBooking.phone }}</span>
+              </div>
+              <div class="flex items-center space-x-1.5 truncate">
+                <span class="material-symbols-outlined text-[14px] text-slate-400">mail</span>
+                <span class="text-slate-800 font-medium truncate" [title]="currentBooking.email">{{ currentBooking.email }}</span>
+              </div>
+              <div class="pt-0.5">
+                <span class="text-[10px] font-semibold text-slate-500 block">Yêu cầu & Ghi chú:</span>
+                <p
+                  class="text-[11px] text-amber-900 bg-amber-50/90 px-2 py-1 rounded-lg border border-amber-200/70 mt-0.5 font-medium line-clamp-2"
+                  [title]="currentBooking.specialRequests || currentBooking.allergies || 'Không có yêu cầu đặc biệt'"
+                >
+                  {{ currentBooking.specialRequests || currentBooking.allergies || 'Không có yêu cầu đặc biệt' }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 2: BIỆT THỰ & LỊCH TRÌNH -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block"
+              >BIỆT THỰ & LỊCH TRÌNH</span
+            >
+
+            <div>
+              <h4 class="font-bold text-[#0284c7] text-xs truncate">{{ currentBooking.villaName }}</h4>
+              <p class="text-[10px] text-slate-400 truncate">{{ currentBooking.villaArea }}</p>
+            </div>
+
+            <div class="space-y-1 text-[11px] pt-1 text-slate-600">
+              <div>
+                <strong class="text-slate-700 font-semibold">Check-in:</strong>
+                {{ currentBooking.checkIn }}
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Check-out:</strong>
+                {{ currentBooking.checkOut }}
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Số lượng:</strong>
+                {{ currentBooking.occupants }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 3: TÀI CHÍNH & HÓA ĐƠN -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2.5">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block"
+              >TÀI CHÍNH & HÓA ĐƠN</span
+            >
+
+            <div>
+              <div class="text-lg font-black text-slate-900 tracking-tight">
+                {{ currentBooking.totalAmount }}
+              </div>
+              <span class="text-[10px] font-bold text-emerald-700 block mt-0.5">{{
+                currentBooking.paymentMethod
+              }}</span>
+            </div>
+
+            <div class="space-y-1 text-[11px] pt-1 text-slate-600">
+              <div class="truncate">
+                <strong class="text-slate-700 font-semibold">Mã GD:</strong>
+                {{ currentBooking.txId }}
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">VAT:</strong>
+                {{ currentBooking.vatInvoice }}
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Đặt cọc:</strong>
+                {{ currentBooking.deposit }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DỊCH VỤ GIA TĂNG & PHỤ TRÁCH -->
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+              >DỊCH VỤ GIA TĂNG & PHỤ TRÁCH</span
+            >
+            <button
+              (click)="openAddServiceForBooking()"
+              class="text-[11px] font-bold text-[#0284c7] hover:underline cursor-pointer flex items-center space-x-1"
+            >
+              <span class="material-symbols-outlined text-[14px]">add_circle</span>
+              <span>+ Bổ sung Dịch Vụ Mới</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div
+              *ngFor="let s of currentBooking.services"
+              class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center space-x-3"
+            >
+              <div
+                class="w-9 h-9 rounded-xl bg-sky-100 text-[#0284c7] flex items-center justify-center flex-shrink-0"
+              >
+                <span class="material-symbols-outlined text-[18px]">{{ s.icon }}</span>
+              </div>
+              <div class="truncate min-w-0">
+                <h5 class="font-bold text-slate-900 text-xs truncate">{{ s.title }}</h5>
+                <p class="text-[10px] text-slate-500 truncate">{{ s.sub }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LỊCH SỬ VẬN HÀNH HỒ SƠ -->
+        <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block"
+            >LỊCH SỬ VẬN HÀNH HỒ SƠ</span
+          >
+
+          <div class="space-y-1.5 text-xs">
+            <div
+              *ngFor="let t of currentBooking.timeline"
+              class="flex items-center justify-between py-1 border-b border-slate-200/50 last:border-b-0"
+            >
+              <div
+                class="flex items-center space-x-1.5 text-slate-700"
+                [class.text-[#0284c7]]="t.dept === 'Đang Tiến Hành'"
+                [class.font-bold]="t.dept === 'Đang Tiến Hành'"
+              >
+                <span class="text-slate-400">•</span>
+                <span>{{ t.time }}</span>
+              </div>
+              <span
+                class="font-bold text-xs shrink-0 ml-2"
+                [class.text-slate-400]="t.dept !== 'Đang Tiến Hành'"
+                [class.text-[#0284c7]]="t.dept === 'Đang Tiến Hành'"
+              >
+                {{ t.dept }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between">
+        <button
+          (click)="cancelBooking()"
+          class="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition cursor-pointer"
+        >
+          Hủy / Dời Lịch Đặt Phòng
+        </button>
+
+        <div class="flex items-center space-x-2">
+          <button
+            (click)="closeGuestModal()"
+            class="px-5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Đóng
+          </button>
+
+          <button
+            *ngIf="currentBooking.statusCode === 'CONFIRMED' || currentBooking.statusCode === 'PENDING'"
+            (click)="confirmCheckIn()"
+            class="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[16px]">check_circle</span>
+            <span>Tiến Hành Check-in Ngay</span>
+          </button>
+
+          <button
+            *ngIf="currentBooking.statusCode === 'CHECKED_IN'"
+            (click)="confirmCheckOut()"
+            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[16px]">logout</span>
+            <span>Hoàn Tất Check-out & Trả Phòng</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRƯỜNG HỢP 2: HỒ SƠ BIỆT THỰ SẴN SÀNG (PHÒNG TRỐNG / KHẢ DỤNG) -->
+    <div
+      *ngIf="isAvailableRoomView && selectedRoomForDetail"
+      class="relative z-10 bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-fade-in flex flex-col"
+    >
+      <!-- Header (Emerald Green - Sẵn Sàng Đón Khách) -->
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-5 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-white flex-shrink-0"
+          >
+            <span class="material-symbols-outlined text-[22px]">villa</span>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-base font-black tracking-tight">
+                Biệt Thự #{{ selectedRoomForDetail.number }} ({{ selectedRoomForDetail.category }})
+              </h2>
+              <span
+                class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-300 text-emerald-950"
+              >
+                Sẵn Sàng Đón Khách
+              </span>
+            </div>
+            <p class="text-xs text-emerald-100 mt-0.5">
+              Khử trùng Ozon hoàn tất • Kiểm định buồng phòng 5 sao • Có thể nhận khách ngay
+            </p>
+          </div>
+        </div>
+
+        <button
+          (click)="closeGuestModal()"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-5 overflow-y-auto max-h-[80vh] text-xs text-slate-700">
+        <!-- 3 Info Boxes Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- Box 1: THÔNG SỐ BIỆT THỰ -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block"
+              >THÔNG SỐ BIỆT THỰ</span
+            >
+            <div class="space-y-1.5 text-[11px] text-slate-600 pt-1">
+              <div>
+                <strong class="text-slate-700 font-semibold">Phân khu:</strong>
+                {{ selectedRoomForDetail.zone || 'Khu Resort Ven Biển' }}
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Kết cấu:</strong>
+                {{ selectedRoomForDetail.structureType || (selectedRoomForDetail.floor ? selectedRoomForDetail.floor + ' Tầng' : '1 Tầng') }}
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Diện tích:</strong>
+                {{ selectedRoomForDetail.areaNumber ? selectedRoomForDetail.areaNumber + ' m²' : '350 m²' }}
+              </div>
+              <div *ngIf="selectedRoomForDetail.viewDirection">
+                <strong class="text-slate-700 font-semibold">Hướng nhìn:</strong>
+                {{ selectedRoomForDetail.viewDirection }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 2: TIÊU CHUẨN SỨC CHỨA -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block"
+              >TIÊU CHUẨN SỨC CHỨA</span
+            >
+            <div class="space-y-1.5 text-[11px] text-slate-600 pt-1">
+              <div>
+                <strong class="text-slate-700 font-semibold">Số phòng ngủ:</strong>
+                {{ selectedRoomForDetail.bedroomCount || selectedRoomForDetail.childRooms?.length || 1 }} Phòng ngủ
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Giường ngủ:</strong>
+                {{ selectedRoomForDetail.totalBeds || 1 }} Giường cỡ lớn (King/Queen)
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Sức chứa tối đa:</strong>
+                {{ selectedRoomForDetail.totalAdults || 2 }} Người lớn + {{ selectedRoomForDetail.totalChildren || 1 }} Trẻ em
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 3: BẢNG GIÁ & CHÍNH SÁCH -->
+          <div class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block"
+              >BẢNG GIÁ & CHÍNH SÁCH</span
+            >
+            <div>
+              <div class="text-lg font-black text-emerald-700 tracking-tight">
+                {{ selectedRoomForDetail.priceFormatted || 'Liên hệ' }}
+              </div>
+              <span class="text-[10px] font-semibold text-slate-500 block mt-0.5">Giá niêm yết theo đêm</span>
+            </div>
+            <div class="space-y-1 text-[11px] text-slate-600 pt-1">
+              <div>
+                <strong class="text-slate-700 font-semibold">Ozon khử khuẩn:</strong>
+                <span class="text-emerald-700 font-bold"> Đã kiểm định 5*</span>
+              </div>
+              <div>
+                <strong class="text-slate-700 font-semibold">Giờ chuẩn:</strong>
+                In 14:00 • Out 12:00
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIỆN ÍCH BIỆT THỰ -->
+        <div class="space-y-2.5">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block"
+            >TIỆN ÍCH NỔI BẬT CỦA BIỆT THỰ</span
+          >
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="p-2.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center space-x-2 text-xs">
+              <span class="material-symbols-outlined text-emerald-600 text-[18px]">pool</span>
+              <span class="font-medium text-slate-800">Hồ Bơi Vô Cực</span>
+            </div>
+            <div class="p-2.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center space-x-2 text-xs">
+              <span class="material-symbols-outlined text-sky-600 text-[18px]">room_service</span>
+              <span class="font-medium text-slate-800">Quản Gia 24/7</span>
+            </div>
+            <div class="p-2.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center space-x-2 text-xs">
+              <span class="material-symbols-outlined text-amber-600 text-[18px]">restaurant</span>
+              <span class="font-medium text-slate-800">Buffet Sáng Cao Cấp</span>
+            </div>
+            <div class="p-2.5 bg-slate-50 border border-slate-200/70 rounded-xl flex items-center space-x-2 text-xs">
+              <span class="material-symbols-outlined text-violet-600 text-[18px]">sanitizer</span>
+              <span class="font-medium text-slate-800">Ozone Sterilized 5*</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MÔ TẢ TỔNG QUAN NẾU CÓ -->
+        <div *ngIf="selectedRoomForDetail.overviewDescription" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600 leading-relaxed">
+          <strong class="text-slate-800 font-semibold block mb-1">Mô Tả Biệt Thự:</strong>
+          {{ selectedRoomForDetail.overviewDescription }}
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between">
+        <button
+          type="button"
+          (click)="openQuickStatusModal(selectedRoomForDetail, $event)"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[15px]">sync_alt</span>
+          <span>Chuyển Sang Bảo Trì / Dọn Dẹp</span>
+        </button>
+
+        <div class="flex items-center space-x-2">
+          <button
+            (click)="closeGuestModal()"
+            class="px-5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            Đóng
+          </button>
+
+          <button
+            (click)="goToCreateBooking(selectedRoomForDetail)"
+            class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center space-x-1.5 transition cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[16px]">add_task</span>
+            <span>Tạo Đặt Phòng Cho Biệt Thự Này</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 1: PHÂN CÔNG DỌN DẸP PHÒNG ==================== -->
+  <div
+    *ngIf="showAssignModal"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showAssignModal = false"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-fade-in"
+    >
+      <div
+        class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50"
+      >
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-[#0284c7]">assignment_ind</span>
+          <h3 class="text-base font-black text-slate-900">Phân Công Dọn Dẹp Phòng</h3>
+        </div>
+        <button
+          (click)="showAssignModal = false"
+          class="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 text-xs font-semibold">
+        <div>
+          <label for="assignRoomId" class="block text-slate-700 mb-1"
+            >Chọn Biệt Thự / Phòng Cần Dọn <span class="text-rose-500">*</span></label
+          >
+          <select
+            id="assignRoomId"
+            [(ngModel)]="assignForm.roomId"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-800"
+          >
+            <option *ngFor="let r of rooms" [value]="r.id">
+              {{ r.number }} - {{ r.category }} ({{ r.statusTag }})
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="assignHousekeeperId" class="block text-slate-700 mb-1"
+            >Nhân Viên Buồng Phòng Phụ Trách <span class="text-rose-500">*</span></label
+          >
+          <select
+            id="assignHousekeeperId"
+            [(ngModel)]="assignForm.housekeeperId"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-800"
+          >
+            <option *ngFor="let h of housekeepers" [value]="h.id">
+              {{ h.fullName }} ({{ h.email }}) • Đang phụ trách {{ h.activeTasksCount }} phòng
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="assignTaskType" class="block text-slate-700 mb-1">Quy Chuẩn Dọn Dẹp</label>
+          <select
+            id="assignTaskType"
+            [(ngModel)]="assignForm.taskType"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-800"
+          >
+            <option value="CHECKOUT_DEEP">Dọn Chuyên Sâu Sau Check-out (Deep Clean 16 bước)</option>
+            <option value="DAILY">Dọn Dẹp Định Kỳ Hàng Ngày (Daily Clean)</option>
+            <option value="TURNDOWN">Chỉnh Trang Giường & Phòng Buổi Tối (Turndown Service)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="assignNotes" class="block text-slate-700 mb-1"
+            >Ghi Chú Của Quản Lý / Yêu Cầu Đặc Biệt</label
+          >
+          <textarea
+            id="assignNotes"
+            [(ngModel)]="assignForm.notes"
+            rows="3"
+            placeholder="Ví dụ: Khách VIP check-in lúc 14:00, ưu tiên bổ sung thêm set Hermès và hoa tươi..."
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs"
+          ></textarea>
+        </div>
+      </div>
+
+      <div
+        class="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end space-x-2.5"
+      >
+        <button
+          (click)="showAssignModal = false"
+          class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          (click)="submitAssign()"
+          [disabled]="isSaving"
+          class="px-4 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-1.5"
+        >
+          <span
+            *ngIf="isSaving"
+            class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span>Giao Phòng Ngay</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: CỔNG NHÂN VIÊN BUỒNG PHÒNG ==================== -->
+  <div
+    *ngIf="showStaffPortalModal"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showStaffPortalModal = false"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-fade-in"
+    >
+      <!-- Modal Header -->
+      <div
+        class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0"
+      >
+        <div class="flex items-center space-x-2.5">
+          <div
+            class="w-9 h-9 rounded-xl bg-sky-100 text-[#0284c7] flex items-center justify-center"
+          >
+            <span class="material-symbols-outlined text-[20px]">badge</span>
+          </div>
+          <div>
+            <h3 class="text-base font-black text-slate-900">Cổng Nhân Viên Buồng Phòng</h3>
+            <p class="text-[11px] text-slate-500 font-medium">
+              Cập nhật tiến độ dọn dẹp trực tiếp cho quản lý theo thời gian thực
+            </p>
+          </div>
+        </div>
+        <button
+          (click)="showStaffPortalModal = false"
+          class="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Staff Selector Bar -->
+      <div
+        class="px-6 py-3 bg-sky-50/50 border-b border-sky-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs shrink-0"
+      >
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-slate-700">Tài khoản nhân viên:</span>
+          <select
+            [ngModel]="selectedHousekeeper?.id"
+            (ngModelChange)="selectHousekeeper(housekeepers[$event - 1] || housekeepers[0])"
+            class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg font-bold text-[#0284c7] focus:outline-none focus:ring-1 focus:ring-sky-500 shadow-2xs"
+          >
+            <option *ngFor="let h of housekeepers" [value]="h.id">
+              {{ h.fullName }} ({{ h.email }})
+            </option>
+          </select>
+        </div>
+        <div class="text-[11px] text-slate-500">
+          Đang phụ trách:
+          <strong class="text-slate-900">{{ staffTasks.length }} phòng</strong> trong ca trực
+        </div>
+      </div>
+
+      <!-- Task List Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-3.5 flex-1">
+        <div *ngIf="staffTasks.length === 0" class="text-center py-10 space-y-2">
+          <div
+            class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto"
+          >
+            <span class="material-symbols-outlined text-[26px]">task_alt</span>
+          </div>
+          <p class="text-xs font-bold text-slate-700">
+            Hiện tại bạn chưa được giao phòng nào cần dọn
+          </p>
+          <p class="text-[11px] text-slate-400">
+            Các phòng sau khi khách checkout sẽ được quản lý phân bổ tại đây.
+          </p>
+        </div>
+
+        <div
+          *ngFor="let t of staffTasks"
+          class="p-4 rounded-2xl border border-slate-200/80 bg-white hover:border-sky-300 transition shadow-2xs space-y-3"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="flex items-center space-x-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-800 font-black text-sm"
+              >
+                {{ t.roomNumber }}
+              </div>
+              <div>
+                <h4 class="text-xs font-black text-slate-900">
+                  {{ t.roomTypeName || 'Beachfront Pool Villa' }}
+                </h4>
+                <div class="text-[11px] text-slate-500 mt-0.5 flex items-center space-x-2">
+                  <span
+                    >Quy chuẩn: <strong class="text-slate-700">{{ t.taskType }}</strong></span
+                  >
+                  <span *ngIf="t.startedAt">• Bắt đầu: {{ t.startedAt | date: 'HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Task Status Badge -->
+            <div>
+              <span
+                *ngIf="t.status === 'PENDING'"
+                class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200"
+              >
+                ⏳ Chờ bắt đầu
+              </span>
+              <span
+                *ngIf="t.status === 'IN_PROGRESS' || t.status === 'OZONE_RUNNING'"
+                class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse"
+              >
+                🧽 Đang dọn dẹp
+              </span>
+              <span
+                *ngIf="t.status === 'INSPECTED'"
+                class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200"
+              >
+                📋 Đã dọn - Chờ duyệt
+              </span>
+              <span
+                *ngIf="t.status === 'COMPLETED'"
+                class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
+              >
+                ✨ Đạt chuẩn sẵn sàng
+              </span>
+            </div>
+          </div>
+
+          <!-- Notes section if any -->
+          <div
+            *ngIf="t.supervisorNote || t.cleaningNote"
+            class="p-2.5 rounded-xl bg-slate-50 text-[11px] text-slate-600 space-y-1"
+          >
+            <div *ngIf="t.supervisorNote">
+              <strong class="text-slate-800">Ghi chú quản lý:</strong> {{ t.supervisorNote }}
+            </div>
+            <div *ngIf="t.cleaningNote">
+              <strong class="text-sky-700">Tiến độ nhân viên:</strong> {{ t.cleaningNote }}
+            </div>
+          </div>
+
+          <!-- Action Buttons for Staff & Manager -->
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div class="text-[10px] text-slate-400">Mã task: #{{ t.id }}</div>
+
+            <div class="flex items-center space-x-2">
+              <!-- If PENDING: Button Start -->
+              <button
+                *ngIf="t.status === 'PENDING'"
+                (click)="startStaffCleaning(t)"
+                class="px-3.5 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center space-x-1"
+              >
+                <span class="material-symbols-outlined text-[16px]">play_arrow</span>
+                <span>Bắt Đầu Dọn Dẹp</span>
+              </button>
+
+              <!-- If IN_PROGRESS: Button Open Checklist & Report -->
+              <button
+                *ngIf="t.status === 'IN_PROGRESS' || t.status === 'OZONE_RUNNING'"
+                (click)="openTaskDetailModal(t)"
+                class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center space-x-1"
+              >
+                <span class="material-symbols-outlined text-[16px]">checklist</span>
+                <span>Cập Nhật Tiến Độ (16 Bước)</span>
+              </button>
+
+              <!-- If INSPECTED: Button Approve for Supervisor -->
+              <button
+                *ngIf="t.status === 'INSPECTED'"
+                (click)="approveRoomCleaning(t.id)"
+                class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center space-x-1"
+              >
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                <span>Nghiệm Thu Đạt Chuẩn</span>
+              </button>
+
+              <button
+                *ngIf="t.status === 'INSPECTED'"
+                (click)="openTaskDetailModal(t)"
+                class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+              >
+                Xem Báo Cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div
+        class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0"
+      >
+        <span class="text-[11px] text-slate-400"
+          >Hệ thống đồng bộ trực tiếp với ca trực buồng phòng.</span
+        >
+        <button
+          (click)="showStaffPortalModal = false"
+          class="px-5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition"
+        >
+          Đóng Cổng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: 16 BƯỚC DỌN PHÒNG & BÁO CÁO ==================== -->
+  <div
+    *ngIf="showTaskDetailModal && selectedTask"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showTaskDetailModal = false"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-fade-in"
+    >
+      <!-- Header -->
+      <div
+        class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0"
+      >
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-amber-500">checklist</span>
+          <h3 class="text-base font-black text-slate-900">
+            Tiến Độ Vệ Sinh 16 Bước - {{ selectedTask.roomNumber }}
+          </h3>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="px-2.5 py-0.5 rounded-full bg-sky-100 text-[#0284c7] font-black text-xs">
+            {{ getCompletedStepsCount() }} / 16 Bước Hoàn Tất
+          </span>
+          <button
+            (click)="showTaskDetailModal = false"
+            class="text-slate-400 hover:text-slate-700 p-1 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body Checklist (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-4 flex-1">
+        <!-- Progress bar -->
+        <div>
+          <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div
+              class="bg-[#0284c7] h-full transition-all duration-300"
+              [style.width.%]="(getCompletedStepsCount() / 16) * 100"
+            ></div>
+          </div>
+          <span class="text-[10px] text-slate-400 mt-1 block text-right font-bold">
+            Tiến độ hoàn thành: {{ (getCompletedStepsCount() / 16) * 100 | number: '1.0-0' }}%
+          </span>
+        </div>
+
+        <!-- 16 Checklist Steps Grid -->
+        <div class="space-y-2">
+          <label
+            *ngFor="let step of standard16Steps; let idx = index"
+            [for]="'step-check-' + step.id"
+            class="flex items-start space-x-3 p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition cursor-pointer"
+            [class.bg-sky-50]="step.checked"
+            [class.border-sky-200]="step.checked"
+          >
+            <input
+              type="checkbox"
+              [id]="'step-check-' + step.id"
+              [checked]="step.checked"
+              (change)="toggleStep(idx)"
+              class="mt-0.5 w-4 h-4 text-[#0284c7] rounded border-slate-300 focus:ring-sky-500"
+            />
+            <div
+              class="text-xs font-semibold"
+              [class.text-slate-900]="step.checked"
+              [class.text-slate-600]="!step.checked"
+            >
+              <span class="font-bold text-[#0284c7] mr-1">#{{ step.id }}.</span>
+              {{ step.title }}
+            </div>
+          </label>
+        </div>
+
+        <!-- Staff Note Field -->
+        <div class="pt-2">
+          <label for="staffNoteTextarea" class="block text-slate-700 font-bold text-xs mb-1"
+            >Ghi Chú Tiến Độ / Báo Cáo Cho Quản Lý</label
+          >
+          <textarea
+            id="staffNoteTextarea"
+            [(ngModel)]="staffNote"
+            rows="2"
+            placeholder="Ví dụ: Đã thay xong chăn ga lụa, đang lau sàn ban công và bổ sung nước khoáng San Pellegrino..."
+            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div
+        class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0"
+      >
+        <button
+          (click)="saveTaskProgress()"
+          [disabled]="isSaving"
+          class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5"
+        >
+          <span class="material-symbols-outlined text-[16px]">save</span>
+          <span>Lưu Tiến Độ Tạm Thời</span>
+        </button>
+
+        <button
+          (click)="submitCompleteCleaning()"
+          [disabled]="isSaving"
+          class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-1.5"
+        >
+          <span
+            *ngIf="isSaving"
+            class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span class="material-symbols-outlined text-[16px]">check_circle</span>
+          <span>Báo Cáo Đã Dọn Xong (Gửi Quản Lý)</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: THÊM MỚI / CHỈNH SỬA BIỆT THỰ & PHÒNG ==================== -->
+  <div
+    *ngIf="showRoomModal"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showRoomModal = false"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-3xl max-w-3xl w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar"
+    >
+      <!-- Modal Header -->
+      <div
+        class="flex items-center justify-between pb-3.5 border-b border-slate-100 sticky top-0 bg-white z-20"
+      >
+        <div class="flex items-center space-x-3">
+          <div
+            class="w-10 h-10 rounded-2xl bg-sky-50 text-[#0284c7] flex items-center justify-center shrink-0"
+          >
+            <span class="material-symbols-outlined text-[24px]">
+              {{ isEditMode ? 'edit_note' : 'holiday_village' }}
+            </span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <span>{{
+                isEditMode ? 'Chỉnh Sửa Biệt Thự / Homestay' : 'Khởi Tạo Biệt Thự Mới'
+              }}</span>
+              <span
+                class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-sky-100 text-[#0284c7] uppercase"
+              >
+                Aura Resort 5★
+              </span>
+            </h3>
+            <p class="text-xs text-slate-500">
+              Thiết lập biệt thự nghỉ dưỡng, cấu trúc phòng ngủ và tiện ích dịch vụ
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="showRoomModal = false"
+          class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- KHỐI 1: THÔNG TIN ĐỊNH DANH & KIẾN TRÚC -->
+      <div class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div
+            class="flex items-center space-x-2 text-xs font-bold text-slate-800 uppercase tracking-wide"
+          >
+            <span class="w-2 h-4 rounded-full bg-[#0284c7]"></span>
+            <span>Khối 1: Thông Tin Định Danh & Kiến Trúc</span>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium">Bắt buộc (*)</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs text-slate-700">
+          <!-- Mã Số / Tên Villa -->
+          <div>
+            <label for="roomNumberInput" class="block font-bold text-slate-700 mb-1">
+              Mã Số / Tên Villa <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="roomNumberInput"
+              type="text"
+              [(ngModel)]="roomForm.roomNumber"
+              (ngModelChange)="onRoomNumberChange()"
+              placeholder="Ví dụ: Villa #101"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-bold text-slate-900 transition"
+            />
+          </div>
+
+          <!-- Phân Khu Nghỉ Dưỡng -->
+          <div>
+            <label for="roomZoneSelect" class="block font-bold text-slate-700 mb-1">
+              Phân Khu Nghỉ Dưỡng <span class="text-rose-500">*</span>
+            </label>
+            <select
+              id="roomZoneSelect"
+              [(ngModel)]="roomForm.zone"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-semibold text-slate-800 transition"
+            >
+              <option *ngIf="customZones.length === 0" [value]="''" disabled selected>
+                Chưa có phân khu
+              </option>
+              <option *ngFor="let z of customZones" [value]="z.name">Phân Khu {{ z.name }}</option>
+            </select>
+          </div>
+
+          <!-- Số Tầng / Kết Cấu -->
+          <div>
+            <label for="roomStructureSelect" class="block font-bold text-slate-700 mb-1">
+              Số Tầng / Kết Cấu <span class="text-rose-500">*</span>
+            </label>
+            <select
+              id="roomStructureSelect"
+              [(ngModel)]="roomForm.structureType"
+              (ngModelChange)="onStructureTypeChanged()"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-semibold text-slate-800 transition"
+            >
+              <option *ngFor="let st of structureOptions" [value]="st">
+                {{ st }}
+              </option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs text-slate-700 mt-3.5">
+          <!-- Diện tích -->
+          <div>
+            <label for="roomAreaInput" class="block font-bold text-slate-700 mb-1">
+              Diện tích (m²)
+            </label>
+            <input
+              id="roomAreaInput"
+              type="number"
+              [(ngModel)]="roomForm.area"
+              placeholder="Ví dụ: 350"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-bold text-slate-900 transition"
+            />
+          </div>
+
+          <!-- Tầm nhìn -->
+          <div>
+            <label for="roomViewInput" class="block font-bold text-slate-700 mb-1">
+              Tầm nhìn
+            </label>
+            <input
+              id="roomViewInput"
+              type="text"
+              [(ngModel)]="roomForm.viewDirection"
+              placeholder="Ví dụ: Trực diện Biển"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-bold text-slate-900 transition"
+            />
+          </div>
+
+          <!-- Hồ bơi riêng -->
+          <div>
+            <label for="roomPoolSizeInput" class="block font-bold text-slate-700 mb-1">
+              Hồ bơi riêng (m²)
+            </label>
+            <input
+              id="roomPoolSizeInput"
+              type="number"
+              [(ngModel)]="roomForm.poolSize"
+              placeholder="Ví dụ: 24"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-bold text-slate-900 transition"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 text-xs text-slate-700">
+          <!-- Đơn Giá Thuê / Đêm -->
+          <div>
+            <label for="roomBasePriceInput" class="block font-bold text-slate-700 mb-1">
+              Đơn Giá Thuê / Đêm (VNĐ) <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="roomBasePriceInput"
+                type="number"
+                [(ngModel)]="roomForm.basePrice"
+                min="0"
+                step="500000"
+                placeholder="25000000"
+                class="w-full pl-3 pr-12 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-black text-[#0284c7] transition"
+              />
+              <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">VNĐ</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between">
+              <span
+                class="text-[11px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60 inline-block"
+              >
+                ≈ {{ ((roomForm.basePrice || 0) / 1000000).toFixed(1) }} Triệu VNĐ / đêm
+              </span>
+            </div>
+          </div>
+
+          <!-- Trạng Thái Vận Hành -->
+          <div>
+            <label for="roomStatusSelect" class="block font-bold text-slate-700 mb-1">
+              Trạng Thái Vận Hành
+            </label>
+            <select
+              id="roomStatusSelect"
+              [(ngModel)]="roomForm.status"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-semibold text-slate-800 transition"
+            >
+              <option value="AVAILABLE">Sẵn Sàng Đón Khách</option>
+              <option value="OCCUPIED">Đang Có Khách Ở</option>
+              <option value="CLEANING">Đang Dọn Dẹp / Ozon</option>
+              <option value="MAINTENANCE">Đang Bảo Trì Kỹ Thuật</option>
+            </select>
+          </div>
+
+          <!-- Hạng Biệt Thự (Tự Động) -->
+          <div>
+            <div class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+              <span>Hạng Biệt Thự (Tự Động)</span>
+              <span class="text-[10px] text-amber-600 font-semibold uppercase tracking-wider"
+                >Hệ thống tính</span
+              >
+            </div>
+            <div class="relative">
+              <input
+                type="text"
+                [value]="'✨ ' + autoVillaCategoryName"
+                disabled
+                class="w-full px-3 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl font-bold text-amber-900 cursor-not-allowed shadow-inner"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mô tả tổng quan -->
+        <div class="mt-4">
+          <label for="roomDescriptionInput" class="block font-bold text-slate-700 mb-1 text-xs">
+            Mô tả tổng quan
+          </label>
+          <textarea
+            id="roomDescriptionInput"
+            [(ngModel)]="roomForm.overviewDescription"
+            rows="3"
+            placeholder="Khúc hoan ca giữa đại dương..."
+            class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500 focus:outline-none font-medium text-sm text-slate-700 transition resize-none"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- KHỐI 2: CẤU HÌNH LOẠI GIƯỜNG & PHÒNG NGỦ - HYBRID MULTI-BED SELECTOR -->
+      <div class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div
+            class="flex items-center space-x-2 text-xs font-bold text-slate-800 uppercase tracking-wide"
+          >
+            <span class="w-2 h-4 rounded-full bg-indigo-600"></span>
+            <span>Khối 2: Cấu Hình Loại Giường & Phòng Ngủ</span>
+          </div>
+          <span
+            class="text-[11px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200"
+          >
+            Hybrid Multi-Bed Selector
+          </span>
+        </div>
+
+        <!-- Live Summary Header Banner -->
+        <div
+          class="p-3 bg-gradient-to-r from-sky-500 via-indigo-600 to-sky-700 rounded-xl text-white shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+        >
+          <div class="flex items-center space-x-2">
+            <span class="material-symbols-outlined text-[20px] text-amber-300">stars</span>
+            <div class="text-xs font-black tracking-wide">
+              🌟 TỔNG HỢP: {{ totalSelectedBedrooms }} Phòng Ngủ • {{ totalSelectedBeds }} Chiếc
+              Giường • {{ totalAdultsCapacity }} Người Lớn • {{ totalChildrenCapacity }} Trẻ Nhỏ •
+              Tối Đa {{ totalMaxGuests }} Khách
+            </div>
+          </div>
+        </div>
+
+        <!-- Checklist table of available beds -->
+        <div>
+          <div class="text-[11px] font-bold text-slate-600 mb-2 flex items-center justify-between">
+            <span>Danh mục loại giường trong căn biệt thự:</span>
+            <span class="text-[10px] text-slate-400">Tích chọn và điều chỉnh số lượng chiếc</span>
+          </div>
+
+          <div
+            class="border border-slate-200 rounded-xl bg-white divide-y divide-slate-100 overflow-hidden"
+          >
+            <div
+              *ngFor="let item of bedSelections"
+              class="p-3 flex items-center justify-between hover:bg-slate-50/80 transition select-none"
+              [ngClass]="{ 'bg-sky-50/40': item.isSelected && item.quantity > 0 }"
+            >
+              <!-- Left: Checkbox + Name + Dimensions & Capacity -->
+              <div
+                class="flex items-center space-x-3 cursor-pointer flex-1 min-w-0"
+                (click)="toggleBedSelection(item)" tabindex="0" (keydown.enter)="toggleBedSelection(item)"
+              >
+                <div
+                  class="w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition"
+                  [ngClass]="
+                    item.isSelected && item.quantity > 0
+                      ? 'bg-[#0284c7] border-[#0284c7] text-white shadow-2xs'
+                      : 'border-slate-300 bg-white'
+                  "
+                >
+                  <span
+                    *ngIf="item.isSelected && item.quantity > 0"
+                    class="material-symbols-outlined text-[15px]"
+                  >
+                    check
+                  </span>
+                </div>
+                <div
+                  class="w-8 h-8 rounded-lg bg-sky-50 text-[#0284c7] flex items-center justify-center shrink-0"
+                >
+                  <span class="material-symbols-outlined text-[18px]">bed</span>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-slate-800 truncate">
+                    {{ item.name }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-medium">
+                    {{ item.bedDimensions }} ({{ item.adults }} NL • {{ item.children }} TE)
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: Stepper [-] [qty] [+] -->
+              <div class="flex items-center space-x-2 shrink-0 ml-3">
+                <span class="text-[11px] text-slate-400 font-medium hidden sm:inline"
+                  >Số lượng:</span
+                >
+                <div
+                  class="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs"
+                >
+                  <button
+                    type="button"
+                    (click)="changeBedQuantity(item, -1, $event)"
+                    [disabled]="item.quantity <= 0"
+                    class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                    title="Giảm 1 giường"
+                  >
+                    <span class="material-symbols-outlined text-[14px]">remove</span>
+                  </button>
+                  <span class="w-8 text-center text-xs font-black text-slate-800">
+                    {{ item.quantity }}
+                  </span>
+                  <button
+                    type="button"
+                    (click)="changeBedQuantity(item, 1, $event)"
+                    class="w-7 h-7 flex items-center justify-center text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                    title="Tăng 1 giường"
+                  >
+                    <span class="material-symbols-outlined text-[14px]">add</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty hint if no bed types -->
+            <div
+              *ngIf="bedSelections.length === 0"
+              class="p-4 text-center text-xs text-slate-400 italic"
+            >
+              Chưa có dữ liệu loại giường. Vui lòng thêm loại giường trước.
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Child Room Allocation Accordion -->
+        <div class="space-y-2">
+          <button
+            type="button"
+            (click)="showAdvancedRoomAllocation = !showAdvancedRoomAllocation"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer"
+          >
+            <div class="flex items-center space-x-2">
+              <span
+                class="material-symbols-outlined text-[18px] text-[#0284c7] transition-transform"
+                [ngClass]="{ 'rotate-90': showAdvancedRoomAllocation }"
+              >
+                chevron_right
+              </span>
+              <span>Phân bổ chi tiết vào từng phòng ngủ con (Tùy chọn nâng cao)</span>
+            </div>
+            <div class="flex items-center space-x-1.5 text-[11px]">
+              <span
+                class="px-2 py-0.5 rounded-full bg-sky-50 text-[#0284c7] font-bold border border-sky-200"
+              >
+                {{ childRoomsAllocation.length }} phòng con
+              </span>
+            </div>
+          </button>
+
+          <!-- Expanded child rooms cards -->
+          <div
+            *ngIf="showAdvancedRoomAllocation"
+            class="p-3 bg-white border border-dashed border-slate-300 rounded-xl space-y-2.5 animate-fade-in"
+          >
+            <div class="text-[11px] text-slate-500 font-medium">
+              Thiết lập tên phòng, tầng lầu và gán loại giường cho từng phòng ngủ con trong biệt
+              thự:
+            </div>
+
+            <div
+              *ngFor="let cr of childRoomsAllocation; let i = index"
+              class="p-2.5 bg-slate-50/80 border border-slate-200 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-2.5"
+            >
+              <div class="flex items-center space-x-2.5 flex-1 min-w-0">
+                <span
+                  class="w-6 h-6 rounded-lg bg-[#0284c7] text-white font-bold text-xs flex items-center justify-center shrink-0"
+                >
+                  {{ cr.roomIndex }}
+                </span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      [(ngModel)]="cr.name"
+                      placeholder="Tên phòng con"
+                      class="px-2.5 py-1 text-xs border border-slate-200 rounded-lg focus:ring-1 focus:ring-sky-500 font-bold text-slate-800 bg-white w-full max-w-[200px]"
+                    />
+                    <span class="text-[10px] text-slate-400 font-mono shrink-0">{{
+                      cr.roomNumber
+                    }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-3 shrink-0 text-xs">
+                <div class="flex items-center space-x-1">
+                  <span class="text-[11px] text-slate-500 font-medium">Tầng:</span>
+                  <input
+                    type="number"
+                    [(ngModel)]="cr.floor"
+                    min="1"
+                    max="50"
+                    class="w-14 px-2 py-1 text-xs border border-slate-200 rounded-lg text-center bg-white font-bold text-slate-700"
+                  />
+                </div>
+                <div class="flex items-center space-x-1">
+                  <span class="text-[11px] text-slate-500 font-medium">➔ Loại giường:</span>
+                  <select
+                    [(ngModel)]="cr.roomTypeId"
+                    class="px-2.5 py-1 text-xs border border-slate-200 rounded-lg bg-white font-medium text-slate-700"
+                  >
+                    <option *ngFor="let rt of roomTypesList" [value]="rt.id">
+                      {{ rt.name }} ({{ rt.bedType || 'Tiêu chuẩn' }})
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div
+              *ngIf="childRoomsAllocation.length === 0"
+              class="p-3 text-center text-xs text-slate-400 italic"
+            >
+              Chưa có phòng ngủ con nào được tạo. Vui lòng tăng số lượng giường ở danh mục trên.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHỐI 3: DỊCH VỤ ĐI KÈM & TIỆN ÍCH MỞ RỘNG -->
+      <div class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div
+            class="flex items-center space-x-2 text-xs font-bold text-slate-800 uppercase tracking-wide"
+          >
+            <span class="w-2 h-4 rounded-full bg-emerald-600"></span>
+            <span>Khối 3: Dịch Vụ Đi Kèm & Tiện Ích Mở Rộng</span>
+          </div>
+          <span
+            class="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200"
+          >
+            {{ selectedExtraServiceIds.length }} dịch vụ đã chọn
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div
+            *ngFor="let s of extraServicesList"
+            (click)="toggleExtraService(s.id)" tabindex="0" (keydown.enter)="toggleExtraService(s.id)"
+            class="p-2.5 rounded-xl border transition-all cursor-pointer flex items-center space-x-2.5 select-none"
+            [ngClass]="
+              isExtraServiceSelected(s.id)
+                ? 'bg-sky-50/80 border-sky-300 text-sky-900 font-bold shadow-2xs'
+                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+            "
+          >
+            <div
+              class="w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition"
+              [ngClass]="
+                isExtraServiceSelected(s.id)
+                  ? 'bg-[#0284c7] border-[#0284c7] text-white'
+                  : 'border-slate-300 bg-white'
+              "
+            >
+              <span
+                *ngIf="isExtraServiceSelected(s.id)"
+                class="material-symbols-outlined text-[13px]"
+                >check</span
+              >
+            </div>
+            <div class="flex flex-col min-w-0 flex-1">
+              <span class="text-xs font-bold truncate">{{ s.name }}</span>
+              <span class="text-[10px] text-slate-500 font-normal mt-0.5"
+                >{{ s.price | number: '1.0-0' }}đ / {{ s.unit }}</span
+              >
+            </div>
+            <div
+              class="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 shrink-0"
+            >
+              <span class="material-symbols-outlined text-[16px]">{{
+                s.icon || 'room_service'
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHỐI 4: HÌNH ẢNH ĐẠI DIỆN BIỆT THỰ / HOMESTAY -->
+      <div class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div
+            class="flex items-center space-x-2 text-xs font-bold text-slate-800 uppercase tracking-wide"
+          >
+            <span class="w-2 h-4 rounded-full bg-amber-500"></span>
+            <span>Khối 4: Hình Ảnh Đại Diện Biệt Thự / Homestay</span>
+          </div>
+          <span
+            *ngIf="roomForm.imageUrl"
+            class="text-[10px] text-emerald-600 font-bold flex items-center space-x-1"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>Đã có ảnh đại diện</span>
+          </span>
+        </div>
+
+        <!-- Input File ẩn để chọn từ folder máy tính -->
+        <input
+          #villaFileInput
+          type="file"
+          (change)="onRoomImageSelected($event)"
+          accept="image/png, image/jpeg, image/webp, image/jpg"
+          class="hidden"
+        />
+
+        <!-- Khung xem trước ảnh nếu đã chọn -->
+        <div
+          *ngIf="roomForm.imageUrl"
+          class="p-3 bg-white border border-slate-200 rounded-2xl flex items-center space-x-3 shadow-2xs"
+        >
+          <div
+            class="w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-200 shadow-2xs relative group"
+          >
+            <img
+              [src]="getImageUrl(roomForm.imageUrl)"
+              alt="Ảnh Villa"
+              class="w-full h-full object-cover"
+            />
+            <div
+              *ngIf="roomForm.isUploadingImage"
+              class="absolute inset-0 bg-slate-900/60 flex items-center justify-center"
+            >
+              <span
+                class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"
+              ></span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center space-x-1.5">
+              <span class="text-xs font-bold text-slate-800 truncate">
+                {{ roomForm.imageName || 'Ảnh đại diện Villa' }}
+              </span>
+              <span
+                class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-100 text-sky-700 shrink-0"
+              >
+                Đã chọn
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-0.5 truncate">{{ roomForm.imageUrl }}</p>
+
+            <div class="flex items-center space-x-2 mt-2">
+              <button
+                type="button"
+                (click)="villaFileInput.click()"
+                class="px-2.5 py-1 rounded-lg bg-sky-50 text-[#0284c7] hover:bg-sky-100 font-bold text-[10px] flex items-center space-x-1 transition cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[13px]">folder_open</span>
+                <span>Đổi ảnh từ máy</span>
+              </button>
+              <button
+                type="button"
+                (click)="removeRoomImage()"
+                class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 font-bold text-[10px] flex items-center space-x-1 transition cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-[13px]">delete</span>
+                <span>Gỡ ảnh</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Khung Dropzone chọn ảnh từ folder máy tính khi chưa có ảnh -->
+        <div
+          *ngIf="!roomForm.imageUrl"
+          (click)="villaFileInput.click()" tabindex="0" (keydown.enter)="villaFileInput.click()"
+          class="border-2 border-dashed border-slate-300 hover:border-[#0284c7] bg-white hover:bg-sky-50/40 rounded-2xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-1.5 group"
+        >
+          <div
+            class="w-11 h-11 rounded-2xl bg-sky-100/80 text-[#0284c7] flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs"
+          >
+            <span class="material-symbols-outlined text-[24px]">drive_folder_upload</span>
+          </div>
+          <div>
+            <span
+              class="text-xs font-bold text-slate-800 group-hover:text-[#0284c7] transition-colors"
+            >
+              Bấm để chọn ảnh từ thư mục máy tính (PNG, JPG, WEBP)
+            </span>
+            <p class="text-[10px] text-slate-400 mt-0.5">
+              Hỗ trợ tệp hình ảnh sắc nét, dung lượng tối đa 10MB
+            </p>
+          </div>
+        </div>
+
+        <!-- Mẫu ảnh resort có sẵn để chọn nhanh -->
+        <div
+          class="flex items-center space-x-1.5 mt-2 overflow-x-auto pb-0.5 text-[10px] font-semibold text-slate-500"
+        >
+          <span class="shrink-0 text-slate-400 font-bold">Ảnh mẫu resort:</span>
+          <button
+            type="button"
+            (click)="setRoomPresetImage('/assets/images/rooms/grand-oceanfront.jpg')"
+            class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-sky-300 hover:bg-sky-50 hover:text-[#0284c7] transition shrink-0 cursor-pointer shadow-2xs"
+          >
+            Biển Đông
+          </button>
+          <button
+            type="button"
+            (click)="setRoomPresetImage('/assets/images/rooms/sunset-lagoon.jpg')"
+            class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-sky-300 hover:bg-sky-50 hover:text-[#0284c7] transition shrink-0 cursor-pointer shadow-2xs"
+          >
+            Hoàng Hôn
+          </button>
+          <button
+            type="button"
+            (click)="setRoomPresetImage('/assets/images/rooms/cliffside-sunset.jpg')"
+            class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-sky-300 hover:bg-sky-50 hover:text-[#0284c7] transition shrink-0 cursor-pointer shadow-2xs"
+          >
+            Vách Đá
+          </button>
+          <button
+            type="button"
+            (click)="setRoomPresetImage('/assets/images/rooms/presidential-suite.jpg')"
+            class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-sky-300 hover:bg-sky-50 hover:text-[#0284c7] transition shrink-0 cursor-pointer shadow-2xs"
+          >
+            Dinh Thự VIP
+          </button>
+        </div>
+      </div>
+
+      <!-- KHỐI 5: BỘ SƯU TẬP ẢNH (GALLERY) -->
+      <div class="p-4 bg-slate-50/70 border border-slate-200/80 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2 text-xs font-bold text-slate-800 uppercase tracking-wide">
+            <span class="w-2 h-4 rounded-full bg-rose-500"></span>
+            <span>Khối 5: Bộ Sưu Tập Ảnh (Gallery)</span>
+          </div>
+          <span *ngIf="roomForm.images && roomForm.images.length > 0" class="text-[10px] text-emerald-600 font-bold">
+            {{ roomForm.images.length }} ảnh đã chọn
+          </span>
+        </div>
+
+        <input
+          #villaGalleryInput
+          type="file"
+          (change)="onRoomImagesSelected($event)"
+          accept="image/png, image/jpeg, image/webp, image/jpg"
+          multiple
+          class="hidden"
+        />
+
+        <div *ngIf="roomForm.images && roomForm.images.length > 0" class="grid grid-cols-4 gap-2">
+          <div *ngFor="let img of roomForm.images; let i = index" class="relative group rounded-xl overflow-hidden border border-slate-200 h-20">
+            <img [src]="getImageUrl(img)" alt="Gallery image" class="w-full h-full object-cover" />
+            <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+              <button type="button" (click)="removeRoomImageFromGallery(i)" class="w-7 h-7 rounded-full bg-white text-rose-600 flex items-center justify-center hover:bg-rose-50 cursor-pointer transition">
+                <span class="material-symbols-outlined text-[14px]">delete</span>
+              </button>
+            </div>
+          </div>
+          
+          <div (click)="villaGalleryInput.click()" tabindex="0" (keydown.enter)="villaGalleryInput.click()" class="border-2 border-dashed border-slate-300 hover:border-[#0284c7] rounded-xl flex flex-col items-center justify-center cursor-pointer transition h-20 hover:bg-sky-50 text-slate-400 hover:text-[#0284c7]">
+            <span class="material-symbols-outlined text-[20px]">add_photo_alternate</span>
+            <span class="text-[9px] font-bold mt-1">Thêm ảnh</span>
+          </div>
+        </div>
+
+        <div *ngIf="!roomForm.images || roomForm.images.length === 0" (click)="villaGalleryInput.click()" tabindex="0" (keydown.enter)="villaGalleryInput.click()" class="border-2 border-dashed border-slate-300 hover:border-[#0284c7] bg-white hover:bg-sky-50/40 rounded-2xl p-5 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-1.5 group">
+          <div class="w-11 h-11 rounded-2xl bg-sky-100/80 text-[#0284c7] flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
+            <span class="material-symbols-outlined text-[24px]">photo_library</span>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-slate-800 group-hover:text-[#0284c7] transition-colors">Bấm để tải lên bộ sưu tập ảnh</span>
+            <p class="text-[10px] text-slate-400 mt-0.5">Cho phép tải lên nhiều ảnh cùng lúc</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div
+        class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold"
+      >
+        <div class="text-[11px] text-slate-400 font-medium hidden sm:block">
+          * Đảm bảo thông tin loại giường và tiện ích trước khi lưu
+        </div>
+        <div class="flex items-center space-x-2">
+          <button
+            type="button"
+            (click)="showRoomModal = false"
+            class="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer font-bold"
+          >
+            Hủy Bỏ
+          </button>
+          <button
+            type="button"
+            (click)="saveRoom()"
+            [disabled]="isSaving"
+            class="px-5 py-2.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition flex items-center space-x-2 cursor-pointer font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span
+              *ngIf="isSaving"
+              class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+            ></span>
+            <span class="material-symbols-outlined text-[17px]">
+              {{ isEditMode ? 'check_circle' : 'add_task' }}
+            </span>
+            <span>{{ isEditMode ? 'Lưu Thay Đổi' : 'Xác Nhận Khởi Tạo' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 5: XÁC NHẬN XÓA PHÒNG ==================== -->
+  <div
+    *ngIf="showDeleteConfirmModal && roomToDelete"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showDeleteConfirmModal = false; roomToDelete = null"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-fade-in"
+    >
+      <div class="flex items-center space-x-3 text-rose-600">
+        <div
+          class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-[24px]">delete_forever</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Xác Nhận Xóa Phòng</h3>
+          <p class="text-xs text-slate-500">Hành động này không thể hoàn tác</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Bạn có chắc chắn muốn xóa vĩnh viễn <strong>Villa #{{ roomToDelete.number }}</strong> ({{
+          roomToDelete.category
+        }}) khỏi hệ thống quản lý PMS? Toàn bộ thiết lập của phòng này sẽ bị xóa khỏi cơ sở dữ liệu.
+      </p>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+        <button
+          (click)="showDeleteConfirmModal = false; roomToDelete = null"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          (click)="confirmDeleteRoom()"
+          [disabled]="isSaving"
+          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition flex items-center space-x-1.5"
+        >
+          <span
+            *ngIf="isSaving"
+            class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span>Xác Nhận Xóa</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 6: ĐỔI TRẠNG THÁI NHANH ==================== -->
+  <div
+    *ngIf="showQuickStatusModal && roomToChangeStatus"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showQuickStatusModal = false; roomToChangeStatus = null"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-fade-in"
+    >
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <span class="text-xs font-mono font-bold text-[#0284c7]"
+            >Villa #{{ roomToChangeStatus.number }}</span
+          >
+          <h3 class="text-base font-bold text-slate-900">Đổi Trạng Thái Nhanh</h3>
+        </div>
+        <button
+          (click)="showQuickStatusModal = false; roomToChangeStatus = null"
+          class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <label
+          for="quickStatusAvailable"
+          class="flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition"
+          [class.border-emerald-400]="quickStatusTarget === 'AVAILABLE'"
+          [class.bg-emerald-50]="quickStatusTarget === 'AVAILABLE'"
+        >
+          <input
+            id="quickStatusAvailable"
+            type="radio"
+            name="quickStatus"
+            value="AVAILABLE"
+            [(ngModel)]="quickStatusTarget"
+            class="text-emerald-600"
+          />
+          <div>
+            <span class="font-bold text-emerald-800 block">Sẵn Sàng Đón Khách</span>
+            <span class="text-[10px] text-slate-500"
+              >Phòng đã dọn sạch, khử trùng đạt chuẩn 5*</span
+            >
+          </div>
+        </label>
+
+        <label
+          for="quickStatusOccupied"
+          class="flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition"
+          [class.border-amber-400]="quickStatusTarget === 'OCCUPIED'"
+          [class.bg-amber-50]="quickStatusTarget === 'OCCUPIED'"
+        >
+          <input
+            id="quickStatusOccupied"
+            type="radio"
+            name="quickStatus"
+            value="OCCUPIED"
+            [(ngModel)]="quickStatusTarget"
+            class="text-amber-600"
+          />
+          <div>
+            <span class="font-bold text-amber-800 block">Đang Có Khách (In-House)</span>
+            <span class="text-[10px] text-slate-500">Khách đang lưu trú tại biệt thự</span>
+          </div>
+        </label>
+
+        <label
+          for="quickStatusCleaning"
+          class="flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition"
+          [class.border-sky-400]="quickStatusTarget === 'CLEANING'"
+          [class.bg-sky-50]="quickStatusTarget === 'CLEANING'"
+        >
+          <input
+            id="quickStatusCleaning"
+            type="radio"
+            name="quickStatus"
+            value="CLEANING"
+            [(ngModel)]="quickStatusTarget"
+            class="text-sky-600"
+          />
+          <div>
+            <span class="font-bold text-sky-800 block">Đang Dọn Dẹp / Ozon</span>
+            <span class="text-[10px] text-slate-500">Khách vừa check-out, cần dọn phòng</span>
+          </div>
+        </label>
+
+        <label
+          for="quickStatusMaintenance"
+          class="flex items-center space-x-3 p-3 rounded-xl border cursor-pointer transition"
+          [class.border-rose-400]="quickStatusTarget === 'MAINTENANCE'"
+          [class.bg-rose-50]="quickStatusTarget === 'MAINTENANCE'"
+        >
+          <input
+            id="quickStatusMaintenance"
+            type="radio"
+            name="quickStatus"
+            value="MAINTENANCE"
+            [(ngModel)]="quickStatusTarget"
+            class="text-rose-600"
+          />
+          <div>
+            <span class="font-bold text-rose-800 block">Đang Bảo Trì Kỹ Thuật</span>
+            <span class="text-[10px] text-slate-500">Tạm khóa phòng sửa chữa trang thiết bị</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+        <button
+          (click)="showQuickStatusModal = false; roomToChangeStatus = null"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition"
+        >
+          Hủy
+        </button>
+        <button
+          (click)="submitQuickStatus()"
+          [disabled]="isSaving"
+          class="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition flex items-center space-x-1.5"
+        >
+          <span
+            *ngIf="isSaving"
+            class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span>Cập Nhật Ngay</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 8: CẤU HÌNH HẠNG BIỆT THỰ / PHÒNG ==================== -->
+  <div
+    *ngIf="showRoomTypeModal"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showRoomTypeModal = false"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-fade-in max-h-[90vh] overflow-y-auto custom-scrollbar"
+    >
+      <!-- Modal Header -->
+      <div
+        class="flex items-center justify-between pb-3 border-b border-slate-100 sticky top-0 bg-white z-10"
+      >
+        <div class="flex items-center space-x-2.5">
+          <div
+            class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0"
+          >
+            <span class="material-symbols-outlined text-[22px]">{{
+              isRoomTypeEditMode ? 'tune' : 'hotel'
+            }}</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">
+              {{
+                isRoomTypeEditMode ? 'Cấu Hình Loại Giường Nghỉ Dưỡng' : 'Khởi Tạo Loại Giường Mới'
+              }}
+            </h3>
+            <p class="text-xs text-slate-400" *ngIf="isRoomTypeEditMode">
+              Mã loại giường: <strong class="text-slate-700">#{{ roomTypeForm.id }}</strong> • Cập
+              nhật quy cách giường và tiêu chuẩn sức chứa
+            </p>
+            <p class="text-xs text-slate-400" *ngIf="!isRoomTypeEditMode">
+              Thêm loại giường và tiêu chuẩn nghỉ dưỡng mới vào danh mục resort
+            </p>
+          </div>
+        </div>
+        <button
+          (click)="showRoomTypeModal = false"
+          class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <div class="space-y-4 text-xs text-slate-700">
+        <!-- Tên Loại Giường -->
+        <div>
+          <label for="roomTypeNameInput" class="block font-bold text-slate-700 mb-1">
+            Tên Loại Giường <span class="text-rose-500">*</span>
+          </label>
+          <input
+            id="roomTypeNameInput"
+            type="text"
+            [(ngModel)]="roomTypeForm.name"
+            placeholder="Ví dụ: Giường King Siêu Lớn, Giường Đôi Queen, Giường Đơn Twin..."
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-900"
+          />
+        </div>
+
+        <!-- 4 Cột: Chiều Dài, Chiều Rộng, Người Lớn & Trẻ Nhỏ -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <!-- Chiều Dài Giường -->
+          <div>
+            <label for="roomTypeBedLengthInput" class="block font-bold text-slate-700 mb-1">
+              Chiều Dài <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="roomTypeBedLengthInput"
+                type="text"
+                [(ngModel)]="roomTypeForm.bedLength"
+                placeholder="Ví dụ: 2.0"
+                class="w-full pl-3 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-900"
+              />
+              <span class="absolute right-2.5 top-2.5 text-xs text-slate-400 font-bold">m</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1"> Dài (mét) </span>
+          </div>
+
+          <!-- Chiều Rộng Giường -->
+          <div>
+            <label for="roomTypeBedWidthInput" class="block font-bold text-slate-700 mb-1">
+              Chiều Rộng <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="roomTypeBedWidthInput"
+                type="text"
+                [(ngModel)]="roomTypeForm.bedWidth"
+                placeholder="Ví dụ: 1.8"
+                class="w-full pl-3 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-900"
+              />
+              <span class="absolute right-2.5 top-2.5 text-xs text-slate-400 font-bold">m</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1"> Rộng (mét) </span>
+          </div>
+
+          <!-- Người Lớn -->
+          <div>
+            <label for="roomTypeAdultsInput" class="block font-bold text-slate-700 mb-1">
+              Người Lớn <span class="text-rose-500">*</span>
+            </label>
+            <div class="relative">
+              <input
+                id="roomTypeAdultsInput"
+                type="number"
+                [(ngModel)]="roomTypeForm.adults"
+                min="1"
+                max="30"
+                class="w-full pl-3 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-900"
+              />
+              <span class="absolute right-2.5 top-2.5 text-xs text-slate-400 font-bold">NL</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1"> Số người lớn </span>
+          </div>
+
+          <!-- Trẻ Nhỏ -->
+          <div>
+            <label for="roomTypeChildrenInput" class="block font-bold text-slate-700 mb-1">
+              Trẻ Nhỏ <span class="text-slate-400">(Tùy chọn)</span>
+            </label>
+            <div class="relative">
+              <input
+                id="roomTypeChildrenInput"
+                type="number"
+                [(ngModel)]="roomTypeForm.children"
+                min="0"
+                max="20"
+                class="w-full pl-3 pr-7 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-900"
+              />
+              <span class="absolute right-2.5 top-2.5 text-xs text-slate-400 font-bold">TE</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1"> Số trẻ em / bé </span>
+          </div>
+        </div>
+
+        <!-- Live Preview Quy Cách Giường & Sức Chứa -->
+        <div
+          class="px-3.5 py-2.5 bg-sky-50/70 border border-sky-100 rounded-xl flex flex-wrap items-center justify-between text-xs gap-2"
+        >
+          <div class="flex items-center space-x-2 text-slate-700">
+            <span class="material-symbols-outlined text-sky-600 text-[18px]">bed</span>
+            <span>Quy cách:</span>
+            <strong class="text-sky-800">
+              Rộng {{ roomTypeForm.bedWidth || '1.8' }}m × Dài
+              {{ roomTypeForm.bedLength || '2.0' }}m
+            </strong>
+          </div>
+          <div class="flex items-center space-x-3 text-[11px] font-semibold text-slate-600">
+            <span class="flex items-center space-x-1">
+              <span class="material-symbols-outlined text-slate-500 text-[14px]">person</span>
+              <span
+                >Người lớn:
+                <strong class="text-slate-800">{{ roomTypeForm.adults || 2 }}</strong></span
+              >
+            </span>
+            <span class="flex items-center space-x-1">
+              <span class="material-symbols-outlined text-slate-500 text-[14px]">child_care</span>
+              <span
+                >Trẻ nhỏ:
+                <strong class="text-slate-800">{{ roomTypeForm.children || 0 }}</strong></span
+              >
+            </span>
+            <span class="text-slate-400 font-medium">
+              (Tổng: {{ (roomTypeForm.adults || 2) + (roomTypeForm.children || 0) }} Khách)
+            </span>
+          </div>
+        </div>
+
+        <!-- Tải Ảnh Lên -->
+        <div>
+          <label for="roomTypeImageInput" class="block font-bold text-slate-700 mb-1">
+            Tải Ảnh Lên
+          </label>
+          <div class="flex items-center space-x-2">
+            <input
+              id="roomTypeImageInput"
+              type="text"
+              [(ngModel)]="roomTypeForm.imageUrl"
+              (input)="onRoomTypeImageUrlChange()"
+              placeholder="Dán đường dẫn ảnh hoặc bấm Tải từ máy (tùy chọn)..."
+              class="flex-1 px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs text-slate-700"
+            />
+            <input
+              #rtFileInput
+              type="file"
+              (change)="onRoomTypeImageSelected($event)"
+              accept="image/png, image/jpeg, image/webp, image/jpg"
+              class="hidden"
+            />
+            <button
+              type="button"
+              (click)="rtFileInput.click()"
+              class="px-3 py-2 bg-sky-50 hover:bg-sky-100 text-[#0284c7] font-bold text-xs rounded-xl border border-sky-200 transition flex items-center space-x-1 shrink-0 cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[16px]">folder_open</span>
+              <span>Từ máy</span>
+            </button>
+
+            <!-- Preview ảnh xem trước an toàn (không bị vỡ icon khi thiếu file ảnh) -->
+            <div
+              *ngIf="roomTypeForm.imageUrl"
+              class="relative w-10 h-10 rounded-xl overflow-hidden border shrink-0 shadow-2xs group flex items-center justify-center"
+              [ngClass]="
+                previewImageError ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-slate-100'
+              "
+            >
+              <img
+                *ngIf="!previewImageError"
+                [src]="getImageUrl(roomTypeForm.imageUrl)"
+                (error)="onRoomTypeImageError()"
+                alt="Preview"
+                class="w-full h-full object-cover"
+              />
+              <div
+                *ngIf="previewImageError"
+                class="w-full h-full flex items-center justify-center text-amber-500"
+                title="Ảnh không tải được hoặc liên kết bị hỏng"
+              >
+                <span class="material-symbols-outlined text-[18px]">hide_image</span>
+              </div>
+              <button
+                type="button"
+                (click)="clearRoomTypeImage()"
+                class="absolute inset-0 bg-slate-900/75 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                title="Xóa ảnh này"
+              >
+                <span class="material-symbols-outlined text-[15px]">close</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+        <button
+          (click)="showRoomTypeModal = false"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          (click)="saveRoomType()"
+          [disabled]="isSaving"
+          class="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer font-bold"
+        >
+          <span
+            *ngIf="isSaving"
+            class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span class="material-symbols-outlined text-[16px]">{{
+            isRoomTypeEditMode ? 'save' : 'add_circle'
+          }}</span>
+          <span>{{
+            isRoomTypeEditMode ? 'Lưu Cấu Hình Loại Giường' : 'Khởi Tạo Loại Giường Mới'
+          }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 9: XÁC NHẬN XÓA LOẠI GIƯỜNG ==================== -->
+  <div
+    *ngIf="showDeleteRoomTypeConfirmModal && roomTypeToDelete"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showDeleteRoomTypeConfirmModal = false; roomTypeToDelete = null"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-fade-in"
+    >
+      <div class="flex items-center space-x-3 text-rose-600">
+        <div
+          class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-[24px]">delete_forever</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Xác Nhận Xóa Loại Giường</h3>
+          <p class="text-xs text-slate-500">Hành động này không thể hoàn tác</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Bạn có chắc chắn muốn xóa loại giường <strong>{{ roomTypeToDelete.title }}</strong> khỏi hệ
+        thống quản lý PMS?
+      </p>
+
+      <div
+        class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-start space-x-2"
+      >
+        <span class="material-symbols-outlined text-[18px] text-amber-600 shrink-0 mt-0.5"
+          >info</span
+        >
+        <span
+          >Lưu ý: Chỉ có thể xóa loại giường khi không có biệt thự nào đang áp dụng loại giường
+          này.</span
+        >
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+        <button
+          (click)="showDeleteRoomTypeConfirmModal = false; roomTypeToDelete = null"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          (click)="confirmDeleteRoomType()"
+          [disabled]="isSaving"
+          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer font-bold"
+        >
+          <span
+            *ngIf="isSaving"
+            class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"
+          ></span>
+          <span>Xác Nhận Xóa</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 10: THÊM / SỬA PHÂN KHU NGHỈ DƯỠNG ==================== -->
+  <div
+    *ngIf="showZoneModal"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showZoneModal = false"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-fade-in"
+    >
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center space-x-2.5">
+          <div
+            class="w-10 h-10 rounded-xl bg-sky-50 text-[#0284c7] flex items-center justify-center flex-shrink-0"
+          >
+            <span class="material-symbols-outlined text-[22px]">{{
+              isZoneEditMode ? 'edit_location_alt' : 'add_location_alt'
+            }}</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">
+              {{ isZoneEditMode ? 'Cấu Hình & Sửa Phân Khu' : 'Khởi Tạo Phân Khu Mới' }}
+            </h3>
+            <p class="text-xs text-slate-400">
+              Thiết lập phân khu địa lý, đặc quyền và thông số cảnh quan resort
+            </p>
+          </div>
+        </div>
+        <button
+          (click)="showZoneModal = false"
+          class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 text-xs text-slate-700">
+        <div>
+          <label for="zoneNameInput" class="block font-bold text-slate-700 mb-1">
+            Tên Phân Khu Nghỉ Dưỡng <span class="text-rose-500">*</span>
+          </label>
+          <input
+            id="zoneNameInput"
+            type="text"
+            [(ngModel)]="zoneForm.name"
+            placeholder="Ví dụ: Khu E - Đồi Thông Nguyên Sinh hoặc Khu Biệt Lập Vịnh Ngọc"
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-bold text-slate-900"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="zoneTagInput" class="block font-bold text-slate-700 mb-1"
+              >Thẻ Nhận Diện / Badge</label
+            >
+            <input
+              id="zoneTagInput"
+              type="text"
+              [(ngModel)]="zoneForm.tag"
+              placeholder="Ví dụ: ĐỒI NGUYÊN SINH"
+              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-semibold text-slate-700 uppercase"
+            />
+          </div>
+
+          <div>
+            <label for="zoneIconSelect" class="block font-bold text-slate-700 mb-1"
+              >Hình Ảnh Đại Diện</label
+            >
+            <div class="flex items-center gap-2">
+              <input
+                id="zoneIconSelect"
+                type="text"
+                [(ngModel)]="zoneForm.icon"
+                placeholder="Đường dẫn hình ảnh (https://...)"
+                class="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs font-semibold text-slate-700"
+              />
+              <input type="file" #zoneImageInput class="hidden" (change)="onZoneImageSelected($event)" accept="image/*" />
+              <button 
+                type="button"
+                (click)="zoneImageInput.click()" 
+                class="w-10 h-10 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-slate-600 transition flex items-center justify-center flex-shrink-0 cursor-pointer"
+              >
+                <span *ngIf="!isUploadingZoneImage" class="material-symbols-outlined text-[18px]">upload</span>
+                <span *ngIf="isUploadingZoneImage" class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label for="zoneDescInput" class="block font-bold text-slate-700 mb-1"
+            >Mô Tả Không Gian & Đặc Điểm Cảnh Quan</label
+          >
+          <textarea
+            id="zoneDescInput"
+            [(ngModel)]="zoneForm.desc"
+            rows="3"
+            placeholder="Mô tả vị trí, tầm nhìn và phong cách kiến trúc đặc trưng của phân khu..."
+            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 focus:bg-white text-xs text-slate-700"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+        <button
+          (click)="showZoneModal = false"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          (click)="saveZone()"
+          class="px-5 py-2 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer font-bold"
+        >
+          <span class="material-symbols-outlined text-[16px]">{{
+            isZoneEditMode ? 'save' : 'add_circle'
+          }}</span>
+          <span>{{ isZoneEditMode ? 'Lưu Thay Đổi' : 'Xác Nhận Khởi Tạo' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 11: XÁC NHẬN XÓA PHÂN KHU ==================== -->
+  <div
+    *ngIf="showDeleteZoneConfirmModal && zoneToDelete"
+    appBodyPortal
+    class="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-backdrop"
+  >
+    <button
+      type="button"
+      class="fixed inset-0 w-full h-full cursor-default bg-transparent border-none"
+      (click)="showDeleteZoneConfirmModal = false; zoneToDelete = null"
+      aria-label="Đóng"
+    ></button>
+    <div
+      class="relative z-10 bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-fade-in"
+    >
+      <div class="flex items-center space-x-3 text-rose-600">
+        <div
+          class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-[24px]">delete_forever</span>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Xác Nhận Xóa Phân Khu</h3>
+          <p class="text-xs text-slate-500">Hành động này không thể hoàn tác</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Bạn có chắc chắn muốn xóa phân khu <strong>{{ zoneToDelete.name }}</strong> ({{
+          zoneToDelete.tag
+        }}) khỏi quy hoạch của resort?
+      </p>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-end space-x-2 text-xs font-bold">
+        <button
+          (click)="showDeleteZoneConfirmModal = false; zoneToDelete = null"
+          class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+        >
+          Hủy Bỏ
+        </button>
+        <button
+          (click)="confirmDeleteZone()"
+          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer font-bold"
+        >
+          <span>Xác Nhận Xóa</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

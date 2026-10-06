@@ -1,0 +1,1161 @@
+<!-- src/app/features/villas/villa-detail/villa-detail.component.html -->
+
+<!-- Fullscreen Luxury Lightbox Modal -->
+<div *ngIf="isLightboxOpen"
+     class="fixed inset-0 z-[100000] bg-black/95 backdrop-blur-2xl flex flex-col justify-between text-white p-4 sm:p-6 animate-[fadeIn_0.2s_ease-out]">
+  <!-- Top Bar -->
+  <div class="flex items-center justify-between z-20 pb-4 border-b border-white/10">
+    <div class="flex items-center gap-3">
+      <span class="text-xs uppercase tracking-widest font-black text-amber-400">FLC LUXURY GALLERY</span>
+      <span class="text-xs text-white/40">•</span>
+      <span class="text-sm font-bold text-white/90">Villa {{ villa?.villaNumber }} (Ảnh {{ lightboxIndex + 1 }} / {{ galleryImages.length }})</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button (click)="shareVilla()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white cursor-pointer" title="Chia sẻ">
+        <span class="material-symbols-outlined text-lg">share</span>
+      </button>
+      <button (click)="closeLightbox()" class="w-10 h-10 rounded-full bg-white/10 hover:bg-red-600 flex items-center justify-center transition-colors text-white cursor-pointer" title="Đóng (Esc)">
+        <span class="material-symbols-outlined text-2xl">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Center Image with Prev / Next -->
+  <div class="relative flex-1 flex items-center justify-center py-4 overflow-hidden">
+    <button *ngIf="galleryImages.length > 1"
+            (click)="lightboxPrev()"
+            type="button"
+            class="absolute left-2 sm:left-6 w-12 h-12 rounded-full bg-black/50 hover:bg-white text-white hover:text-black flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 z-20 border border-white/20 cursor-pointer">
+      <span class="material-symbols-outlined text-3xl">chevron_left</span>
+    </button>
+
+    <img [src]="galleryImages[lightboxIndex]"
+         [alt]="'Ảnh biệt thự ' + villa?.villaNumber"
+         class="max-h-[75vh] max-w-[90vw] object-contain rounded-xl shadow-2xl transition-all duration-300 select-none" />
+
+    <button *ngIf="galleryImages.length > 1"
+            (click)="lightboxNext()"
+            type="button"
+            class="absolute right-2 sm:right-6 w-12 h-12 rounded-full bg-black/50 hover:bg-white text-white hover:text-black flex items-center justify-center backdrop-blur-md transition-all hover:scale-110 active:scale-95 z-20 border border-white/20 cursor-pointer">
+      <span class="material-symbols-outlined text-3xl">chevron_right</span>
+    </button>
+  </div>
+
+  <!-- Bottom Thumbnails -->
+  <div class="z-20 pt-3 border-t border-white/10 flex items-center justify-center gap-3 overflow-x-auto py-2 scrollbar-thin">
+    <button *ngFor="let img of galleryImages; let i = index"
+            (click)="selectLightboxImage(i)"
+            type="button"
+            [class]="'w-20 h-14 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ' +
+                     (lightboxIndex === i ? 'border-[#0284C7] ring-2 ring-[#0284C7]/50 scale-105 opacity-100' : 'border-transparent opacity-50 hover:opacity-100')">
+      <img [src]="img" class="w-full h-full object-cover" />
+    </button>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div *ngIf="showToast"
+     [class]="'fixed top-6 right-6 z-[9999] max-w-sm px-5 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all animate-[slideIn_0.3s_ease] ' + 
+              (toastType === 'success' ? 'bg-emerald-600 text-white' : 
+               toastType === 'error' ? 'bg-red-600 text-white' : 
+               'bg-[#0369A1] text-white')">
+  <span class="material-symbols-outlined text-xl">
+    {{ toastType === 'success' ? 'check_circle' : toastType === 'error' ? 'error' : 'info' }}
+  </span>
+  <span class="text-[13px] font-semibold">{{ toastMessage }}</span>
+  <button (click)="showToast = false" class="ml-auto text-white/70 hover:text-white cursor-pointer">
+    <span class="material-symbols-outlined text-lg">close</span>
+  </button>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="loading" class="min-h-screen flex items-center justify-center bg-slate-50">
+  <div class="flex flex-col items-center gap-3">
+    <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#0284C7] border-t-transparent"></div>
+    <span class="text-xs font-bold text-slate-500 tracking-wider uppercase">Đang tải biệt thự thượng lưu...</span>
+  </div>
+</div>
+
+<!-- Error State -->
+<div *ngIf="hasError" class="min-h-screen flex items-center justify-center bg-slate-50">
+  <div class="text-center p-8 bg-white rounded-2xl shadow-lg border border-slate-100 max-w-md">
+    <span class="material-symbols-outlined text-5xl text-rose-500 mb-2">villa</span>
+    <h2 class="text-2xl font-bold text-slate-800">Không tìm thấy Biệt Thự</h2>
+    <p class="text-sm text-slate-500 mt-2">Biệt thự này có thể đang bảo trì hoặc mã định danh không tồn tại.</p>
+    <a routerLink="/" class="inline-block mt-6 px-6 py-2.5 bg-[#0369A1] text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-md hover:bg-sky-700 transition-colors">Quay lại trang chủ</a>
+  </div>
+</div>
+
+<!-- Main Content Layout -->
+<div *ngIf="!loading && !hasError && villa" class="bg-white min-h-screen">
+  
+  <!-- Header Area -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-slate-100">
+    <!-- Breadcrumbs & Quick Actions -->
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center space-x-2 text-[11px] font-black tracking-widest text-slate-400 uppercase">
+        <a routerLink="/" class="hover:text-[#0369A1] transition-colors">Trang Chủ</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a routerLink="/villas" class="hover:text-[#0369A1] transition-colors">Bộ Sưu Tập Biệt Thự</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-[#0369A1]">Villa {{ villa.villaNumber }}</span>
+      </div>
+      <div class="flex items-center space-x-2.5">
+        <button (click)="toggleFavorite()"
+                type="button"
+                [class]="'flex items-center space-x-1.5 px-3.5 py-1.5 border rounded-lg text-[12px] font-bold transition-all cursor-pointer ' +
+                         (isFavorite ? 'bg-rose-50 border-rose-200 text-rose-600 shadow-sm' : 'border-slate-200 hover:bg-slate-50 text-slate-600')">
+          <span class="material-symbols-outlined text-[17px]" [class.fill-current]="isFavorite">favorite</span>
+          <span>{{ isFavorite ? 'Đã yêu thích' : 'Lưu yêu thích' }}</span>
+        </button>
+        <button (click)="shareVilla()"
+                type="button"
+                class="flex items-center space-x-1.5 px-3.5 py-1.5 border border-slate-200 rounded-lg hover:bg-slate-50 text-[12px] font-bold text-slate-600 transition-colors cursor-pointer">
+          <span class="material-symbols-outlined text-[17px]">share</span>
+          <span>Chia sẻ</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Title & Rating Badges -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div>
+        <div class="flex flex-wrap items-center gap-2 mb-2.5">
+          <span class="bg-[#EA580C] text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
+            ĐẶC QUYỀN THƯỢNG LƯU
+          </span>
+          <span class="bg-[#0369A1] text-white text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm">
+            {{ villa.structureType || 'HƯỚNG BIỂN' }}
+          </span>
+          <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md flex items-center gap-1">
+            <span class="material-symbols-outlined text-[13px]">verified</span>
+            Khử khuẩn Ozone 100%
+          </span>
+        </div>
+        
+        <h1 class="text-3xl md:text-[38px] font-black text-[#0369A1] uppercase tracking-wide leading-tight">
+          Villa {{ villa.villaNumber }}
+        </h1>
+        
+        <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mt-1.5" *ngIf="villa.villaTypeName">
+          {{ villa.villaTypeName }} • {{ villa.structureType || (villa.floor ? villa.floor + ' Tầng' : 'Biệt thự biển') }} • Phân khu {{ villa.zone || 'Aura' }}
+        </p>
+        
+        <div class="flex flex-wrap items-center text-[13px] text-slate-600 font-medium mt-3 gap-y-1">
+          <div class="flex items-center text-amber-500 font-black mr-3">
+            <span class="material-symbols-outlined text-[17px] mr-0.5">star</span>
+            <span>4.96</span>
+            <span class="text-slate-400 font-semibold ml-1">(48 đánh giá xuất sắc)</span>
+          </div>
+          <span class="text-slate-300 hidden sm:inline">•</span>
+          <div class="flex items-center text-slate-500 ml-0 sm:ml-3">
+            <span class="material-symbols-outlined text-[16px] text-[#EA580C] mr-1">location_on</span>
+            <span>FLC Sầm Sơn Beach & Golf Resort, Thanh Hóa</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-left md:text-right flex-shrink-0 bg-slate-50 md:bg-transparent p-4 md:p-0 rounded-xl border border-slate-100 md:border-none">
+        <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1">Giá ưu đãi trực tiếp</div>
+        <div class="text-3xl md:text-4xl font-black text-[#EA580C] leading-none">
+          {{ formatPrice(villa.basePrice) }}đ 
+          <span class="text-[13px] text-slate-500 font-bold tracking-normal">/ đêm</span>
+        </div>
+        <div class="text-[11px] text-emerald-600 font-bold mt-1.5 flex items-center md:justify-end gap-1">
+          <span class="material-symbols-outlined text-[14px]">check_circle</span>
+          <span>Bao gồm bữa sáng Buffet & Quản gia riêng</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Body Layout -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+    <div class="flex flex-col lg:flex-row gap-10">
+      
+      <!-- Left Column: Gallery, Bento Specs, Details -->
+      <div class="lg:w-[65%] xl:w-[68%] space-y-10">
+        
+        <!-- Gallery Layout: Large image on top + interactive thumbnails strip below -->
+        <div class="space-y-3">
+          <!-- Main Large Image Viewport -->
+          <div class="relative w-full h-[380px] sm:h-[460px] md:h-[500px] rounded-2xl overflow-hidden bg-slate-900 shadow-md group cursor-pointer"
+               (click)="openLightbox()">
+            <img [src]="selectedImageUrl"
+                 [alt]="'Hình ảnh biệt thự ' + villa.villaNumber"
+                 class="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500 select-none" />
+
+            <!-- Gradient Shading -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/20 pointer-events-none"></div>
+
+            <!-- Badges Floating on Image -->
+            <div class="absolute top-4 left-4 flex flex-wrap items-center gap-2 z-10 pointer-events-none">
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-amber-400 text-[11px] font-black uppercase tracking-wider shadow-sm">
+                <span class="material-symbols-outlined text-[14px]">star</span>
+                4.96 Resort Rating
+              </span>
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-600/90 backdrop-blur-md text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
+                <span class="material-symbols-outlined text-[14px]">verified</span>
+                Khử khuẩn Ozone 100%
+              </span>
+            </div>
+
+            <!-- Fullscreen Hint Button -->
+            <button (click)="$event.stopPropagation(); openLightbox()"
+                    type="button"
+                    class="absolute top-4 right-4 px-3.5 py-1.5 rounded-full bg-black/60 hover:bg-black/85 backdrop-blur-md text-white text-xs font-bold flex items-center gap-1.5 transition-all opacity-85 group-hover:opacity-100 z-10 shadow-sm cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">fullscreen</span>
+              <span class="hidden sm:inline">Xem toàn màn hình</span>
+            </button>
+
+            <!-- Navigation Arrows (only if multiple images) -->
+            <button *ngIf="galleryImages.length > 1"
+                    (click)="$event.stopPropagation(); prevImage()"
+                    type="button"
+                    class="absolute left-3.5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg backdrop-blur-sm transition-all hover:scale-110 active:scale-95 z-10 cursor-pointer"
+                    title="Ảnh trước">
+              <span class="material-symbols-outlined text-2xl leading-none">chevron_left</span>
+            </button>
+
+            <button *ngIf="galleryImages.length > 1"
+                    (click)="$event.stopPropagation(); nextImage()"
+                    type="button"
+                    class="absolute right-3.5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/85 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg backdrop-blur-sm transition-all hover:scale-110 active:scale-95 z-10 cursor-pointer"
+                    title="Ảnh tiếp theo">
+              <span class="material-symbols-outlined text-2xl leading-none">chevron_right</span>
+            </button>
+
+            <!-- Counter Badge -->
+            <div *ngIf="galleryImages.length > 1"
+                 class="absolute bottom-3.5 right-3.5 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-bold tracking-wider flex items-center gap-1.5 z-10 shadow-sm">
+              <span class="material-symbols-outlined text-[15px]">photo_camera</span>
+              <span>{{ currentImageIndex + 1 }} / {{ galleryImages.length }} ảnh</span>
+            </div>
+          </div>
+
+          <!-- Bottom Thumbnails Row: only actual images in collection -->
+          <div *ngIf="galleryImages.length > 1"
+               class="flex items-center gap-3 overflow-x-auto py-1 px-0.5 scrollbar-thin">
+            <button *ngFor="let img of galleryImages; let i = index"
+                    (click)="selectImage(img)"
+                    type="button"
+                    [class]="'relative flex-shrink-0 w-24 sm:w-28 h-16 sm:h-20 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 border-2 ' +
+                             (selectedImageUrl === img 
+                              ? 'border-[#0284C7] ring-2 ring-[#0284C7]/40 scale-[1.03] shadow-md opacity-100' 
+                              : 'border-transparent opacity-60 hover:opacity-100 hover:border-slate-300')">
+              <img [src]="img" [alt]="'Ảnh ' + (i + 1)" class="w-full h-full object-cover" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Tabs Section -->
+        <div class="space-y-6 pt-2">
+          
+          <!-- Full-width Segmented Tab Navigation Bar (No Horizontal Scroll) -->
+          <div class="p-1.5 bg-slate-100/90 border border-slate-200/90 rounded-2xl shadow-inner">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5">
+              
+              <!-- Tab 1: SPECS -->
+              <button (click)="setActiveTab('SPECS')"
+                      type="button"
+                      [class]="'flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer text-center ' +
+                               (activeTab === 'SPECS' 
+                                ? 'bg-[#0369A1] text-white shadow-md font-black' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-bold')">
+                <span class="material-symbols-outlined text-[18px]">tune</span>
+                <span class="text-[11px] sm:text-xs leading-tight">Thông số & Tiêu chuẩn</span>
+              </button>
+
+              <!-- Tab 2: OVERVIEW -->
+              <button (click)="setActiveTab('OVERVIEW')"
+                      type="button"
+                      [class]="'flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer text-center ' +
+                               (activeTab === 'OVERVIEW' 
+                                ? 'bg-[#0369A1] text-white shadow-md font-black' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-bold')">
+                <span class="material-symbols-outlined text-[18px]">description</span>
+                <span class="text-[11px] sm:text-xs leading-tight">Tổng quan không gian</span>
+              </button>
+
+              <!-- Tab 3: ROOMS -->
+              <button (click)="setActiveTab('ROOMS')"
+                      type="button"
+                      [class]="'flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer text-center ' +
+                               (activeTab === 'ROOMS' 
+                                ? 'bg-[#0369A1] text-white shadow-md font-black' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-bold')">
+                <span class="material-symbols-outlined text-[18px]">bed</span>
+                <span class="text-[11px] sm:text-xs leading-tight">Cơ cấu phòng ngủ</span>
+                <span *ngIf="villa.rooms && villa.rooms.length > 0" 
+                      [class]="'text-[10px] px-1.5 py-0.2 rounded-full font-black ' +
+                               (activeTab === 'ROOMS' ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700')">
+                  {{ villa.rooms.length }}
+                </span>
+              </button>
+
+              <!-- Tab 4: AMENITIES -->
+              <button (click)="setActiveTab('AMENITIES')"
+                      type="button"
+                      [class]="'flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer text-center ' +
+                               (activeTab === 'AMENITIES' 
+                                ? 'bg-[#0369A1] text-white shadow-md font-black' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-bold')">
+                <span class="material-symbols-outlined text-[18px]">checklist</span>
+                <span class="text-[11px] sm:text-xs leading-tight">Tiện ích trang bị</span>
+              </button>
+
+              <!-- Tab 5: SERVICES -->
+              <button (click)="setActiveTab('SERVICES')"
+                      type="button"
+                      [class]="'flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer text-center ' +
+                               (activeTab === 'SERVICES' 
+                                ? 'bg-[#0369A1] text-white shadow-md font-black' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-bold')">
+                <span class="material-symbols-outlined text-[18px]">workspace_premium</span>
+                <span class="text-[11px] sm:text-xs leading-tight">Đặc quyền 5 Sao</span>
+              </button>
+
+              <!-- Tab 6: LOCATION -->
+              <button (click)="setActiveTab('LOCATION')"
+                      type="button"
+                      [class]="'flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl transition-all cursor-pointer text-center ' +
+                               (activeTab === 'LOCATION' 
+                                ? 'bg-[#0369A1] text-white shadow-md font-black' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80 font-bold')">
+                <span class="material-symbols-outlined text-[18px]">near_me</span>
+                <span class="text-[11px] sm:text-xs leading-tight">Vị trí & Tiện ích</span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- TAB 1: Thông số & Tiêu chuẩn biệt thự (Căn chỉnh cân đối các Card) -->
+          <div *ngIf="activeTab === 'SPECS'" class="space-y-6 animate-[fadeIn_0.2s_ease-out]">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-black text-slate-900">Thông số & Tiêu chuẩn kỹ thuật</h3>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Quy chuẩn xây dựng và chỉ số tiện nghi chính xác của Villa {{ villa.villaNumber }}</p>
+              </div>
+            </div>
+
+            <!-- 6 Bento Cards đã căn chỉnh chuẩn chỉnh -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              
+              <!-- Bento 1: Diện tích -->
+              <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-lg hover:border-sky-300 transition-all flex flex-col justify-between min-h-[145px]">
+                <div class="flex items-center justify-between">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/80 border border-sky-200/60 text-[#0369A1] flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[22px]">straighten</span>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 px-2.5 py-1 rounded-md border border-sky-100">
+                    Khuôn viên
+                  </span>
+                </div>
+                <div class="mt-3.5">
+                  <div class="text-[22px] font-black text-slate-900 tracking-tight leading-tight">
+                    {{ villa.area ? villa.area + ' m²' : '350 m²' }}
+                  </div>
+                  <div class="text-[13px] font-bold text-slate-700 mt-1">Diện tích khuôn viên</div>
+                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">Kiến trúc mở đón gió biển</div>
+                </div>
+              </div>
+
+              <!-- Bento 2: Phòng ngủ -->
+              <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-lg hover:border-amber-300 transition-all flex flex-col justify-between min-h-[145px]">
+                <div class="flex items-center justify-between">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/80 border border-amber-200/60 text-amber-700 flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[22px]">bed</span>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100">
+                    Nghỉ dưỡng
+                  </span>
+                </div>
+                <div class="mt-3.5">
+                  <div class="text-[22px] font-black text-slate-900 tracking-tight leading-tight">
+                    {{ villa.bedroomCount || villa.rooms?.length || 1 }} Phòng Ngủ
+                  </div>
+                  <div class="text-[13px] font-bold text-slate-700 mt-1">{{ villa.totalBeds ? villa.totalBeds + ' Giường ngủ' : 'Nhiều giường ngủ' }}</div>
+                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">Đệm cao cấp Simmons 5★</div>
+                </div>
+              </div>
+
+              <!-- Bento 3: Sức chứa -->
+              <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-lg hover:border-indigo-300 transition-all flex flex-col justify-between min-h-[145px]">
+                <div class="flex items-center justify-between">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100/80 border border-indigo-200/60 text-indigo-700 flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[22px]">group</span>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100">
+                    Sức chứa
+                  </span>
+                </div>
+                <div class="mt-3.5">
+                  <div class="text-[22px] font-black text-slate-900 tracking-tight leading-tight">
+                    <ng-container *ngIf="villa.totalAdults; else simpleCap">
+                      {{ villa.totalAdults }} Lớn<span *ngIf="villa.totalChildren"> + {{ villa.totalChildren }} Bé</span>
+                    </ng-container>
+                    <ng-template #simpleCap>
+                      {{ villa.totalCapacity || villa.capacity || 4 }} Khách
+                    </ng-template>
+                  </div>
+                  <div class="text-[13px] font-bold text-slate-700 mt-1">Sức chứa tiêu chuẩn</div>
+                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">Tối đa {{ villa.totalCapacity || 16 }} khách nguyên căn</div>
+                </div>
+              </div>
+
+              <!-- Bento 4: Hồ bơi riêng -->
+              <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-lg hover:border-cyan-300 transition-all flex flex-col justify-between min-h-[145px]">
+                <div class="flex items-center justify-between">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/80 border border-cyan-200/60 text-cyan-700 flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[22px]">pool</span>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-md border border-cyan-100">
+                    Hồ bơi riêng
+                  </span>
+                </div>
+                <div class="mt-3.5">
+                  <div class="text-[22px] font-black text-slate-900 tracking-tight leading-tight">
+                    {{ villa.poolSize ? villa.poolSize + ' m²' : '24 m²' }}
+                  </div>
+                  <div class="text-[13px] font-bold text-slate-700 mt-1">Hồ bơi vô cực riêng</div>
+                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">Nước trong xanh, ghế tắm nắng</div>
+                </div>
+              </div>
+
+              <!-- Bento 5: Tầm nhìn -->
+              <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-lg hover:border-teal-300 transition-all flex flex-col justify-between min-h-[145px]">
+                <div class="flex items-center justify-between">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-50 to-teal-100/80 border border-teal-200/60 text-teal-700 flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[22px]">balcony</span>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-100">
+                    Tầm nhìn
+                  </span>
+                </div>
+                <div class="mt-3.5">
+                  <div class="text-[22px] font-black text-slate-900 tracking-tight leading-tight truncate">
+                    {{ villa.viewDirection || 'Mặt hồ tĩnh lặng' }}
+                  </div>
+                  <div class="text-[13px] font-bold text-slate-700 mt-1">Tầm nhìn cảnh quan</div>
+                  <div class="text-[11px] text-slate-400 font-medium mt-0.5">Đón bình minh & gió đại dương</div>
+                </div>
+              </div>
+
+              <!-- Bento 6: Khử khuẩn Ozone -->
+              <div class="p-5 rounded-2xl bg-emerald-50/30 border border-emerald-200 shadow-[0_2px_12px_rgba(16,185,129,0.06)] hover:shadow-lg hover:border-emerald-400 transition-all flex flex-col justify-between min-h-[145px]">
+                <div class="flex items-center justify-between">
+                  <div class="w-10 h-10 rounded-xl bg-emerald-100/80 border border-emerald-300/60 text-emerald-700 flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[22px]">sanitizer</span>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200">
+                    Chuẩn Y Tế
+                  </span>
+                </div>
+                <div class="mt-3.5">
+                  <div class="text-[22px] font-black text-emerald-800 tracking-tight leading-tight">
+                    Ozone Sterilization
+                  </div>
+                  <div class="text-[13px] font-bold text-emerald-700 mt-1">Khử khuẩn chuẩn y tế 100%</div>
+                  <div class="text-[11px] text-emerald-600/90 font-medium mt-0.5">Diệt 99.9% vi khuẩn & nấm mốc</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Tiêu chuẩn cơ sở 5 sao mở rộng -->
+            <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 mt-4">
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-3">Quy chuẩn nghỉ dưỡng FLC Luxury</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                  <span>Thiết kế tường cách âm cao cấp, bảo đảm tính riêng tư tuyệt đối</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                  <span>Hệ thống điều hòa trung tâm 2 chiều Daikin êm ái</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                  <span>Wifi phủ sóng tốc độ cao 500Mbps toàn bộ khuôn viên biệt thự</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                  <span>Khóa cửa thẻ từ thông minh RFID và an ninh tuần tra 24/7</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Tổng quan không gian -->
+          <div *ngIf="activeTab === 'OVERVIEW'" class="space-y-6 animate-[fadeIn_0.2s_ease-out]">
+            <div>
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-2">Giới thiệu tổng quan</div>
+              <h2 class="text-2xl font-black text-[#0369A1] leading-snug mb-4">
+                Không gian nghỉ dưỡng biệt lập đẳng cấp tại Villa {{ villa.villaNumber }}
+              </h2>
+              <div class="text-[14px] text-slate-600 font-medium leading-relaxed space-y-4">
+                <p *ngIf="villa.overviewDescription">
+                  {{ villa.overviewDescription }}
+                </p>
+                <p *ngIf="!villa.overviewDescription">
+                  Tọa lạc tại vị trí đắc địa nhất của phân khu {{ villa.zone || 'Aura' }}, <strong>Villa {{ villa.villaNumber }}</strong> mở ra một không gian nghỉ dưỡng biệt lập với hồ bơi riêng, sân vườn thoáng mát và đầy đủ tiện nghi cao cấp. Mỗi góc không gian đều được trau chuốt tỉ mỉ nhằm đem lại trải nghiệm thư giãn thượng lưu trọn vẹn nhất cho bạn và gia đình.
+                </p>
+              </div>
+            </div>
+
+            <!-- 3 Highlights Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:shadow-md transition-all">
+                <div class="w-10 h-10 rounded-xl bg-sky-100 text-[#0369A1] flex items-center justify-center mb-3">
+                  <span class="material-symbols-outlined text-xl">privacy_tip</span>
+                </div>
+                <h4 class="font-black text-slate-800 text-sm mb-1">Riêng tư tuyệt đối</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Khuôn viên biệt lập với cổng rào phủ cây xanh mát, tránh xa mọi ồn ào đô thị.</p>
+              </div>
+
+              <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:shadow-md transition-all">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-3">
+                  <span class="material-symbols-outlined text-xl">wb_sunny</span>
+                </div>
+                <h4 class="font-black text-slate-800 text-sm mb-1">Ánh sáng & Gió biển</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Hệ thống kính Panorama kịch trần đón trọn ánh sáng tự nhiên và gió biển trong lành.</p>
+              </div>
+
+              <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:shadow-md transition-all">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
+                  <span class="material-symbols-outlined text-xl">chair</span>
+                </div>
+                <h4 class="font-black text-slate-800 text-sm mb-1">Nội thất cao cấp</h4>
+                <p class="text-xs text-slate-500 leading-relaxed">Chất liệu gỗ tự nhiên kết hợp đá cẩm thạch sang trọng, tinh tế từng đường nét.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: Cơ cấu phòng ngủ chi tiết -->
+          <div *ngIf="activeTab === 'ROOMS'" class="space-y-6 animate-[fadeIn_0.2s_ease-out]">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 class="text-xl font-black text-slate-900">Danh sách {{ villa.rooms?.length || 1 }} phòng ngủ</h3>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Bố trí phòng ngủ khép kín kèm nhà vệ sinh và tiện nghi riêng biệt</p>
+              </div>
+              <span class="text-xs font-bold text-[#0369A1] bg-sky-50 px-3.5 py-1.5 rounded-full border border-sky-200 self-start sm:self-auto">
+                Tổng sức chứa: {{ villa.totalCapacity || 16 }} khách ({{ villa.totalAdults || 12 }} Người lớn, {{ villa.totalChildren || 4 }} Trẻ em)
+              </span>
+            </div>
+
+            <!-- Floor Filter Tabs (nếu có nhiều tầng) -->
+            <div *ngIf="floorsAvailable.length > 1" class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              <button (click)="selectedFloorFilter = 'ALL'"
+                      type="button"
+                      [class]="'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' +
+                               (selectedFloorFilter === 'ALL' ? 'bg-[#0369A1] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')">
+                Tất cả phòng ({{ villa.rooms?.length || 0 }})
+              </button>
+              <button *ngFor="let fl of floorsAvailable"
+                      (click)="selectedFloorFilter = fl"
+                      type="button"
+                      [class]="'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ' +
+                               (selectedFloorFilter === fl ? 'bg-[#0369A1] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200')">
+                Tầng {{ fl }}
+              </button>
+            </div>
+
+            <!-- Grid phòng ngủ -->
+            <div *ngIf="villa.rooms && villa.rooms.length > 0; else noRooms" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div *ngFor="let room of filteredRooms" class="p-5 rounded-2xl border border-slate-200 bg-white hover:shadow-md hover:border-sky-300 transition-all">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <span class="text-base font-black text-slate-900">{{ room.name || room.roomNumber }}</span>
+                      <span *ngIf="room.floor" class="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">Tầng {{ room.floor }}</span>
+                    </div>
+                    <div class="text-xs font-bold text-[#0369A1] mt-1">{{ room.roomTypeName || 'Phòng Ngủ Tiêu Chuẩn' }}</div>
+                  </div>
+                  <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-lg">meeting_room</span>
+                  </div>
+                </div>
+                
+                <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-medium">
+                  <span class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[17px] text-amber-500">bed</span>
+                    <span>{{ room.bedType || 'Giường King/Queen' }}</span>
+                  </span>
+                  <span class="flex items-center gap-1.5 font-bold text-slate-700">
+                    <span class="material-symbols-outlined text-[17px] text-blue-500">group</span>
+                    <span>{{ room.adults || 2 }} Lớn<span *ngIf="room.children">, {{ room.children }} Bé</span></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <ng-template #noRooms>
+              <div class="p-8 text-center bg-slate-50 rounded-2xl border border-slate-200 text-slate-500 text-sm">
+                Biệt thự nguyên căn chuẩn bị sẵn đầy đủ phòng ngủ cao cấp.
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- TAB 4: Tiện ích đã trang bị -->
+          <div *ngIf="activeTab === 'AMENITIES'" class="space-y-6 animate-[fadeIn_0.2s_ease-out]">
+            <!-- Dynamic Amenities from DB -->
+            <div *ngIf="villa.amenities && villa.amenities.length > 0">
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-2">Trang thiết bị sẵn có</div>
+              <h3 class="text-xl font-black text-slate-900 mb-4">Tiện ích nội thất biệt thự</h3>
+              <div class="flex flex-wrap gap-2.5">
+                <span *ngFor="let amenity of villa.amenities" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-50 text-[#0369A1] border border-sky-200 text-xs font-bold shadow-2xs">
+                  <span class="material-symbols-outlined text-[17px] text-[#EA580C]">check_circle</span>
+                  <span>{{ amenity }}</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Standard 5-Star Amenities Categories -->
+            <div class="pt-4 border-t border-slate-100">
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-3">Danh sách tiện nghi chuẩn mực 5 sao</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                <!-- Cat 1 -->
+                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div class="flex items-center space-x-2 text-[#0369A1] font-black text-[14px] mb-3">
+                    <span class="material-symbols-outlined text-[18px]">bedroom_parent</span>
+                    <span>Phòng ngủ & Thư giãn</span>
+                  </div>
+                  <ul class="space-y-2 text-xs text-slate-600">
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Đệm ngủ cao cấp Simmons, chăn ga cotton lụa Ai Cập.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Thực đơn gối ngủ đa dạng (Gối cao su, gối lông vũ).</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Máy khuếch tán tinh dầu tự nhiên thơm dịu.</li>
+                  </ul>
+                </div>
+
+                <!-- Cat 2 -->
+                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div class="flex items-center space-x-2 text-[#0369A1] font-black text-[14px] mb-3">
+                    <span class="material-symbols-outlined text-[18px]">bathtub</span>
+                    <span>Phòng tắm & Spa cá nhân</span>
+                  </div>
+                  <ul class="space-y-2 text-xs text-slate-600">
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Bồn tắm nằm thiết kế tinh xảo với view thoáng đãng.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Bộ đồ dùng vệ sinh cá nhân cao cấp chuẩn quốc tế.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Phòng tắm đứng riêng biệt với vòi sen mưa lớn.</li>
+                  </ul>
+                </div>
+
+                <!-- Cat 3 -->
+                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div class="flex items-center space-x-2 text-[#0369A1] font-black text-[14px] mb-3">
+                    <span class="material-symbols-outlined text-[18px]">router</span>
+                    <span>Công nghệ & Kết nối</span>
+                  </div>
+                  <ul class="space-y-2 text-xs text-slate-600">
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Smart TV 65 inch với kết nối Youtube & Netflix.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Hệ thống âm thanh Bluetooth sống động.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Wifi tốc độ cao phủ sóng toàn biệt thự.</li>
+                  </ul>
+                </div>
+
+                <!-- Cat 4 -->
+                <div class="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
+                  <div class="flex items-center space-x-2 text-[#0369A1] font-black text-[14px] mb-3">
+                    <span class="material-symbols-outlined text-[18px]">kitchen</span>
+                    <span>Bếp & Ẩm thực tại phòng</span>
+                  </div>
+                  <ul class="space-y-2 text-xs text-slate-600">
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Tủ lạnh lớn, lò vi sóng, bếp từ và ấm đun siêu tốc.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Đầy đủ bát đĩa, ly rượu vang và dụng cụ nấu ăn.</li>
+                    <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-slate-400">check</span> Bếp nướng BBQ ngoài trời cạnh hồ bơi riêng.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 5: Đặc quyền Thượng Lưu -->
+          <div *ngIf="activeTab === 'SERVICES'" class="space-y-6 animate-[fadeIn_0.2s_ease-out]">
+            <div>
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-2">Dịch vụ cá nhân hóa</div>
+              <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center space-x-2">
+                <span>Dịch vụ đặc quyền chuẩn 5 Sao quốc tế</span>
+                <span class="material-symbols-outlined text-[#EA580C]">workspace_premium</span>
+              </h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Service 1 -->
+              <div class="border border-orange-100 bg-orange-50/40 rounded-2xl p-5 flex gap-4 transition-all hover:shadow-md hover:border-orange-200">
+                <div class="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 text-[#EA580C]">
+                  <span class="material-symbols-outlined text-2xl">support_agent</span>
+                </div>
+                <div>
+                  <h4 class="font-black text-slate-800 text-sm mb-1">Quản gia riêng Butler 24/7</h4>
+                  <p class="text-xs text-slate-600 leading-relaxed">Đội ngũ quản gia chuyên nghiệp tận tâm chăm sóc từng chi tiết nhỏ nhất trong suốt kỳ nghỉ của bạn.</p>
+                </div>
+              </div>
+
+              <!-- Service 2 -->
+              <div class="border border-orange-100 bg-orange-50/40 rounded-2xl p-5 flex gap-4 transition-all hover:shadow-md hover:border-orange-200">
+                <div class="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 text-[#EA580C]">
+                  <span class="material-symbols-outlined text-2xl">airport_shuttle</span>
+                </div>
+                <div>
+                  <h4 class="font-black text-slate-800 text-sm mb-1">Đưa đón Limousine & Xe Điện Miễn Phí</h4>
+                  <p class="text-xs text-slate-600 leading-relaxed">Dịch vụ đón tiễn nội khu và kết nối sân golf, nhà hàng bằng dàn xe điện VIP phục vụ riêng.</p>
+                </div>
+              </div>
+
+              <!-- Service 3 -->
+              <div class="border border-orange-100 bg-orange-50/40 rounded-2xl p-5 flex gap-4 transition-all hover:shadow-md hover:border-orange-200">
+                <div class="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 text-[#EA580C]">
+                  <span class="material-symbols-outlined text-2xl">restaurant</span>
+                </div>
+                <div>
+                  <h4 class="font-black text-slate-800 text-sm mb-1">Bữa sáng nổi (Floating Breakfast)</h4>
+                  <p class="text-xs text-slate-600 leading-relaxed">Trải nghiệm bữa sáng thượng hạng được set up công phu trên khay nổi tại hồ bơi riêng.</p>
+                </div>
+              </div>
+
+              <!-- Service 4 -->
+              <div class="border border-orange-100 bg-orange-50/40 rounded-2xl p-5 flex gap-4 transition-all hover:shadow-md hover:border-orange-200">
+                <div class="w-11 h-11 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 text-[#EA580C]">
+                  <span class="material-symbols-outlined text-2xl">spa</span>
+                </div>
+                <div>
+                  <h4 class="font-black text-slate-800 text-sm mb-1">Trị liệu Spa Tại Villa</h4>
+                  <p class="text-xs text-slate-600 leading-relaxed">Tận hưởng các liệu trình Massage thư giãn do các chuyên gia thực hiện ngay tại không gian riêng.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 6: Vị trí & Kết nối tiện ích -->
+          <div *ngIf="activeTab === 'LOCATION'" class="space-y-6 animate-[fadeIn_0.2s_ease-out]">
+            <div>
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-2">Vị trí & Cảnh quan</div>
+              <h3 class="text-xl font-black text-slate-900 mb-1">Khoảng cách từ Villa đến các tiện ích FLC</h3>
+              <p class="text-xs text-slate-500 font-medium">Tọa lạc tại vị trí vàng, thuận tiện di chuyển trong quần thể FLC Sầm Sơn</p>
+            </div>
+
+            <!-- 6 Proximity Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3.5">
+              <div *ngFor="let p of resortProximities" class="p-4 rounded-2xl border border-slate-200 bg-white hover:border-sky-300 hover:shadow-md transition-all flex items-center gap-3.5">
+                <div [class]="'w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ' + p.bg + ' ' + p.color">
+                  <span class="material-symbols-outlined text-2xl">{{ p.icon }}</span>
+                </div>
+                <div>
+                  <div class="text-xs font-black text-slate-800 line-clamp-1">{{ p.name }}</div>
+                  <div class="text-[11px] text-slate-500 font-medium mt-0.5">{{ p.distance }} • {{ p.time }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Integrated Map Preview -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 mt-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-2xl text-[#EA580C]">pin_drop</span>
+                <div>
+                  <div class="text-xs font-black text-slate-800">Phân khu {{ villa.zone || 'Aura' }}, Quần thể FLC Sầm Sơn</div>
+                  <div class="text-[11px] text-slate-500">Đường Hồ Xuân Hương, TP. Sầm Sơn, Thanh Hóa</div>
+                </div>
+              </div>
+              <a href="https://maps.google.com" target="_blank" class="px-4 py-2 bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-[#0369A1] transition-colors">
+                Xem Google Maps
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- MỤC ĐÁNH GIÁ TỪ KHÁCH HÀNG (Hiển thị to riêng 1 khu bên dưới Tabs) -->
+        <div class="pt-8 border-t-2 border-slate-100 space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1">Đánh giá thực tế từ khách lưu trú</div>
+              <h3 class="text-2xl font-black text-slate-900 flex items-center gap-2.5">
+                <span>Nhận xét & Trải nghiệm khách hàng</span>
+              </h3>
+            </div>
+            <div class="flex items-center gap-2 bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl self-start sm:self-auto shadow-2xs">
+              <span class="material-symbols-outlined text-amber-500 text-xl fill-current">star</span>
+              <span class="text-base font-black text-amber-900">4.96 / 5.0</span>
+              <span class="text-xs text-amber-700 font-bold">(48 đánh giá xác thực)</span>
+            </div>
+          </div>
+
+          <!-- Score Breakdown Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 rounded-2xl bg-gradient-to-r from-slate-50 via-sky-50/30 to-slate-50 border border-slate-200 text-center">
+            <div class="p-2">
+              <div class="text-lg font-black text-slate-900">5.0 ★</div>
+              <div class="text-xs font-bold text-slate-700 mt-0.5">Khử trùng Ozone</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Tiệt trùng y tế 100%</div>
+            </div>
+            <div class="p-2 border-l border-slate-200">
+              <div class="text-lg font-black text-slate-900">4.9 ★</div>
+              <div class="text-xs font-bold text-slate-700 mt-0.5">Vị trí sát biển</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Cách bãi tắm 80m</div>
+            </div>
+            <div class="p-2 border-l border-slate-200">
+              <div class="text-lg font-black text-slate-900">5.0 ★</div>
+              <div class="text-xs font-bold text-slate-700 mt-0.5">Dịch vụ Quản gia</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Phục vụ tận tâm 24/7</div>
+            </div>
+            <div class="p-2 border-l border-slate-200">
+              <div class="text-lg font-black text-slate-900">4.9 ★</div>
+              <div class="text-xs font-bold text-slate-700 mt-0.5">Hồ bơi & Tiện nghi</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">Nước sạch trong ấm</div>
+            </div>
+          </div>
+
+          <!-- Reviews Cards List -->
+          <div class="space-y-4">
+            <div *ngFor="let rev of reviews" class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs hover:shadow-md transition-all">
+              <div class="flex items-start justify-between gap-3 mb-3.5">
+                <div class="flex items-center gap-3.5">
+                  <div [class]="'w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black text-sm shadow-sm ' + rev.avatarBg">
+                    {{ rev.initials }}
+                  </div>
+                  <div>
+                    <div class="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                      <span>{{ rev.guestName }}</span>
+                      <span class="material-symbols-outlined text-emerald-500 text-sm" title="Khách đặt phòng xác thực qua FLC">verified</span>
+                    </div>
+                    <div class="text-xs text-slate-500 font-medium">{{ rev.stayDate }} • {{ rev.stayType }}</div>
+                  </div>
+                </div>
+                <div class="flex text-amber-400 text-sm">
+                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
+                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
+                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
+                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
+                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
+                </div>
+              </div>
+              <p class="text-[13px] text-slate-600 leading-relaxed font-normal">{{ rev.comment }}</p>
+              <div class="flex flex-wrap gap-2 mt-4 pt-3.5 border-t border-slate-100">
+                <span *ngFor="let h of rev.highlights" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
+                  ✓ {{ h }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Sticky Booking Widget (Tối ưu chuyển đổi 5 sao) -->
+      <div class="lg:w-[35%] xl:w-[30%] relative">
+        <div id="bookingCard" class="sticky top-24 self-start bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-slate-200 p-6 flex flex-col transition-all">
+          
+          <!-- Card Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+            <div>
+              <div class="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Giá mỗi đêm</div>
+              <div class="text-2xl font-black text-[#EA580C] leading-none">
+                {{ formatPrice(villa.basePrice) }}đ
+              </div>
+            </div>
+            <span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-md">
+              Ưu đãi mùa thu
+            </span>
+          </div>
+
+          <form class="space-y-4">
+            <!-- Date Picker -->
+            <div class="grid grid-cols-2 border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0369A1]/30">
+              <div class="p-3 border-r border-slate-200 bg-white">
+                <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Nhận phòng</span>
+                <input type="date" [(ngModel)]="checkInDate" name="checkIn" class="w-full text-[13px] font-bold text-slate-800 border-none p-0 focus:ring-0 cursor-pointer">
+              </div>
+              <div class="p-3 bg-white">
+                <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Trả phòng</span>
+                <input type="date" [(ngModel)]="checkOutDate" name="checkOut" class="w-full text-[13px] font-bold text-slate-800 border-none p-0 focus:ring-0 cursor-pointer">
+              </div>
+            </div>
+
+            <!-- Guest Picker -->
+            <div class="border border-slate-200 rounded-xl p-3.5 bg-white flex justify-between items-center">
+              <div>
+                <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Khách & Sức Chứa</span>
+                <div class="text-[13px] font-bold text-slate-800">
+                  <ng-container *ngIf="villa.totalAdults; else defaultGuests">
+                    {{ villa.totalAdults }} Người lớn<span *ngIf="villa.totalChildren">, {{ villa.totalChildren }} Trẻ em</span>
+                  </ng-container>
+                  <ng-template #defaultGuests>
+                    {{ villa.capacity || 4 }} Khách (Nguyên căn)
+                  </ng-template>
+                </div>
+              </div>
+              <span class="material-symbols-outlined text-slate-400">group</span>
+            </div>
+
+            <!-- Tiện ích đi kèm & Combo Packages (Làm thành Tab ấn vào mới hiện ra bên dưới) -->
+            <div class="pt-3 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px] text-[#0369A1]">add_circle</span>
+                  <span>Thêm tiện ích & combo</span>
+                </span>
+                <button *ngIf="activeServiceTab !== 'none'"
+                        type="button"
+                        (click)="closeServiceTab()"
+                        class="text-[11px] text-slate-400 hover:text-slate-700 font-bold cursor-pointer flex items-center gap-0.5">
+                  <span>Thu gọn</span>
+                  <span class="material-symbols-outlined text-[14px]">expand_less</span>
+                </button>
+              </div>
+
+              <!-- 2 Tabs: Dịch vụ lẻ & Gói Combo (Ấn vào để mở bên dưới) -->
+              <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <button type="button"
+                        (click)="selectServiceTab('individual')"
+                        [ngClass]="activeServiceTab === 'individual' ? 'bg-[#0369A1] text-white shadow-sm font-black' : 'bg-white/80 hover:bg-white text-slate-700 font-bold border border-transparent'"
+                        class="py-2 px-2.5 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                  <span class="material-symbols-outlined text-[15px]">room_service</span>
+                  <span>Dịch vụ lẻ</span>
+                  <span *ngIf="selectedServiceIds.size > 0"
+                        [ngClass]="activeServiceTab === 'individual' ? 'bg-white text-[#0369A1]' : 'bg-[#0369A1] text-white'"
+                        class="text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                    {{ selectedServiceIds.size }}
+                  </span>
+                </button>
+                <button type="button"
+                        (click)="selectServiceTab('combo')"
+                        [ngClass]="activeServiceTab === 'combo' ? 'bg-[#EA580C] text-white shadow-sm font-black' : 'bg-white/80 hover:bg-white text-slate-700 font-bold border border-transparent'"
+                        class="py-2 px-2.5 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5">
+                  <span class="material-symbols-outlined text-[15px]">inventory_2</span>
+                  <span>Gói Combo</span>
+                  <span *ngIf="selectedComboId"
+                        [ngClass]="activeServiceTab === 'combo' ? 'bg-white text-[#EA580C]' : 'bg-[#EA580C] text-white'"
+                        class="text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                    1
+                  </span>
+                </button>
+              </div>
+
+              <!-- Selected Active Summary Pill -->
+              <div *ngIf="extraServicesTotal > 0"
+                   (click)="activeServiceTab === 'none' ? selectServiceTab(serviceSelectionMode) : null"
+                   class="mt-2 px-2.5 py-1.5 bg-sky-50 border border-sky-100 rounded-lg flex items-center justify-between text-[11px] cursor-pointer hover:bg-sky-100/70 transition-colors">
+                <span class="font-bold text-[#0369A1] flex items-center gap-1.5 truncate pr-2">
+                  <span class="material-symbols-outlined text-[14px] flex-shrink-0">check_circle</span>
+                  <span *ngIf="serviceSelectionMode === 'combo'" class="truncate">Đã chọn: {{ selectedCombo?.name }}</span>
+                  <span *ngIf="serviceSelectionMode === 'individual'">Đã chọn {{ selectedServiceIds.size }} dịch vụ</span>
+                </span>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-black text-[#EA580C] whitespace-nowrap">+{{ formatPrice(extraServicesTotal) }}đ</span>
+                  <span *ngIf="activeServiceTab === 'none'" class="text-[10px] text-sky-600 font-bold underline">Xem</span>
+                </div>
+              </div>
+
+              <!-- NỘI DUNG HIỆN RA BÊN DƯỚI KHI ẤN VÀO TAB -->
+              <div *ngIf="activeServiceTab !== 'none'" class="mt-2.5 pt-2.5 border-t border-dashed border-slate-200 animate-[fadeIn_0.2s_ease-out]">
+                <!-- Tab 1: Dịch vụ lẻ -->
+                <div *ngIf="activeServiceTab === 'individual'" class="space-y-1.5 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+                  <div *ngIf="isServicesLoading" class="text-center py-3 text-xs text-slate-400">
+                    Đang tải danh sách dịch vụ...
+                  </div>
+                  <div *ngIf="!isServicesLoading && extraServicesList.length === 0" class="text-center py-3 text-xs text-slate-400">
+                    Chưa có dịch vụ cộng thêm nào.
+                  </div>
+                  <label *ngFor="let s of extraServicesList"
+                         (click)="$event.stopPropagation()"
+                         [ngClass]="isServiceSelected(s.id) ? 'border-[#0369A1] bg-sky-50/50 shadow-2xs ring-1 ring-[#0369A1]/30' : 'border-slate-200 bg-white hover:border-slate-300'"
+                         class="flex items-center justify-between p-2 rounded-xl border cursor-pointer transition-all">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <input type="checkbox"
+                             [checked]="isServiceSelected(s.id)"
+                             (change)="toggleService(s.id)"
+                             class="w-4 h-4 rounded border-slate-300 text-[#0369A1] focus:ring-[#0369A1] cursor-pointer flex-shrink-0" />
+                      <span class="material-symbols-outlined text-[17px] text-[#0369A1] flex-shrink-0">
+                        {{ s.icon || 'room_service' }}
+                      </span>
+                      <div class="min-w-0">
+                        <div class="text-[12px] font-bold text-slate-800 truncate">{{ s.name }}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">/ {{ s.unit || 'lần' }}</div>
+                      </div>
+                    </div>
+                    <div class="text-[12px] font-black text-slate-800 whitespace-nowrap pl-2">
+                      +{{ formatPrice(s.price) }}đ
+                    </div>
+                  </label>
+                </div>
+
+                <!-- Tab 2: Gói Combo -->
+                <div *ngIf="activeServiceTab === 'combo'" class="space-y-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+                  <div *ngIf="comboPackagesList.length === 0" class="text-center py-3 text-xs text-slate-400">
+                    Hiện chưa có gói combo nào đang mở.
+                  </div>
+                  <div *ngFor="let combo of comboPackagesList"
+                       (click)="selectCombo(combo)"
+                       [ngClass]="selectedComboId === combo.id ? 'border-[#EA580C] bg-orange-50/50 ring-1 ring-[#EA580C] shadow-2xs' : 'border-slate-200 bg-white hover:border-slate-300'"
+                       class="p-2.5 border rounded-xl cursor-pointer transition-all flex items-start justify-between gap-2 group">
+                    <div class="flex items-start gap-2 min-w-0">
+                      <input type="radio"
+                             name="bookingComboRadio"
+                             [checked]="selectedComboId === combo.id"
+                             class="mt-1 w-3.5 h-3.5 text-[#EA580C] border-slate-300 focus:ring-[#EA580C] cursor-pointer flex-shrink-0" />
+                      <div class="min-w-0">
+                        <div class="text-[12px] font-black text-slate-900 group-hover:text-[#EA580C] transition-colors truncate">
+                          {{ combo.name }}
+                        </div>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                          <span *ngFor="let svc of combo.extraServices" class="text-[9px] font-bold bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                            <span *ngIf="svc.icon" class="material-symbols-outlined text-[10px]">{{ svc.icon }}</span>
+                            <span>{{ svc.name }}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-[12px] font-black text-[#EA580C] whitespace-nowrap pl-1">
+                      +{{ formatPrice(combo.price) }}đ
+                    </div>
+                  </div>
+                  <button *ngIf="selectedComboId"
+                          type="button"
+                          (click)="selectedComboId = null"
+                          class="text-[11px] text-slate-400 hover:text-red-500 font-bold underline cursor-pointer inline-block mt-0.5">
+                    ✕ Bỏ chọn gói combo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Promo Code Input -->
+            <div class="pt-2">
+              <div class="text-[11px] font-black text-slate-500 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Mã ưu đãi (Voucher)</span>
+                <span *ngIf="isCheckingPromo" class="text-[10px] text-sky-600 font-bold flex items-center gap-1">
+                  <span class="inline-block w-2.5 h-2.5 border-2 border-sky-600 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Đang kiểm tra...</span>
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="text"
+                       [(ngModel)]="promoCode"
+                       (keydown.enter)="$event.preventDefault(); applyPromoCode()"
+                       name="promoCode"
+                       placeholder="Nhập mã giảm giá..."
+                       [disabled]="promoApplied || isCheckingPromo"
+                       class="flex-1 px-3 py-2 text-xs font-bold uppercase rounded-lg border border-slate-200 focus:outline-none focus:border-[#0369A1] focus:ring-1 focus:ring-[#0369A1] disabled:bg-slate-100" />
+                <button *ngIf="!promoApplied"
+                        (click)="applyPromoCode()"
+                        type="button"
+                        [disabled]="isCheckingPromo"
+                        class="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1">
+                  <span *ngIf="isCheckingPromo" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  <span>{{ isCheckingPromo ? 'Đang duyệt' : 'Áp dụng' }}</span>
+                </button>
+                <button *ngIf="promoApplied"
+                        (click)="removePromo()"
+                        type="button"
+                        class="px-3 py-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs font-bold transition-colors cursor-pointer"
+                        title="Hủy mã">
+                  Hủy
+                </button>
+              </div>
+              <div *ngIf="promoError" class="text-[11px] text-rose-500 font-semibold mt-1">
+                {{ promoError }}
+              </div>
+              <div *ngIf="promoApplied && appliedPromotion" class="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                <span *ngIf="appliedPromotion.discountType === 'PERCENTAGE'">Đã áp dụng mã {{ appliedPromotion.code }}: giảm {{ appliedPromotion.discountValue }}%!</span>
+                <span *ngIf="appliedPromotion.discountType !== 'PERCENTAGE'">Đã áp dụng mã {{ appliedPromotion.code }}: giảm {{ formatPrice(appliedPromotion.discountValue) }}đ!</span>
+              </div>
+            </div>
+
+            <!-- Detailed Price Breakdown -->
+            <div class="pt-4 border-t border-slate-100 space-y-2.5 text-xs">
+              <div class="flex justify-between items-center text-slate-600 font-medium">
+                <span>Tiền phòng ({{ numberOfNights }} đêm)</span>
+                <span class="font-bold text-slate-800">{{ formatPrice(roomTotal) }}đ</span>
+              </div>
+
+              <!-- Extra Services / Combo row -->
+              <div *ngIf="extraServicesTotal > 0" class="flex justify-between items-center text-slate-700 font-semibold bg-sky-50/70 p-2 rounded-lg border border-sky-100">
+                <span class="flex items-center gap-1.5 text-slate-800">
+                  <span class="material-symbols-outlined text-[15px] text-[#0369A1]">room_service</span>
+                  <span>
+                    {{ serviceSelectionMode === 'combo' ? ('Gói Combo (' + selectedCombo?.name + ')') : ('Dịch vụ đi kèm (' + selectedServiceIds.size + ')') }}
+                  </span>
+                </span>
+                <span class="font-black text-[#EA580C]">+{{ formatPrice(extraServicesTotal) }}đ</span>
+              </div>
+
+              <div *ngIf="discountAmount > 0" class="flex justify-between items-center text-emerald-600 font-bold">
+                <span>Ưu đãi voucher ({{ appliedPromotion?.code || 'Giảm giá' }})</span>
+                <span>-{{ formatPrice(discountAmount) }}đ</span>
+              </div>
+
+              <div class="pt-3 border-t border-slate-200 flex justify-between items-end">
+                <div>
+                  <div class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Tổng thanh toán</div>
+                  <div class="text-[10px] text-slate-400 font-medium">Đã bao gồm thuế & phí dịch vụ</div>
+                </div>
+                <div class="text-2xl font-black text-[#EA580C] leading-none">
+                  {{ formatPrice(finalTotal) }}đ
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="button" 
+                    (click)="proceedToCheckout()"
+                    class="w-full mt-5 bg-gradient-to-r from-[#EA580C] to-[#f97316] hover:from-[#f97316] hover:to-[#fb923c] text-white py-4 rounded-xl text-[13px] font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/25 active:scale-[0.99] cursor-pointer flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[18px]">lock</span>
+              <span>TIẾN HÀNH ĐẶT PHÒNG</span>
+            </button>
+            
+            <!-- Trust Highlights -->
+            <div class="text-[11px] text-center text-slate-500 font-medium pt-3 space-y-1.5 border-t border-slate-100">
+              <p class="flex items-center justify-center gap-1 text-emerald-700 font-bold">
+                <span class="material-symbols-outlined text-[15px]">verified_user</span>
+                <span>Miễn phí hủy phòng trước 48 giờ</span>
+              </p>
+              <p class="text-slate-400">Xác nhận giữ phòng tức thì qua tin nhắn & email.</p>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Full Width Map Section -->
+  <div class="bg-slate-50 border-t border-slate-100 py-12 pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-6 flex items-center justify-between">
+        <div>
+          <div class="text-[11px] text-slate-400 font-black uppercase tracking-widest mb-1">Vị trí & Bản đồ phân khu</div>
+          <h3 class="text-xl font-black text-slate-900">Quần thể nghỉ dưỡng sinh thái FLC Sầm Sơn</h3>
+        </div>
+        <a href="https://maps.google.com" target="_blank" class="text-[#0369A1] text-[12px] font-black uppercase tracking-widest hover:underline hidden sm:block">
+          Xem chỉ đường trên Google Maps
+        </a>
+      </div>
+      
+      <div class="relative w-full h-[320px] rounded-2xl overflow-hidden shadow-sm border border-slate-200">
+        <img src="/assets/images/map-placeholder.jpg" alt="Bản đồ vị trí" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1200'"/>
+        <div class="absolute inset-0 bg-sky-950/20"></div>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div class="bg-white/95 backdrop-blur-md px-5 py-2.5 rounded-full shadow-xl flex items-center space-x-2.5 border border-slate-100 pointer-events-auto">
+            <span class="material-symbols-outlined text-[#EA580C] text-xl">location_on</span>
+            <span class="text-[13px] font-black text-slate-800">Villa {{ villa.villaNumber }} • Phân khu {{ villa.zone || 'Aura' }}, Bãi Biển Sầm Sơn</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Floating Sticky Bottom Booking Bar (visible only on mobile) -->
+  <div class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 flex items-center justify-between shadow-2xl">
+    <div>
+      <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Giá mỗi đêm</div>
+      <div class="text-lg font-black text-[#EA580C] leading-none">
+        {{ formatPrice(villa.basePrice) }}đ
+      </div>
+    </div>
+    <button (click)="scrollToBooking()"
+            type="button"
+            class="px-5 py-2.5 bg-[#EA580C] hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md active:scale-95 cursor-pointer">
+      Đặt Biệt Thự
+    </button>
+  </div>
+
+</div>

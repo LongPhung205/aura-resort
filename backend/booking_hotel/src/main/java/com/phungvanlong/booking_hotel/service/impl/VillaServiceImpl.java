@@ -20,6 +20,8 @@ import com.phungvanlong.booking_hotel.repository.VillaTypeRepository;
 import com.phungvanlong.booking_hotel.repository.ZoneRepository;
 import com.phungvanlong.booking_hotel.service.VillaService;
 import lombok.RequiredArgsConstructor;
+import com.phungvanlong.booking_hotel.mapper.VillaMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,11 +41,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class VillaServiceImpl implements VillaService {
 
+    @Value("${app.upload-dir}")
+    private String uploadDir;
+
     private final VillaRepository villaRepository;
     private final VillaTypeRepository villaTypeRepository;
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
     private final ZoneRepository zoneRepository;
+    private final VillaMapper villaMapper;
 
     @Override
     @Transactional
@@ -132,7 +138,7 @@ public class VillaServiceImpl implements VillaService {
         }
 
         Villa saved = villaRepository.save(villa);
-        return VillaResponse.fromEntity(saved);
+        return villaMapper.toResponse(saved);
     }
 
     @Override
@@ -255,7 +261,7 @@ public class VillaServiceImpl implements VillaService {
         }
 
         Villa updated = villaRepository.save(villa);
-        return VillaResponse.fromEntity(updated);
+        return villaMapper.toResponse(updated);
     }
 
     private void populateChildRooms(Villa villa, VillaRequest request) {
@@ -330,7 +336,7 @@ public class VillaServiceImpl implements VillaService {
             String uniqueName = "villa_" + UUID.randomUUID().toString().substring(0, 8) + extension;
 
             // Save to frontend public assets directory
-            Path frontendUploadDir = Paths.get("d:/booking_hotel/frontend/public/assets/images/uploads");
+            Path frontendUploadDir = Paths.get(uploadDir);
             if (!Files.exists(frontendUploadDir)) {
                 Files.createDirectories(frontendUploadDir);
             }
@@ -352,23 +358,23 @@ public class VillaServiceImpl implements VillaService {
     @Override
     @Transactional(readOnly = true)
     public VillaResponse getVillaById(Long id) {
-        Villa villa = villaRepository.findById(id)
+        Villa villa = villaRepository.findByIdWithFullRelations(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy Villa ID: " + id));
-        return VillaResponse.fromEntity(villa);
+        return villaMapper.toResponse(villa);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<VillaResponse> getAllVillas(Long villaTypeId, VillaStatus status, String zone) {
         List<Villa> list = villaRepository.findByFilters(villaTypeId, status, zone);
-        return list.stream().map(VillaResponse::fromEntity).collect(Collectors.toList());
+        return list.stream().map(villaMapper::toResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<VillaResponse> getVillasByVillaTypeId(Long villaTypeId) {
         return villaRepository.findByVillaTypeId(villaTypeId).stream()
-                .map(VillaResponse::fromEntity)
+                .map(villaMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
@@ -383,7 +389,7 @@ public class VillaServiceImpl implements VillaService {
             villa.setOzoneStatus("STERILIZED");
         }
         Villa updated = villaRepository.save(villa);
-        return VillaResponse.fromEntity(updated);
+        return villaMapper.toResponse(updated);
     }
 
     @Override
@@ -392,6 +398,15 @@ public class VillaServiceImpl implements VillaService {
         Villa villa = villaRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy Villa ID: " + id));
         villaRepository.delete(villa);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VillaResponse> searchAvailableVillas(String zoneName, Integer minAdults, java.time.LocalDate checkInDate, java.time.LocalDate checkOutDate) {
+        List<Villa> villas = villaRepository.searchAvailableVillas(zoneName, minAdults, checkInDate, checkOutDate);
+        return villas.stream()
+                .map(villaMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     private Zone resolveZone(Long zoneId, String zoneName) {
