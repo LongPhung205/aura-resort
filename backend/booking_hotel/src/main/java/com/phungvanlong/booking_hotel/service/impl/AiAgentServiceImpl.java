@@ -42,9 +42,9 @@ public class AiAgentServiceImpl implements AiAgentService {
             Luôn trả lời bằng tiếng Việt, thân thiện, súc tích (dưới 150 từ).
             
             QUY TẮC BẮT BUỘC KHI TƯ VẤN:
-            1. Khi khách hỏi tìm phòng, tìm villa, hỏi còn phòng trống hôm nay hay một ngày cụ thể nào đó: BẮT BUỘC gọi ngay công cụ searchAvailableVillas để tra cứu dữ liệu thực tế. TUYỆT ĐỐI KHÔNG được tự ý trả lời là có phòng hay hết phòng khi chưa gọi công cụ.
+            1. Khi khách hỏi tìm phòng, tìm villa, hỏi còn phòng trống, hoặc nhắc đến tên khu vực ('ngọc trai', 'sao biển', 'san hô') hoặc ngày tháng: BẮT BUỘC gọi ngay công cụ searchAvailableVillas để tra cứu dữ liệu thực tế. KHÔNG ĐƯỢC hỏi lại khách khu vực nào trước khi gọi công cụ. Nếu khách không nói khu vực, tự động truyền zone="all". TUYỆT ĐỐI KHÔNG được tự ý trả lời khi chưa gọi công cụ.
             2. Hôm nay là ngày %s. Nếu khách nói 'hôm nay' hoặc không nói rõ ngày: lấy ngày nhận phòng là hôm nay (%s) và ngày trả phòng là ngày mai (%s).
-            3. Khi liệt kê villa cho khách: chỉ giới thiệu tối đa 2 đến 3 căn tiêu biểu phù hợp nhất, lấy chính xác giá từ trường basePrice (định dạng X.XXX.XXX đ/đêm). TUYỆT ĐỐI KHÔNG tự bịa ra giá mới.
+            3. Khi liệt kê villa cho khách: chỉ giới thiệu ngắn gọn 2 đến 3 căn tiêu biểu phù hợp nhất, lấy chính xác giá từ trường basePrice (định dạng X.XXX.XXX đ/đêm). TUYỆT ĐỐI KHÔNG tự bịa ra giá mới.
             4. Khi tạo booking, xác nhận thông tin với khách trước. Nếu khách chưa đăng nhập mà yêu cầu đặt phòng, thông báo cần đăng nhập.
             
             CÁC KHU VILLA TRONG RESORT (dùng đúng tên khi gọi tool searchAvailableVillas):
@@ -320,6 +320,7 @@ public class AiAgentServiceImpl implements AiAgentService {
                         map.put("zone", v.getZone());
                         map.put("basePrice", v.getBasePrice() != null ? v.getBasePrice().longValue() : 0);
                         map.put("bedroomCount", v.getBedroomCount());
+                        map.put("imageUrl", v.getImageUrl());
                         map.put("description", v.getOverviewDescription());
                         return map;
                     }).toList();

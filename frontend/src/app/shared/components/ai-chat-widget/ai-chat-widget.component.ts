@@ -153,7 +153,7 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
   getVillaImageUrl(villa: any): string {
     if (villa?.imageUrl) return villa.imageUrl;
     if (villa?.images?.length > 0) return villa.images[0];
-    return 'assets/images/villa-placeholder.jpg';
+    return '/assets/images/rooms/grand-oceanfront.jpg';
   }
 
   clearChat(): void {

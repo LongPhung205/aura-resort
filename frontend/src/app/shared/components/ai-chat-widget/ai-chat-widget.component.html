@@ -91,7 +91,7 @@
                     <div class="villa-card" (click)="navigateToVilla(villa.id)">
                       <div class="villa-card-img">
                         <img [src]="getVillaImageUrl(villa)" [alt]="villa.villaTypeName || villa.villaNumber" loading="lazy"
-                             onerror="this.src='assets/images/villa-placeholder.jpg'">
+                             onerror="this.src='/assets/images/rooms/grand-oceanfront.jpg'">
                         <span class="villa-card-zone">{{ villa.zone || 'Villa' }}</span>
                       </div>
                       <div class="villa-card-body">
