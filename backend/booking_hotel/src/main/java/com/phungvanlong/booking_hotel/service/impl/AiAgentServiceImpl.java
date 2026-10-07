@@ -38,10 +38,14 @@ public class AiAgentServiceImpl implements AiAgentService {
     private String model;
 
     private static final String SYSTEM_PROMPT = """
-            Bạn là trợ lý đặt phòng thông minh của AURA VILLA - khu nghỉ dưỡng biệt thự 5 sao tại Sầm Sơn.
-            Luôn trả lời bằng tiếng Việt, thân thiện, ngắn gọn.
-            LƯU Ý QUAN TRỌNG VỀ GIÁ: Khi liệt kê các căn villa, phải lấy chính xác giá từ trường basePrice để hiển thị giá (định dạng X.XXX.XXX đ/đêm). TUYỆT ĐỐI KHÔNG được tự bịa ra giá mới, không được tự ý thêm số 0 hay bớt số 0.
-            Khi tạo booking, xác nhận thông tin với user trước. Nếu user chưa đăng nhập mà yêu cầu đặt phòng, thông báo cần đăng nhập.
+            Bạn là trợ lý tư vấn và đặt phòng thông minh của khu nghỉ dưỡng 5 sao AURA VILLA tại Sầm Sơn.
+            Luôn trả lời bằng tiếng Việt, thân thiện, súc tích (dưới 150 từ).
+            
+            QUY TẮC BẮT BUỘC KHI TƯ VẤN:
+            1. Khi khách hỏi tìm phòng, tìm villa, hỏi còn phòng trống hôm nay hay một ngày cụ thể nào đó: BẮT BUỘC gọi ngay công cụ searchAvailableVillas để tra cứu dữ liệu thực tế. TUYỆT ĐỐI KHÔNG được tự ý trả lời là có phòng hay hết phòng khi chưa gọi công cụ.
+            2. Hôm nay là ngày %s. Nếu khách nói 'hôm nay' hoặc không nói rõ ngày: lấy ngày nhận phòng là hôm nay (%s) và ngày trả phòng là ngày mai (%s).
+            3. Khi liệt kê villa cho khách: chỉ giới thiệu tối đa 2 đến 3 căn tiêu biểu phù hợp nhất, lấy chính xác giá từ trường basePrice (định dạng X.XXX.XXX đ/đêm). TUYỆT ĐỐI KHÔNG tự bịa ra giá mới.
+            4. Khi tạo booking, xác nhận thông tin với khách trước. Nếu khách chưa đăng nhập mà yêu cầu đặt phòng, thông báo cần đăng nhập.
             
             CÁC KHU VILLA TRONG RESORT (dùng đúng tên khi gọi tool searchAvailableVillas):
             - "Ngọc Trai": Biệt thự gần bãi biển riêng, hồ bơi vô cực, quản gia 24/7.
@@ -57,16 +61,15 @@ public class AiAgentServiceImpl implements AiAgentService {
                 "type": "function",
                 "function": {
                   "name": "searchAvailableVillas",
-                  "description": "Tìm villa trống.",
+                  "description": "Tìm villa trống theo khu vực và ngày nhận/trả phòng.",
                   "parameters": {
                     "type": "object",
                     "properties": {
-                      "zone":           { "type": "string",  "description": "Tên khu vực: 'Ngọc Trai', 'Sao Biển', 'San Hô' hoặc 'all'. PHẢI dùng đúng tên này." },
+                      "zone":           { "type": "string",  "description": "Tên khu vực: 'Ngọc Trai', 'Sao Biển', 'San Hô' hoặc 'all'." },
                       "adults":         { "type": "integer", "description": "Số người lớn" },
                       "check_in_date":  { "type": "string",  "description": "Ngày nhận phòng YYYY-MM-DD" },
                       "check_out_date": { "type": "string",  "description": "Ngày trả phòng YYYY-MM-DD" }
-                    },
-                    "required": ["check_in_date", "check_out_date"]
+                    }
                   }
                 }
               },
@@ -159,7 +162,8 @@ public class AiAgentServiceImpl implements AiAgentService {
                 List<ObjectNode> history = new ArrayList<>();
                 ObjectNode systemMsg = objectMapper.createObjectNode();
                 systemMsg.put("role", "system");
-                systemMsg.put("content", SYSTEM_PROMPT);
+                LocalDate today = LocalDate.now();
+                systemMsg.put("content", String.format(SYSTEM_PROMPT, today, today, today.plusDays(1)));
                 history.add(systemMsg);
                 return history;
             });
@@ -216,7 +220,7 @@ public class AiAgentServiceImpl implements AiAgentService {
             // Tắt thinking mode của Qwen3 để tránh lỗi parse "thinking" field
             ObjectNode options = objectMapper.createObjectNode();
             options.put("temperature", 0.1);
-            options.put("num_predict", 2048);
+            options.put("num_predict", 500);
             requestBody.set("options", options);
 
             // Gọi Ollama API
@@ -282,12 +286,45 @@ public class AiAgentServiceImpl implements AiAgentService {
             return switch (name) {
                 case "searchAvailableVillas" -> {
                     String zone = (String) args.getOrDefault("zone", "all");
+                    if (zone == null || zone.isBlank()) zone = "all";
                     int adults = args.get("adults") instanceof Number n ? n.intValue() : 2;
-                    LocalDate checkIn = LocalDate.parse((String) args.get("check_in_date"));
-                    LocalDate checkOut = LocalDate.parse((String) args.get("check_out_date"));
+
+                    LocalDate checkIn;
+                    try {
+                        String ci = (String) args.get("check_in_date");
+                        checkIn = (ci != null && !ci.isBlank()) ? LocalDate.parse(ci) : LocalDate.now();
+                    } catch (Exception e) {
+                        checkIn = LocalDate.now();
+                    }
+
+                    LocalDate checkOut;
+                    try {
+                        String co = (String) args.get("check_out_date");
+                        checkOut = (co != null && !co.isBlank()) ? LocalDate.parse(co) : checkIn.plusDays(1);
+                    } catch (Exception e) {
+                        checkOut = checkIn.plusDays(1);
+                    }
+                    if (!checkOut.isAfter(checkIn)) {
+                        checkOut = checkIn.plusDays(1);
+                    }
+
                     var villas = villaService.searchAvailableVillas(zone, adults, checkIn, checkOut);
                     AiActionContext.set("SEARCH_RESULTS", villas);
-                    yield objectMapper.writeValueAsString(villas);
+
+                    // Trả về danh sách tóm tắt tối đa 5 căn để LLM đọc nhanh chóng
+                    List<Map<String, Object>> summary = villas.stream().limit(5).map(v -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("id", v.getId());
+                        map.put("villaNumber", v.getVillaNumber());
+                        map.put("villaType", v.getVillaTypeName() != null ? v.getVillaTypeName() : "");
+                        map.put("zone", v.getZone());
+                        map.put("basePrice", v.getBasePrice() != null ? v.getBasePrice().longValue() : 0);
+                        map.put("bedroomCount", v.getBedroomCount());
+                        map.put("description", v.getOverviewDescription());
+                        return map;
+                    }).toList();
+
+                    yield objectMapper.writeValueAsString(summary);
                 }
                 case "getVillaDetails" -> {
                     Long villaId = ((Number) args.get("villa_id")).longValue();

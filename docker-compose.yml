@@ -48,8 +48,21 @@ services:
       - SPRING_DATASOURCE_PASSWORD=10092005Long
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_AI_OLLAMA_BASE_URL=http://ollama:11434
+      - SPRING_AI_OLLAMA_CHAT_OPTIONS_MODEL=qwen2.5:3b
     ports:
       - "8080:8080"
+    networks:
+      - hotel_network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: hotel_booking_ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
     networks:
       - hotel_network
 
@@ -73,3 +86,4 @@ networks:
 volumes:
   mysql_data:
   redis_data:
+  ollama_data:
