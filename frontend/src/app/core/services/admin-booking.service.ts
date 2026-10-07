@@ -15,11 +15,13 @@ interface ApiResponse<T> {
   data: T;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminBookingService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/bookings';
+  private readonly API_URL = `${environment.apiUrl}/admin/bookings`;
 
   constructor(private http: HttpClient) {}
 

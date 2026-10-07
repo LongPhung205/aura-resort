@@ -4,6 +4,8 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { ServiceDispatch, ServiceDispatchRequest } from '../models/admin-service-dispatch.model';
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -14,7 +16,7 @@ interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class AdminServiceDispatchService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/services/dispatches';
+  private readonly API_URL = `${environment.apiUrl}/admin/services/dispatches`;
 
   constructor(private http: HttpClient) {}
 

@@ -24,6 +24,7 @@ import {
 import { AdminBookingService } from '../../core/services/admin-booking.service';
 import { AdminBookingItem } from '../../core/models/admin-booking.model';
 import { BodyPortalDirective } from '../../shared/directives/body-portal.directive';
+import { environment } from '../../../environments/environment';
 
 export interface VillaBedSelectionItem {
   roomTypeId: number;
@@ -637,11 +638,11 @@ export class RoomManagementComponent implements OnInit {
     }
     if (trimmed.startsWith('/assets/images/uploads/')) {
       const filename = trimmed.substring('/assets/images/uploads/'.length);
-      return `http://localhost:8080/api/v1/villas/images/${filename}`;
+      return `${environment.apiUrl}/villas/images/${filename}`;
     }
     if (trimmed.startsWith('assets/images/uploads/')) {
       const filename = trimmed.substring('assets/images/uploads/'.length);
-      return `http://localhost:8080/api/v1/villas/images/${filename}`;
+      return `${environment.apiUrl}/villas/images/${filename}`;
     }
     return trimmed;
   }

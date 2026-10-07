@@ -26,12 +26,14 @@ export interface VillaOption {
   capacity?: number;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminInventoryService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/inventory';
-  private readonly VILLAS_URL = 'http://localhost:8080/api/v1/villas';
+  private readonly API_URL = `${environment.apiUrl}/admin/inventory`;
+  private readonly VILLAS_URL = `${environment.apiUrl}/villas`;
 
   constructor(private http: HttpClient) {}
 

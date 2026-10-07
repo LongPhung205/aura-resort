@@ -5,11 +5,13 @@ import { map } from 'rxjs/operators';
 import { HomeBanner, HomeBannerPayload } from '../models/banner.model';
 import { ApiResponse } from '../models/auth.model';
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class AdminBannerService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/banners';
+  private readonly API_URL = `${environment.apiUrl}/admin/banners`;
 
   constructor(private http: HttpClient) {}
 
@@ -53,7 +55,7 @@ export class AdminBannerService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http
-      .post<ApiResponse<string>>('http://localhost:8080/api/v1/villas/upload-image', formData)
+      .post<ApiResponse<string>>(`${environment.apiUrl}/villas/upload-image`, formData)
       .pipe(map(res => res.data));
   }
 }

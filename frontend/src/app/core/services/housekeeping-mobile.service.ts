@@ -11,6 +11,8 @@ import {
   ChecklistStepItem,
 } from '../models/housekeeping.model';
 
+import { environment } from '../../../environments/environment';
+
 export interface ApiResponse<T> {
   status: string;
   message: string;
@@ -21,7 +23,7 @@ export interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class HousekeepingMobileService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/housekeeping';
+  private readonly API_URL = `${environment.apiUrl}/housekeeping`;
 
   constructor(private http: HttpClient) {}
 

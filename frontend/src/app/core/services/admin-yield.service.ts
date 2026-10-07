@@ -4,6 +4,8 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { YieldMatrixResponse, YieldRule } from '../models/admin-yield.model';
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -14,7 +16,7 @@ interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class AdminYieldService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/yield';
+  private readonly API_URL = `${environment.apiUrl}/admin/yield`;
 
   constructor(private http: HttpClient) {}
 
@@ -26,26 +28,26 @@ export class AdminYieldService {
   }
 
   getPromotions(): Observable<any[]> {
-    return this.http.get<ApiResponse<any[]>>('http://localhost:8080/api/v1/promotions').pipe(
+    return this.http.get<ApiResponse<any[]>>(`${environment.apiUrl}/promotions`).pipe(
       map((res) => res.data || []),
       catchError(() => of([]))
     );
   }
 
   createPromotion(data: any): Observable<any> {
-    return this.http.post<ApiResponse<any>>('http://localhost:8080/api/v1/promotions', data).pipe(
+    return this.http.post<ApiResponse<any>>(`${environment.apiUrl}/promotions`, data).pipe(
       map((res) => res.data)
     );
   }
 
   updatePromotion(id: string | number, data: any): Observable<any> {
-    return this.http.put<ApiResponse<any>>(`http://localhost:8080/api/v1/promotions/${id}`, data).pipe(
+    return this.http.put<ApiResponse<any>>(`${environment.apiUrl}/promotions/${id}`, data).pipe(
       map((res) => res.data)
     );
   }
 
   deletePromotion(id: string | number): Observable<boolean> {
-    return this.http.delete<ApiResponse<void>>(`http://localhost:8080/api/v1/promotions/${id}`).pipe(
+    return this.http.delete<ApiResponse<void>>(`${environment.apiUrl}/promotions/${id}`).pipe(
       map((res) => res.success)
     );
   }

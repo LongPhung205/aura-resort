@@ -4,6 +4,8 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { DashboardStatsResponse } from '../models/admin-dashboard.model';
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -14,7 +16,7 @@ interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class AdminDashboardService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/dashboard';
+  private readonly API_URL = `${environment.apiUrl}/admin/dashboard`;
 
   constructor(private http: HttpClient) {}
 

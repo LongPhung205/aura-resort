@@ -4,6 +4,8 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { LedgerItem, LedgerItemRequest, DayEndClosingReport, DayEndClosingRequest, PaymentDashboardStatsResponse, ReconcileRequest } from '../models/admin-ledger.model';
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -14,7 +16,7 @@ interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class AdminLedgerService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/payments';
+  private readonly API_URL = `${environment.apiUrl}/admin/payments`;
 
   constructor(private http: HttpClient) {}
 

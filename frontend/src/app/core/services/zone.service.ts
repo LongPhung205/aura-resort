@@ -5,12 +5,14 @@ import { map } from 'rxjs/operators';
 import { Zone, ZonePayload, ZoneDetail } from '../models/zone.model';
 import { ApiResponse } from '../models/auth.model';
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ZoneService {
-  private readonly PUBLIC_API_URL = 'http://localhost:8080/api/v1/zones';
-  private readonly ADMIN_API_URL = 'http://localhost:8080/api/v1/admin/zones';
+  private readonly PUBLIC_API_URL = `${environment.apiUrl}/zones`;
+  private readonly ADMIN_API_URL = `${environment.apiUrl}/admin/zones`;
 
   constructor(private http: HttpClient) {}
 
@@ -62,7 +64,7 @@ export class ZoneService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http
-      .post<ApiResponse<string>>('http://localhost:8080/api/v1/villas/upload-image', formData)
+      .post<ApiResponse<string>>(`${environment.apiUrl}/villas/upload-image`, formData)
       .pipe(map(res => res.data));
   }
 }

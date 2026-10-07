@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { TokenService } from '../../../core/services/token.service';
 import { ApiResponse, AuthResponse } from '../../../core/models/auth.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -46,7 +47,7 @@ export class LoginComponent implements OnInit {
       if (user) {
         console.log('Google User:', user);
         this.http
-          .post<ApiResponse<AuthResponse>>('http://localhost:8080/api/v1/auth/google', {
+          .post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/google`, {
             idToken: user.idToken,
           })
           .subscribe({

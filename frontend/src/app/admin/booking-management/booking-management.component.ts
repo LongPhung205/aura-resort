@@ -8,6 +8,7 @@ import { VillaService } from '../../core/services/villa.service';
 import { Villa } from '../../core/models/villa.model';
 import { RoomConsumptionRecord } from '../../core/models/housekeeping.model';
 import { AdminBookingItem, GanttRoomAvailability } from '../../core/models/admin-booking.model';
+import { environment } from '../../../environments/environment';
 
 export interface LuxuryBooking {
   id: number;
@@ -287,7 +288,7 @@ export class BookingManagementComponent implements OnInit {
 
   setupRealTimeUpdates(): void {
     try {
-      const eventSource = new EventSource('http://localhost:8080/api/v1/notifications/stream');
+      const eventSource = new EventSource(`${environment.apiUrl}/notifications/stream`);
       eventSource.addEventListener('status_update', (event) => {
         if (event.data === 'REFRESH_GANTT') {
           this.loadGantt();

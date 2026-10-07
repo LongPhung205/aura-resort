@@ -4,6 +4,8 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Villa, VillaRequest } from '../models/villa.model';
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   status?: string;
   success?: boolean;
@@ -15,7 +17,7 @@ interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class VillaService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/villas';
+  private readonly API_URL = `${environment.apiUrl}/villas`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,7 +72,7 @@ export class VillaService {
     if (zone) params = params.set('zone', zone);
     if (adults) params = params.set('adults', adults.toString());
 
-    return this.http.get<ApiResponse<Villa[]>>(`http://localhost:8080/api/v1/public/villas/search`, { params }).pipe(
+    return this.http.get<ApiResponse<Villa[]>>(`${environment.apiUrl}/public/villas/search`, { params }).pipe(
       map(res => res.data)
     );
   }

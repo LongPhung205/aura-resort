@@ -13,11 +13,13 @@ import {
   UserSummaryStats,
 } from '../models/admin-user.model';
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminUserService {
-  private readonly baseUrl = 'http://localhost:8080/api/v1/admin/users';
+  private readonly baseUrl = `${environment.apiUrl}/admin/users`;
 
   constructor(private http: HttpClient) {}
 

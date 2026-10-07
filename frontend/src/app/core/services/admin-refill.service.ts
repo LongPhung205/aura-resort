@@ -17,11 +17,13 @@ interface ApiResponse<T> {
   data: T;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminRefillService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/inventory/refill';
+  private readonly API_URL = `${environment.apiUrl}/admin/inventory/refill`;
 
   constructor(private http: HttpClient) {}
 

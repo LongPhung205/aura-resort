@@ -4,6 +4,8 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { VillaType, VillaTypeRequest } from '../models/villa-type.model';
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   status?: string;
   success?: boolean;
@@ -15,7 +17,7 @@ interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class VillaTypeService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/villa-types';
+  private readonly API_URL = `${environment.apiUrl}/villa-types`;
 
   constructor(private http: HttpClient) {}
 

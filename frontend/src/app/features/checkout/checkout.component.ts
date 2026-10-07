@@ -8,6 +8,7 @@ import { TokenService } from '../../core/services/token.service';
 import { AdminExtraServiceService, ExtraServiceItem } from '../../core/services/admin-extra-service.service';
 import { ComboPackageService, ComboPackage } from '../../core/services/combo-package.service';
 import { PromotionService } from '../../core/services/promotion.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-checkout',
@@ -295,12 +296,12 @@ export class CheckoutComponent implements OnInit {
     }
 
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    this.http.post<any>('http://localhost:8080/api/v1/bookings', payload).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/bookings`, payload).subscribe({
       next: (res) => {
         const bookingId = res.data?.id;
 
         if (this.paymentMethod === 'momo' && bookingId) {
-          this.http.post<any>(`http://localhost:8080/api/v1/payments/momo/${bookingId}`, {}).subscribe({
+          this.http.post<any>(`${environment.apiUrl}/payments/momo/${bookingId}`, {}).subscribe({
             next: (momoRes) => {
               if (momoRes.data) {
                 window.location.href = momoRes.data;

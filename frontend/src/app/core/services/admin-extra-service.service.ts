@@ -58,12 +58,14 @@ interface ApiResponse<T> {
   data: T;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminExtraServiceService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/extra-services';
-  private readonly VILLA_SERVICE_URL = 'http://localhost:8080/api/v1/admin/villa-services';
+  private readonly API_URL = `${environment.apiUrl}/extra-services`;
+  private readonly VILLA_SERVICE_URL = `${environment.apiUrl}/admin/villa-services`;
 
   constructor(private http: HttpClient) {}
 

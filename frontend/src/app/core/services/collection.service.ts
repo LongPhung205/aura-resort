@@ -22,6 +22,8 @@ export interface CollectionRequest {
   isActive?: boolean;
 }
 
+import { environment } from '../../../environments/environment';
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -32,7 +34,7 @@ interface ApiResponse<T> {
   providedIn: 'root'
 })
 export class CollectionService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/collections';
+  private readonly API_URL = `${environment.apiUrl}/collections`;
 
   constructor(private http: HttpClient) {}
 

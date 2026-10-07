@@ -139,14 +139,16 @@ interface ApiResponse<T> {
   data: T;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root',
 })
 export class AdminHousekeepingService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/admin/housekeeping';
-  private readonly ROOMS_API_URL = 'http://localhost:8080/api/v1/villas';
-  private readonly ROOM_TYPES_API_URL = 'http://localhost:8080/api/v1/villa-types';
-  private readonly ZONES_API_URL = 'http://localhost:8080/api/v1/admin/zones';
+  private readonly API_URL = `${environment.apiUrl}/admin/housekeeping`;
+  private readonly ROOMS_API_URL = `${environment.apiUrl}/villas`;
+  private readonly ROOM_TYPES_API_URL = `${environment.apiUrl}/villa-types`;
+  private readonly ZONES_API_URL = `${environment.apiUrl}/admin/zones`;
 
   constructor(private http: HttpClient) {}
 
@@ -383,7 +385,7 @@ export class AdminHousekeepingService {
   getPendingConsumptions(bookingId: number): Observable<RoomConsumptionRecord[]> {
     return this.http
       .get<ApiResponse<RoomConsumptionRecord[]>>(
-        `http://localhost:8080/api/v1/admin/billing/consumptions/pending?bookingId=${bookingId}`
+        `${environment.apiUrl}/admin/billing/consumptions/pending?bookingId=${bookingId}`
       )
       .pipe(
         map((res) => res.data || []),
@@ -394,7 +396,7 @@ export class AdminHousekeepingService {
   approveConsumption(id: number): Observable<RoomConsumptionRecord> {
     return this.http
       .post<ApiResponse<RoomConsumptionRecord>>(
-        `http://localhost:8080/api/v1/admin/billing/consumptions/${id}/approve`,
+        `${environment.apiUrl}/admin/billing/consumptions/${id}/approve`,
         {}
       )
       .pipe(map((res) => res.data));
@@ -402,8 +404,8 @@ export class AdminHousekeepingService {
 
   waiveConsumption(id: number, reason?: string): Observable<RoomConsumptionRecord> {
     const url = reason
-      ? `http://localhost:8080/api/v1/admin/billing/consumptions/${id}/waive?reason=${encodeURIComponent(reason)}`
-      : `http://localhost:8080/api/v1/admin/billing/consumptions/${id}/waive`;
+      ? `${environment.apiUrl}/admin/billing/consumptions/${id}/waive?reason=${encodeURIComponent(reason)}`
+      : `${environment.apiUrl}/admin/billing/consumptions/${id}/waive`;
     return this.http.post<ApiResponse<RoomConsumptionRecord>>(url, {}).pipe(map((res) => res.data));
   }
 }

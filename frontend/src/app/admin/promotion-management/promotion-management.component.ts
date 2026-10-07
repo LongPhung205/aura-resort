@@ -7,6 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ComboPackageService } from '../../core/services/combo-package.service';
 import { AdminExtraServiceService, ExtraServiceItem } from '../../core/services/admin-extra-service.service';
 import { PromotionService } from '../../core/services/promotion.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-promotion-management',
@@ -258,7 +259,7 @@ export class PromotionManagementComponent implements OnInit {
     this.isUploadingComboImage = true;
     const formData = new FormData();
     formData.append('file', file);
-    this.http.post<any>('http://localhost:8080/api/v1/villas/upload-image', formData).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/villas/upload-image`, formData).subscribe({
       next: (res) => {
         this.isUploadingComboImage = false;
         if (res && res.data) {
@@ -269,7 +270,7 @@ export class PromotionManagementComponent implements OnInit {
           const prefix = '/assets/images/uploads/';
           if (serverPath.startsWith(prefix)) {
             const filename = serverPath.substring(prefix.length);
-            this.comboForm.image = `http://localhost:8080/api/v1/villas/images/${filename}`;
+            this.comboForm.image = `${environment.apiUrl}/villas/images/${filename}`;
           } else {
             this.comboForm.image = serverPath;
           }

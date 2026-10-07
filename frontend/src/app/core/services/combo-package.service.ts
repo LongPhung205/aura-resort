@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
+import { environment } from '../../../environments/environment';
+
 export interface ComboPackage {
   id?: number;
   name: string;
@@ -24,7 +26,7 @@ interface ApiResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class ComboPackageService {
-  private readonly API_URL = 'http://localhost:8080/api/v1/combo-packages';
+  private readonly API_URL = `${environment.apiUrl}/combo-packages`;
 
   constructor(private http: HttpClient) {}
 
