@@ -19,11 +19,13 @@ desktop.ini
 *.ipr
 out/
 
-# AI Agent & Assistant workspaces / caches
-.agents/
-.claude/
-.gemini/
-docs/superpowers/
+# AI Agent Workspaces, Skills, and Plans (Preserved locally, hidden from Git)
+**/.agents/
+**/.claude/
+**/.gemini/
+**/skills-lock.json
+**/docs/
+docs/
 
 # ==========================================
 # Java / Spring Boot Build Outputs
