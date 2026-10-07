@@ -23,6 +23,7 @@ out/
 .agents/
 .claude/
 .gemini/
+docs/superpowers/
 
 # ==========================================
 # Java / Spring Boot Build Outputs
