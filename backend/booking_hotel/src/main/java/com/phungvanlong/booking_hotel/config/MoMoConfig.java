@@ -13,6 +13,7 @@ public class MoMoConfig {
     private String accessKey;
     private String secretKey;
     private String redirectUrl;
+    private String frontendUrl;
     private String ipnUrl;
     private String requestType;
 }

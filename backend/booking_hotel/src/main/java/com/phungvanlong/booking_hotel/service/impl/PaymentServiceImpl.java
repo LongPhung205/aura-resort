@@ -249,4 +249,56 @@ public class PaymentServiceImpl implements PaymentService {
             }
         }
     }
+
+    @Override
+    @Transactional
+    public void simulateMoMoSuccess(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy Booking với ID: " + bookingId));
+
+        if (paymentRepository.existsByBookingIdAndStatus(bookingId, PaymentStatus.SUCCESS)) {
+            log.info("Booking {} đã thanh toán trước đó, bỏ qua giả lập.", bookingId);
+            return;
+        }
+
+        booking.setStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
+        Payment payment = paymentRepository.findByBookingId(bookingId).orElse(
+            Payment.builder().booking(booking).build()
+        );
+        payment.setAmount(booking.getTotalAmount());
+        payment.setPaymentMethod("MOMO");
+        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setTransactionId("SIM-" + UUID.randomUUID().toString().substring(0, 8));
+        payment.setPaymentTime(LocalDateTime.now());
+        payment.setReconciliationNote("Thanh toán MoMo thành công (Sandbox Simulator)");
+        paymentRepository.save(payment);
+
+        notificationService.sendNotification("REFRESH_GANTT");
+
+        // Gửi email xác nhận đặt phòng thành công
+        String recipientEmail = (booking.getGuestEmail() != null && !booking.getGuestEmail().isBlank())
+                ? booking.getGuestEmail()
+                : (booking.getUser() != null ? booking.getUser().getEmail() : null);
+        String recipientName = (booking.getGuestName() != null && !booking.getGuestName().isBlank())
+                ? booking.getGuestName()
+                : (booking.getUser() != null ? booking.getUser().getFullName() : "Quý khách");
+
+        if (recipientEmail != null && !recipientEmail.isBlank()) {
+            final String finalEmail = recipientEmail;
+            final String finalName = recipientName;
+            final String bCode = booking.getBookingCode();
+            final java.time.LocalDate cIn = booking.getCheckInDate();
+            final java.time.LocalDate cOut = booking.getCheckOutDate();
+            final java.math.BigDecimal totalAmt = booking.getTotalAmount();
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                try {
+                    emailService.sendBookingSuccessEmail(finalEmail, bCode, finalName, cIn, cOut, totalAmt);
+                } catch (Exception ex) {
+                    log.error("Lỗi gửi email xác nhận đặt phòng sau giả lập MoMo: {}", ex.getMessage());
+                }
+            });
+        }
+    }
 }

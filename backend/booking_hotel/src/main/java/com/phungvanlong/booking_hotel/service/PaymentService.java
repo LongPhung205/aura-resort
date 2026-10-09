@@ -6,4 +6,5 @@ public interface PaymentService {
     String createMoMoPayment(Long bookingId);
     void processMoMoReturn(Map<String, String> params);
     void processMoMoIpn(Map<String, String> params);
+    void simulateMoMoSuccess(Long bookingId);
 }

@@ -4,7 +4,7 @@ import com.phungvanlong.booking_hotel.dto.response.ApiResponse;
 import com.phungvanlong.booking_hotel.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import com.phungvanlong.booking_hotel.config.MoMoConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +18,7 @@ import java.util.Map;
 public class PaymentController {
 
     private final PaymentService paymentService;
-
-    @Value("${momo.redirect-url}")
-    private String momoRedirectUrl;
+    private final MoMoConfig moMoConfig;
 
     // Không cần @PreAuthorize("hasRole('USER')") - bất kỳ user đã login đều có thể thanh toán
     @PostMapping("/momo/{bookingId}")
@@ -40,7 +38,10 @@ public class PaymentController {
         String resultCode = params.getOrDefault("resultCode", "-1");
         String orderId    = params.getOrDefault("orderId", "");
         String message    = params.getOrDefault("message", "");
-        String redirectFe = momoRedirectUrl
+        String targetFe   = (moMoConfig.getFrontendUrl() != null && !moMoConfig.getFrontendUrl().isBlank())
+                ? moMoConfig.getFrontendUrl()
+                : "http://localhost:4200/payment/momo-result";
+        String redirectFe = targetFe
                 + "?resultCode=" + resultCode
                 + "&orderId=" + orderId
                 + "&message=" + java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8);
@@ -51,5 +52,11 @@ public class PaymentController {
     public ResponseEntity<Void> processMoMoIpn(@RequestBody Map<String, String> params) {
         paymentService.processMoMoIpn(params);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/sandbox-simulate/{bookingId}")
+    public ResponseEntity<ApiResponse<String>> simulateMoMoSuccess(@PathVariable Long bookingId) {
+        paymentService.simulateMoMoSuccess(bookingId);
+        return ResponseEntity.ok(ApiResponse.success("Xác nhận thanh toán giả lập Sandbox thành công", "Thành công"));
     }
 }

@@ -61,8 +61,8 @@ public class SecurityConfig {
                         // AI Chat — public (auth optional, AI dùng để create booking nếu đã đăng nhập)
                         .requestMatchers("/ai/**").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        // MoMo redirect - phải public vì MoMo gọi tới không có JWT
-                        .requestMatchers("/payments/momo-return", "/payments/momo-ipn").permitAll()
+                        // MoMo redirect & sandbox simulate - phải public vì MoMo gọi tới không có JWT
+                        .requestMatchers("/payments/momo-return", "/payments/momo-ipn", "/payments/sandbox-simulate/**").permitAll()
                         // Bất kỳ user đã đăng nhập (bất kỳ role) cũng có thể đặt phòng và thanh toán
                         .requestMatchers("/bookings/**", "/payments/**").authenticated()
                         .anyRequest().authenticated())
