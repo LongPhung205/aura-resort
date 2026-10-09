@@ -96,6 +96,9 @@ export class LoginComponent implements OnInit {
         next: (res) => {
           if (res.data?.accessToken) {
             this.tokenService.saveToken(res.data.accessToken);
+            if (res.data.refreshToken) {
+              this.tokenService.saveRefreshToken(res.data.refreshToken);
+            }
             if (res.data.role) {
               this.tokenService.saveRole(res.data.role);
             } else {

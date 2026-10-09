@@ -59,4 +59,18 @@ public class AuthController {
         AuthResponse token = authService.googleLogin(request);
         return ResponseEntity.ok(ApiResponse.success(token, "Đăng nhập bằng Google thành công"));
     }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest request) {
+        AuthResponse token = authService.refreshToken(request);
+        return ResponseEntity.ok(ApiResponse.success(token, "Làm mới token thành công"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @org.springframework.web.bind.annotation.RequestHeader(value = "Authorization", required = false) String bearerToken,
+            @RequestBody(required = false) com.phungvanlong.booking_hotel.dto.request.LogoutRequest request) {
+        authService.logout(bearerToken, request);
+        return ResponseEntity.ok(ApiResponse.success(null, "Đăng xuất thành công"));
+    }
 }

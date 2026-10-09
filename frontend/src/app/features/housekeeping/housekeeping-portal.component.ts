@@ -391,10 +391,7 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.tokenService.removeToken();
-    this.tokenService.removeRole();
-    localStorage.removeItem('user');
-    localStorage.removeItem('currentUser');
+    this.tokenService.clearAll();
     this.router.navigate(['/login']);
   }
 

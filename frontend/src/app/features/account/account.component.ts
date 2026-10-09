@@ -7,6 +7,7 @@ import { UserProfileService, UserProfile } from '../../core/services/user-profil
 import { ClientBookingService, ClientBooking } from '../../core/services/client-booking.service';
 import { ClientReviewService, ClientReview, CreateReviewRequest } from '../../core/services/client-review.service';
 import { TokenService } from '../../core/services/token.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-account',
@@ -65,6 +66,7 @@ export class AccountComponent implements OnInit {
     private bookingService: ClientBookingService,
     private reviewService: ClientReviewService,
     private tokenService: TokenService,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -349,11 +351,12 @@ export class AccountComponent implements OnInit {
 
   // --- Utility Methods ---
   logout(): void {
-    this.tokenService.removeToken();
-    this.tokenService.removeRole();
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('accessToken');
+    const refreshToken = this.tokenService.getRefreshToken() || undefined;
+    this.authService.logout(refreshToken).subscribe({
+      next: () => {},
+      error: () => {}
+    });
+    this.tokenService.clearAll();
     window.location.href = '/login';
   }
 

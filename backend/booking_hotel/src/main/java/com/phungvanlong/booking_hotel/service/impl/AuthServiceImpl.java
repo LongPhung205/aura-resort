@@ -54,6 +54,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
+    private final com.phungvanlong.booking_hotel.service.TokenBlacklistService tokenBlacklistService;
 
     @Override
     @Transactional
@@ -90,21 +91,33 @@ public class AuthServiceImpl implements AuthService {
                         userRepository.save(user);
                     }
                 }
+
+                if (!Boolean.TRUE.equals(user.getIsActive())) {
+                    throw new BusinessException("Tài khoản của bạn đã bị khóa");
+                }
                 
-                Authentication authentication = new UsernamePasswordAuthenticationToken(user.getEmail(), null, Collections.emptyList());
+                String role = user.getRole() != null ? user.getRole().name() : "ROLE_CUSTOMER";
+                com.phungvanlong.booking_hotel.security.UserPrincipal principal = 
+                        com.phungvanlong.booking_hotel.security.UserPrincipal.create(user);
+                Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                String jwt = tokenProvider.generateToken(authentication);
+
+                String jwt = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), role);
+                String refreshToken = tokenProvider.generateRefreshToken(user.getEmail());
+                tokenBlacklistService.saveRefreshToken(user.getEmail(), refreshToken, tokenProvider.getRefreshTokenExpirationInMs());
                 
-                String role = (user != null && user.getRole() != null) ? user.getRole().name() : "ROLE_CUSTOMER";
                 return AuthResponse.builder()
                         .accessToken(jwt)
+                        .refreshToken(refreshToken)
                         .role(role)
-                        .fullName(user != null ? user.getFullName() : "")
-                        .avatarUrl(user != null ? user.getAvatar() : null)
+                        .fullName(user.getFullName() != null ? user.getFullName() : "")
+                        .avatarUrl(user.getAvatar())
                         .build();
             } else {
                 throw new BusinessException("Token Google không hợp lệ");
             }
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
             throw new BusinessException("Lỗi xác thực Google: " + e.getMessage());
         }
@@ -120,18 +133,79 @@ public class AuthServiceImpl implements AuthService {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.generateToken(authentication);
         
-        User user = userRepository.findByEmail(loginRequest.getEmail()).orElse(null);
-        String role = (user != null && user.getRole() != null) ? user.getRole().name() : "ROLE_CUSTOMER";
-        String fullName = user != null ? user.getFullName() : "";
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new BusinessException("Không tìm thấy thông tin tài khoản"));
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new BusinessException("Tài khoản của bạn đã bị khóa");
+        }
+
+        String role = user.getRole() != null ? user.getRole().name() : "ROLE_CUSTOMER";
+        String jwt = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), role);
+        String refreshToken = tokenProvider.generateRefreshToken(user.getEmail());
+        tokenBlacklistService.saveRefreshToken(user.getEmail(), refreshToken, tokenProvider.getRefreshTokenExpirationInMs());
 
         return AuthResponse.builder()
                 .accessToken(jwt)
+                .refreshToken(refreshToken)
                 .role(role)
-                .fullName(fullName)
-                .avatarUrl(user != null ? user.getAvatar() : null)
+                .fullName(user.getFullName())
+                .avatarUrl(user.getAvatar())
                 .build();
+    }
+
+    @Override
+    public AuthResponse refreshToken(com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!tokenProvider.validateToken(refreshToken)) {
+            throw new BusinessException("Refresh token không hợp lệ hoặc đã hết hạn");
+        }
+
+        String emailFromRedis = tokenBlacklistService.getEmailByRefreshToken(refreshToken);
+        String emailFromToken = tokenProvider.getUsernameFromJWT(refreshToken);
+
+        if (emailFromRedis == null || !emailFromRedis.equalsIgnoreCase(emailFromToken)) {
+            throw new BusinessException("Refresh token đã bị thu hồi hoặc không tồn tại");
+        }
+
+        User user = userRepository.findByEmail(emailFromToken)
+                .orElseThrow(() -> new BusinessException("Người dùng không tồn tại"));
+
+        if (!Boolean.TRUE.equals(user.getIsActive())) {
+            throw new BusinessException("Tài khoản của bạn đã bị khóa");
+        }
+
+        String role = user.getRole() != null ? user.getRole().name() : "ROLE_CUSTOMER";
+        String newAccessToken = tokenProvider.generateAccessToken(user.getId(), user.getEmail(), role);
+
+        // Rotate refresh token
+        String newRefreshToken = tokenProvider.generateRefreshToken(user.getEmail());
+        tokenBlacklistService.deleteRefreshToken(refreshToken);
+        tokenBlacklistService.saveRefreshToken(user.getEmail(), newRefreshToken, tokenProvider.getRefreshTokenExpirationInMs());
+
+        return AuthResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(newRefreshToken)
+                .role(role)
+                .fullName(user.getFullName())
+                .avatarUrl(user.getAvatar())
+                .build();
+    }
+
+    @Override
+    public void logout(String bearerToken, com.phungvanlong.booking_hotel.dto.request.LogoutRequest request) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            String accessToken = bearerToken.substring(7);
+            long remainingTtl = tokenProvider.getRemainingTtl(accessToken);
+            if (remainingTtl > 0) {
+                tokenBlacklistService.blacklistAccessToken(accessToken, remainingTtl);
+            }
+        }
+
+        if (request != null && request.getRefreshToken() != null && !request.getRefreshToken().isBlank()) {
+            tokenBlacklistService.deleteRefreshToken(request.getRefreshToken());
+        }
     }
 
     @Override

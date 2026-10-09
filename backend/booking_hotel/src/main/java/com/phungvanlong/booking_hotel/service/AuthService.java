@@ -16,4 +16,6 @@ public interface AuthService {
     void forgotPassword(ForgotPasswordRequest request);
     void resetPassword(ResetPasswordRequest request);
     AuthResponse googleLogin(GoogleLoginRequest request);
+    AuthResponse refreshToken(com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest request);
+    void logout(String accessToken, com.phungvanlong.booking_hotel.dto.request.LogoutRequest request);
 }

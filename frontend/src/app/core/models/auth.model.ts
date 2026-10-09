@@ -1,12 +1,15 @@
 export interface AuthResponse {
   accessToken: string;
+  refreshToken?: string;
   tokenType?: string;
   role?: string;
   fullName?: string;
+  avatarUrl?: string;
 }
 
 export interface ApiResponse<T> {
-  success: boolean;
+  success?: boolean;
+  status?: string;
   message: string;
   data: T;
 }
@@ -35,4 +38,12 @@ export interface ResetPasswordRequest {
   email?: string;
   otp?: string;
   newPassword?: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface LogoutRequest {
+  refreshToken?: string;
 }

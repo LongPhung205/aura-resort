@@ -8,7 +8,9 @@ import {
   RegisterRequest,
   VerifyOtpRequest,
   ForgotPasswordRequest,
-  ResetPasswordRequest
+  ResetPasswordRequest,
+  RefreshTokenRequest,
+  LogoutRequest
 } from '../models/auth.model';
 
 import { environment } from '../../../environments/environment';
@@ -39,5 +41,15 @@ export class AuthService {
 
   resetPassword(data: ResetPasswordRequest): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(`${this.API_URL}/reset-password`, data);
+  }
+
+  refreshToken(refreshToken: string): Observable<ApiResponse<AuthResponse>> {
+    const payload: RefreshTokenRequest = { refreshToken };
+    return this.http.post<ApiResponse<AuthResponse>>(`${this.API_URL}/refresh-token`, payload);
+  }
+
+  logout(refreshToken?: string): Observable<ApiResponse<void>> {
+    const payload: LogoutRequest = { refreshToken };
+    return this.http.post<ApiResponse<void>>(`${this.API_URL}/logout`, payload);
   }
 }

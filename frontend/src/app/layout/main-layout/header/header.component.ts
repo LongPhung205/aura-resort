@@ -2,6 +2,8 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { ZoneService } from '../../../core/services/zone.service';
+import { TokenService } from '../../../core/services/token.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 export interface CurrentUserSession {
   email?: string;
@@ -33,7 +35,12 @@ export class HeaderComponent implements OnInit {
   // Auth page detection
   isAuthPage = false;
 
-  constructor(private router: Router, private zoneService: ZoneService) {
+  constructor(
+    private router: Router,
+    private zoneService: ZoneService,
+    private tokenService: TokenService,
+    private authService: AuthService
+  ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.isAuthPage = this.router.url.includes('/login') || 
@@ -80,9 +87,12 @@ export class HeaderComponent implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('accessToken');
+    const refreshToken = this.tokenService.getRefreshToken() || undefined;
+    this.authService.logout(refreshToken).subscribe({
+      next: () => {},
+      error: () => {}
+    });
+    this.tokenService.clearAll();
     this.currentUser = null;
     this.isLoggedIn = false;
     window.location.href = '/login';

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TokenService } from '../../core/services/token.service';
+import { AuthService } from '../../core/services/auth.service';
 import { AdminUserService } from '../../core/services/admin-user.service';
 import { BodyPortalDirective } from '../../shared/directives/body-portal.directive';
 
@@ -66,6 +67,7 @@ export class AdminLayoutComponent implements OnInit {
   constructor(
     public router: Router,
     private tokenService: TokenService,
+    private authService: AuthService,
     private adminUserService: AdminUserService
   ) {}
 
@@ -215,11 +217,12 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   confirmLogout(): void {
-    this.tokenService.removeToken();
-    this.tokenService.removeRole();
-    localStorage.removeItem('user');
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('auth_token');
+    const refreshToken = this.tokenService.getRefreshToken() || undefined;
+    this.authService.logout(refreshToken).subscribe({
+      next: () => {},
+      error: () => {}
+    });
+    this.tokenService.clearAll();
     this.showLogoutConfirmModal = false;
     this.showToast('Đã đăng xuất khỏi hệ thống');
     setTimeout(() => {
