@@ -32,7 +32,9 @@ export class HousekeepingManagementComponent implements OnInit {
 
   // Filters
   selectedZone = 'ALL';
-  selectedStatus = 'ALL';
+  selectedStatus = 'ACTIVE';
+  hideCompleted = true;
+  hiddenTaskIds = new Set<number>();
   searchQuery = '';
 
   // QC Inspection Modal
@@ -105,28 +107,44 @@ export class HousekeepingManagementComponent implements OnInit {
   // Filtered tasks for Room Matrix
   get filteredTasks(): HousekeepingTask[] {
     return this.tasks.filter((t) => {
+      // Manually hidden tasks
+      if (this.hiddenTaskIds.has(t.id)) {
+        return false;
+      }
+
       // Zone filter
       if (this.selectedZone !== 'ALL' && t.villaZone !== this.selectedZone) {
         return false;
       }
+
+      // Hide completed tasks if hideCompleted is active, except when user explicitly selects CLEAN_READY
+      if (this.hideCompleted && this.selectedStatus !== 'CLEAN_READY' && t.status === 'COMPLETED') {
+        return false;
+      }
+
       // Status filter
-      if (this.selectedStatus !== 'ALL') {
-        if (this.selectedStatus === 'DIRTY' && t.status !== 'PENDING') return false;
+      if (this.selectedStatus === 'ACTIVE') {
+        if (t.status === 'COMPLETED') return false;
+      } else if (this.selectedStatus === 'DIRTY') {
+        if (t.status !== 'PENDING') return false;
+      } else if (this.selectedStatus === 'CLEANING') {
         if (
-          this.selectedStatus === 'CLEANING' &&
           t.status !== 'IN_PROGRESS' &&
           t.status !== 'OZONE_RUNNING'
         )
           return false;
+      } else if (this.selectedStatus === 'WAITING_QC') {
         if (
-          this.selectedStatus === 'WAITING_QC' &&
           t.status !== 'WAITING_QC' &&
           t.status !== 'INSPECTED'
         )
           return false;
-        if (this.selectedStatus === 'CLEAN_READY' && t.status !== 'COMPLETED') return false;
-        if (this.selectedStatus === 'RE_CLEAN' && t.status !== 'RE_CLEAN') return false;
+      } else if (this.selectedStatus === 'CLEAN_READY') {
+        if (t.status !== 'COMPLETED') return false;
+      } else if (this.selectedStatus === 'RE_CLEAN') {
+        if (t.status !== 'RE_CLEAN') return false;
       }
+
       // Search
       if (this.searchQuery.trim()) {
         const q = this.searchQuery.toLowerCase();
@@ -142,6 +160,10 @@ export class HousekeepingManagementComponent implements OnInit {
   }
 
   // Stat counters
+  get activeCount(): number {
+    return this.tasks.filter((t) => t.status !== 'COMPLETED').length;
+  }
+
   get dirtyCount(): number {
     return this.tasks.filter((t) => t.status === 'PENDING').length;
   }
@@ -161,6 +183,30 @@ export class HousekeepingManagementComponent implements OnInit {
 
   get reCleanCount(): number {
     return this.tasks.filter((t) => t.status === 'RE_CLEAN').length;
+  }
+
+  toggleHideCompleted(): void {
+    this.hideCompleted = !this.hideCompleted;
+    if (!this.hideCompleted && this.selectedStatus === 'ACTIVE') {
+      this.selectedStatus = 'ALL';
+    }
+  }
+
+  hideTask(taskId: number): void {
+    this.hiddenTaskIds.add(taskId);
+    this.showToast('Đã ẩn thẻ phòng khỏi danh sách hiển thị', 'success');
+  }
+
+  unhideAll(): void {
+    this.hiddenTaskIds.clear();
+    this.showToast('Đã khôi phục các thẻ phòng bị ẩn', 'success');
+  }
+
+  selectStatusFilter(status: string): void {
+    this.selectedStatus = status;
+    if (this.activeTab !== 'matrix') {
+      this.activeTab = 'matrix';
+    }
   }
 
   // Open QC Modal

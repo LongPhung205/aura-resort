@@ -42,22 +42,32 @@
   <!-- 5 Stat Metric Cards (Premium Design) -->
   <div class="grid grid-cols-2 md:grid-cols-5 gap-5 relative z-10">
     <!-- Card 1 -->
-    <div class="bg-white p-5 rounded-[20px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all">
+    <div
+      (click)="selectStatusFilter('ACTIVE')"
+      class="bg-white p-5 rounded-[20px] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all cursor-pointer hover:-translate-y-0.5"
+      [ngClass]="{ 'ring-2 ring-slate-400': selectedStatus === 'ACTIVE' }"
+      title="Bấm để xem các phòng đang cần xử lý"
+    >
       <div class="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
       <div class="flex items-center justify-between mb-4">
         <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center">
           <span class="material-symbols-outlined text-[20px]">apartment</span>
         </div>
-        <span class="text-xs font-black uppercase tracking-widest text-slate-400">Tổng Phòng</span>
+        <span class="text-xs font-black uppercase tracking-widest text-slate-400">Cần Xử Lý</span>
       </div>
       <div>
-        <div class="text-3xl font-black text-slate-900 tracking-tight">{{ tasks.length }}</div>
-        <p class="text-xs text-slate-500 font-medium mt-1">Căn hộ & Biệt thự</p>
+        <div class="text-3xl font-black text-slate-900 tracking-tight">{{ activeCount }}</div>
+        <p class="text-xs text-slate-500 font-medium mt-1">Tổng {{ tasks.length }} căn hộ & villa</p>
       </div>
     </div>
 
     <!-- Card 2 -->
-    <div class="bg-white p-5 rounded-[20px] border border-rose-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(225,29,72,0.08)] transition-all">
+    <div
+      (click)="selectStatusFilter('DIRTY')"
+      class="bg-white p-5 rounded-[20px] border border-rose-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(225,29,72,0.08)] transition-all cursor-pointer hover:-translate-y-0.5"
+      [ngClass]="{ 'ring-2 ring-rose-400': selectedStatus === 'DIRTY' }"
+      title="Bấm để xem các phòng bẩn / chờ dọn"
+    >
       <div class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
       <div class="flex items-center justify-between mb-4">
         <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -72,7 +82,12 @@
     </div>
 
     <!-- Card 3 -->
-    <div class="bg-white p-5 rounded-[20px] border border-amber-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(217,119,6,0.08)] transition-all">
+    <div
+      (click)="selectStatusFilter('CLEANING')"
+      class="bg-white p-5 rounded-[20px] border border-amber-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(217,119,6,0.08)] transition-all cursor-pointer hover:-translate-y-0.5"
+      [ngClass]="{ 'ring-2 ring-amber-400': selectedStatus === 'CLEANING' }"
+      title="Bấm để xem các phòng đang dọn"
+    >
       <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
       <div class="flex items-center justify-between mb-4">
         <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
@@ -87,7 +102,12 @@
     </div>
 
     <!-- Card 4 -->
-    <div class="bg-white p-5 rounded-[20px] border border-sky-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(2,132,199,0.08)] transition-all">
+    <div
+      (click)="selectStatusFilter('WAITING_QC')"
+      class="bg-white p-5 rounded-[20px] border border-sky-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(2,132,199,0.08)] transition-all cursor-pointer hover:-translate-y-0.5"
+      [ngClass]="{ 'ring-2 ring-sky-400': selectedStatus === 'WAITING_QC' }"
+      title="Bấm để xem các phòng chờ nghiệm thu QC"
+    >
       <div class="absolute top-0 right-0 w-24 h-24 bg-sky-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
       <div class="flex items-center justify-between mb-4">
         <div class="w-10 h-10 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center">
@@ -102,7 +122,12 @@
     </div>
 
     <!-- Card 5 -->
-    <div class="bg-white p-5 rounded-[20px] border border-emerald-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(5,150,105,0.08)] transition-all">
+    <div
+      (click)="selectStatusFilter('CLEAN_READY')"
+      class="bg-white p-5 rounded-[20px] border border-emerald-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group hover:shadow-[0_8px_30px_rgb(5,150,105,0.08)] transition-all cursor-pointer hover:-translate-y-0.5"
+      [ngClass]="{ 'ring-2 ring-emerald-500': selectedStatus === 'CLEAN_READY' }"
+      title="Bấm để xem các phòng đã đạt chuẩn sẵn sàng"
+    >
       <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
       <div class="flex items-center justify-between mb-4">
         <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
@@ -198,11 +223,11 @@
         <!-- Status Filter Pills -->
         <div class="flex flex-wrap items-center gap-1.5 bg-slate-50/50 p-1.5 rounded-xl text-xs font-bold border border-slate-100">
           <button
-            (click)="selectedStatus = 'ALL'"
+            (click)="selectedStatus = 'ACTIVE'"
             class="px-3 py-1.5 rounded-[10px] transition-all cursor-pointer"
-            [ngClass]="selectedStatus === 'ALL' ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'"
+            [ngClass]="selectedStatus === 'ACTIVE' ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'"
           >
-            Tất cả
+            Cần xử lý <span class="ml-1 opacity-80">({{ activeCount }})</span>
           </button>
           <button
             (click)="selectedStatus = 'DIRTY'"
@@ -226,6 +251,13 @@
             Chờ QC <span class="ml-1 opacity-80">({{ waitingQcCount }})</span>
           </button>
           <button
+            (click)="selectedStatus = 'RE_CLEAN'"
+            class="px-3 py-1.5 rounded-[10px] transition-all cursor-pointer"
+            [ngClass]="selectedStatus === 'RE_CLEAN' ? 'bg-rose-700 text-white shadow-md shadow-rose-700/20' : 'text-slate-500 hover:bg-rose-50 hover:text-rose-700'"
+          >
+            Dọn lại <span class="ml-1 opacity-80">({{ reCleanCount }})</span>
+          </button>
+          <button
             (click)="selectedStatus = 'CLEAN_READY'"
             class="px-3 py-1.5 rounded-[10px] transition-all cursor-pointer"
             [ngClass]="selectedStatus === 'CLEAN_READY' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'"
@@ -233,24 +265,57 @@
             Đạt chuẩn <span class="ml-1 opacity-80">({{ cleanReadyCount }})</span>
           </button>
           <button
-            (click)="selectedStatus = 'RE_CLEAN'"
+            (click)="selectedStatus = 'ALL'"
             class="px-3 py-1.5 rounded-[10px] transition-all cursor-pointer"
-            [ngClass]="selectedStatus === 'RE_CLEAN' ? 'bg-rose-700 text-white shadow-md shadow-rose-700/20' : 'text-slate-500 hover:bg-rose-50 hover:text-rose-700'"
+            [ngClass]="selectedStatus === 'ALL' ? 'bg-slate-200 text-slate-800 shadow-sm' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'"
           >
-            Dọn lại <span class="ml-1 opacity-80">({{ reCleanCount }})</span>
+            Tất cả <span class="ml-1 opacity-80">({{ tasks.length }})</span>
           </button>
         </div>
       </div>
 
-      <!-- Right Search -->
-      <div class="relative w-full md:w-72">
-        <input
-          type="text"
-          [(ngModel)]="searchQuery"
-          placeholder="Tìm theo số phòng, tên villa..."
-          class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder-slate-400 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
-        />
-        <span class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-slate-400">search</span>
+      <!-- Right Controls: Toggle Hide Completed & Search -->
+      <div class="flex items-center gap-2.5 w-full md:w-auto">
+        <!-- Quick toggle button for hiding/showing completed rooms -->
+        <button
+          type="button"
+          (click)="toggleHideCompleted()"
+          class="px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-sm cursor-pointer whitespace-nowrap"
+          [ngClass]="
+            hideCompleted
+              ? 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+          "
+          [title]="hideCompleted ? 'Đang tự động ẩn các phòng đã Sẵn Sàng (hoàn thành). Bấm để hiển thị lại' : 'Bấm để ẩn các phòng đã Sẵn Sàng'"
+        >
+          <span class="material-symbols-outlined text-[17px]">
+            {{ hideCompleted ? 'visibility_off' : 'visibility' }}
+          </span>
+          <span>{{ hideCompleted ? 'Đang ẩn phòng Sẵn Sàng (' + cleanReadyCount + ')' : 'Hiện cả phòng Sẵn Sàng' }}</span>
+        </button>
+
+        <!-- Restore manually hidden tasks if any -->
+        <button
+          *ngIf="hiddenTaskIds.size > 0"
+          type="button"
+          (click)="unhideAll()"
+          class="px-3 py-2.5 rounded-xl text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap"
+          title="Bấm để khôi phục các thẻ phòng bạn đã ẩn thủ công"
+        >
+          <span class="material-symbols-outlined text-[16px]">replay</span>
+          <span>Khôi phục thẻ ({{ hiddenTaskIds.size }})</span>
+        </button>
+
+        <!-- Search -->
+        <div class="relative w-full md:w-64">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Tìm theo số phòng, tên villa..."
+            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 placeholder-slate-400 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
+          />
+          <span class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-slate-400">search</span>
+        </div>
       </div>
     </div>
 
@@ -396,6 +461,55 @@
           >
             <span class="material-symbols-outlined text-[18px]">visibility</span>
             <span>Xem Chi Tiết</span>
+          </button>
+
+          <!-- Quick hide button for completed cards -->
+          <button
+            *ngIf="task.status === 'COMPLETED'"
+            type="button"
+            (click)="hideTask(task.id); $event.stopPropagation()"
+            class="px-3.5 py-3 rounded-[14px] bg-slate-50 hover:bg-rose-50 text-slate-500 hover:text-rose-600 font-bold text-xs border border-slate-200 hover:border-rose-200 transition-all flex items-center justify-center gap-1 cursor-pointer"
+            title="Ẩn thẻ phòng đã sẵn sàng này khỏi bảng"
+          >
+            <span class="material-symbols-outlined text-[18px]">visibility_off</span>
+            <span>Ẩn</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty State when filteredTasks is empty -->
+      <div
+        *ngIf="filteredTasks.length === 0"
+        class="col-span-full py-16 text-center bg-white rounded-[24px] border border-dashed border-slate-200 p-8 shadow-sm relative z-10"
+      >
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
+          <span class="material-symbols-outlined text-[34px]">task_alt</span>
+        </div>
+        <h4 class="text-base font-black text-slate-800">Không có phòng nào cần xử lý</h4>
+        <p class="text-xs text-slate-500 max-w-md mx-auto mt-1.5 leading-relaxed">
+          {{
+            cleanReadyCount > 0 && hideCompleted
+              ? 'Tất cả ' + cleanReadyCount + ' phòng đã dọn xong & đạt chuẩn được tự động ẩn để bảng điều phối gọn gàng.'
+              : 'Tất cả các phòng trong danh mục này đều đã hoàn tất hoặc không khớp với bộ lọc tìm kiếm.'
+          }}
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3 mt-5">
+          <button
+            *ngIf="cleanReadyCount > 0"
+            type="button"
+            (click)="selectStatusFilter('CLEAN_READY')"
+            class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200 transition-all shadow-sm cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[17px]">visibility</span>
+            <span>Xem {{ cleanReadyCount }} phòng đã Đạt Chuẩn</span>
+          </button>
+          <button
+            type="button"
+            (click)="selectedStatus = 'ALL'; hideCompleted = false"
+            class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-all shadow-sm cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-[17px]">list</span>
+            <span>Xem toàn bộ ({{ tasks.length }})</span>
           </button>
         </div>
       </div>
