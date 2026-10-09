@@ -28,20 +28,28 @@
         <img src="/logo.svg" alt="Aura Logo" class="avatar-logo">
       </div>
       <div class="header-info">
-        <h3 class="header-title">Villa AI</h3>
+        <h3 class="header-title">Aura Villa AI</h3>
         <span class="header-status">
           <span class="status-dot" [class.loading]="isLoading()"></span>
-          {{ isLoading() ? 'Đang xử lý...' : 'Trực tuyến' }}
+          {{ isLoading() ? 'Đang soạn câu trả lời...' : 'Trợ lý trực tuyến' }}
         </span>
       </div>
     </div>
     <div class="header-actions">
-      <button class="header-btn" (click)="clearChat()" title="Cuộc hội thoại mới">
+      <!-- Human Support button -->
+      <button class="header-btn handoff-btn" (click)="openHumanHandoff()" title="Gặp lễ tân hỗ trợ 24/7">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+      </button>
+      <!-- Clear chat button -->
+      <button class="header-btn" (click)="clearChat()" title="Làm mới hội thoại">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M4 6H20M4 12H14M4 18H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </button>
-      <button class="header-btn close-btn" (click)="closeChat()">
+      <!-- Close button -->
+      <button class="header-btn close-btn" (click)="closeChat()" title="Đóng">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
           <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
@@ -102,11 +110,92 @@
                         </div>
                         <div class="villa-card-price">{{ formatPrice(villa.basePrice) }}<span>/đêm</span></div>
                         <button class="villa-card-btn" (click)="$event.stopPropagation(); sendMessage('Tôi muốn đặt villa ' + (villa.villaTypeName || villa.villaNumber) + ' (ID: ' + villa.id + ')')">
-                          Đặt ngay
+                          Chọn căn này
                         </button>
                       </div>
                     </div>
                   }
+                </div>
+              }
+
+              <!-- Action: Extra Services (Spa, BBQ, Transport Cards) -->
+              @if (msg.actionType === 'EXTRA_SERVICES' && getExtraServicesList(msg.actionPayload).length > 0) {
+                <div class="extra-services-grid">
+                  @for (service of getExtraServicesList(msg.actionPayload); track service.id) {
+                    <div class="service-pill-card">
+                      <div class="service-pill-header">
+                        <span class="service-pill-type">{{ service.type || 'DỊCH VỤ' }}</span>
+                        <span class="service-pill-price">{{ formatPrice(service.price) }} / {{ service.unit || 'lần' }}</span>
+                      </div>
+                      <div class="service-pill-title">{{ service.name }}</div>
+                      <div class="service-pill-desc" *ngIf="service.description">{{ service.description }}</div>
+                      <button class="service-pill-btn" (click)="sendMessage('Tư vấn chi tiết về dịch vụ: ' + service.name)">
+                        Hỏi thêm dịch vụ này
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Action: Safe Booking Draft (2-Step Booking Confirmation) -->
+              @if (msg.actionType === 'CONFIRM_BOOKING_DRAFT' && msg.actionPayload) {
+                <div class="safe-booking-card">
+                  <div class="safe-booking-header">
+                    <span class="safe-badge">BẢN NHÁP ĐẶT PHÒNG</span>
+                    <span class="safe-nights">{{ msg.actionPayload.nights }} Đêm</span>
+                  </div>
+                  <div class="safe-booking-title">{{ msg.actionPayload.villaName }}</div>
+                  <div class="safe-booking-dates">
+                    <div class="date-item">
+                      <span class="date-lbl">Nhận phòng:</span>
+                      <strong>{{ msg.actionPayload.checkInDate }}</strong>
+                    </div>
+                    <div class="date-arrow">→</div>
+                    <div class="date-item">
+                      <span class="date-lbl">Trả phòng:</span>
+                      <strong>{{ msg.actionPayload.checkOutDate }}</strong>
+                    </div>
+                  </div>
+                  <div class="safe-booking-price-row">
+                    <span>Tạm tính (chưa gồm phụ phí):</span>
+                    <strong class="total-price">{{ formatPrice(msg.actionPayload.estimatedTotal) }}</strong>
+                  </div>
+                  @if (msg.actionPayload.promoCode) {
+                    <div class="safe-promo-badge">
+                      🏷️ Mã ưu đãi: <strong>{{ msg.actionPayload.promoCode }}</strong>
+                    </div>
+                  }
+
+                  <div class="safe-booking-actions">
+                    <button class="btn-confirm-booking" (click)="openBookingModal(msg.actionPayload)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      Xác nhận đặt phòng
+                    </button>
+                    <button class="btn-checkout-link" (click)="proceedToCheckout(msg.actionPayload)">
+                      Chi tiết tại Checkout →
+                    </button>
+                  </div>
+                </div>
+              }
+
+              <!-- Action: Human Handoff (Lễ tân trực tiếp) -->
+              @if (msg.actionType === 'HUMAN_HANDOFF' && msg.actionPayload) {
+                <div class="human-handoff-card">
+                  <div class="handoff-header">
+                    <div class="handoff-icon">🛎️</div>
+                    <div class="handoff-info">
+                      <h4>Lễ Tân & CSKH Aura Resort</h4>
+                      <p>Hỗ trợ giải đáp trực tiếp 24/7</p>
+                    </div>
+                  </div>
+                  <div class="handoff-actions">
+                    <a [href]="'tel:' + msg.actionPayload.hotline" class="btn-hotline">
+                      📞 Gọi Hotline: <strong>{{ msg.actionPayload.hotline }}</strong>
+                    </a>
+                    <button class="btn-request-callback" (click)="openHumanHandoff(msg.actionPayload)">
+                      💬 Yêu cầu Lễ tân gọi lại
+                    </button>
+                  </div>
                 </div>
               }
 
@@ -140,8 +229,8 @@
     }
   </div>
 
-  <!-- Quick Replies (hiển thị khi chưa gửi message nào hoặc sau welcome) -->
-  @if (messages().length <= 1 && !isLoading()) {
+  <!-- Quick Replies -->
+  @if (messages().length <= 2 && !isLoading()) {
     <div class="quick-replies">
       @for (reply of quickReplies; track reply) {
         <button class="quick-reply-btn" (click)="sendQuickReply(reply)">{{ reply }}</button>
@@ -156,7 +245,7 @@
         #messageInput
         [(ngModel)]="inputText"
         (keydown)="onKeyDown($event)"
-        placeholder="Nhập tin nhắn..."
+        placeholder="Hỏi về phòng, spa, BBQ, hoặc yêu cầu gặp lễ tân..."
         rows="1"
         [disabled]="isLoading()"
         class="chat-input"
@@ -173,7 +262,108 @@
         </svg>
       </button>
     </div>
-    <div class="input-hint">Powered by Gemini AI · Enter để gửi</div>
+    <div class="input-hint">Aura Luxury Assistant · Enter để gửi tin nhắn</div>
   </div>
+
+  <!-- ==================== SAFE BOOKING MODAL ==================== -->
+  @if (showBookingModal() && currentDraft) {
+    <div class="modal-backdrop" (click)="closeBookingModal()">
+      <div class="modal-dialog" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Xác Nhận Đặt Biệt Thự</h3>
+          <button class="modal-close-btn" (click)="closeBookingModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-summary">
+            <h4>{{ currentDraft.villaName }}</h4>
+            <div class="summary-details">
+              <span>📅 {{ currentDraft.checkInDate }} → {{ currentDraft.checkOutDate }} ({{ currentDraft.nights }} đêm)</span>
+              <span>💰 Tạm tính: <strong>{{ formatPrice(currentDraft.estimatedTotal) }}</strong></span>
+            </div>
+          </div>
+
+          @if (bookingModalError()) {
+            <div class="modal-alert-error">
+              {{ bookingModalError() }}
+            </div>
+          }
+
+          <div class="form-group">
+            <label>Họ và tên khách nhận phòng *</label>
+            <input type="text" [(ngModel)]="bookingForm.fullName" placeholder="VD: Nguyễn Văn A" class="form-input">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số điện thoại *</label>
+              <input type="tel" [(ngModel)]="bookingForm.phone" placeholder="VD: 0987654321" class="form-input">
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" [(ngModel)]="bookingForm.email" placeholder="VD: email@example.com" class="form-input">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Yêu cầu đặc biệt (tùy chọn)</label>
+            <input type="text" [(ngModel)]="bookingForm.specialRequest" placeholder="VD: Nhận phòng sớm, set up trăng mật..." class="form-input">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-checkout-alt" (click)="proceedToCheckout(currentDraft)">
+            Tới trang thanh toán chi tiết
+          </button>
+          <button class="btn-submit-booking" (click)="confirmBookingSubmit()" [disabled]="isSubmittingBooking()">
+            {{ isSubmittingBooking() ? 'Đang tạo đơn...' : 'Xác nhận tạo đơn' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== HUMAN HANDOFF MODAL ==================== -->
+  @if (showHandoffModal()) {
+    <div class="modal-backdrop" (click)="closeHumanHandoff()">
+      <div class="modal-dialog handoff-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🛎️ Kết Nối Lễ Tân 24/7</h3>
+          <button class="modal-close-btn" (click)="closeHumanHandoff()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p class="handoff-intro">
+            Quý khách có thể liên hệ trực tiếp tới Lễ tân Aura Resort qua các kênh nhanh dưới đây:
+          </p>
+
+          <div class="direct-contact-grid">
+            <a href="tel:0901234567" class="contact-pill phone-pill">
+              <div class="icon">📞</div>
+              <div class="text">
+                <span class="label">Hotline Lễ Tân</span>
+                <span class="val">0901 234 567</span>
+              </div>
+            </a>
+            <a href="https://zalo.me/0901234567" target="_blank" class="contact-pill zalo-pill">
+              <div class="icon">💬</div>
+              <div class="text">
+                <span class="label">Zalo Hỗ Trợ</span>
+                <span class="val">Chat Zalo 24/7</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="callback-section">
+            <h4>Hoặc để lại số điện thoại để Lễ tân gọi lại ngay:</h4>
+            <div class="form-group">
+              <input type="text" [(ngModel)]="callbackForm.name" placeholder="Họ tên của quý khách" class="form-input">
+            </div>
+            <div class="form-group">
+              <input type="tel" [(ngModel)]="callbackForm.phone" placeholder="Số điện thoại nhận cuộc gọi *" class="form-input">
+            </div>
+            <button class="btn-request-call-submit" (click)="submitCallbackRequest()" [disabled]="!callbackForm.phone || callbackSubmitted()">
+              {{ callbackSubmitted() ? 'Đang gửi...' : 'Yêu cầu gọi lại trong 5 phút' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 
 </div>

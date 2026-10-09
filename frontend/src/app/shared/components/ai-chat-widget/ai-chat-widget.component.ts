@@ -5,7 +5,11 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { AiChatService, ChatMessage, ChatApiResponse } from '../../../core/services/ai-chat.service';
+import { BookingStateService } from '../../../core/services/booking-state.service';
+import { TokenService } from '../../../core/services/token.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-ai-chat-widget',
@@ -26,18 +30,44 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
   sessionId = '';
   shouldScrollToBottom = false;
 
+  // Safe Booking Modal State
+  showBookingModal = signal(false);
+  isSubmittingBooking = signal(false);
+  bookingModalError = signal<string | null>(null);
+  currentDraft: any = null;
+  bookingForm = {
+    fullName: '',
+    phone: '',
+    email: '',
+    specialRequest: ''
+  };
+
+  // Human Handoff Modal State
+  showHandoffModal = signal(false);
+  currentHandoffData: any = null;
+  callbackForm = {
+    phone: '',
+    name: '',
+    note: ''
+  };
+  callbackSubmitted = signal(false);
+
   // Quick replies
   readonly quickReplies = [
     'Tìm villa trống hôm nay',
-    'Villa khu vực biển',
-    'Xem khuyến mãi hiện có',
+    'Dịch vụ Spa & BBQ tại villa',
     'Gói combo ưu đãi',
+    'Xem khuyến mãi hiện có',
+    'Gặp lễ tân hỗ trợ'
   ];
 
   private readonly STORAGE_KEY = 'ai_chat_messages';
 
   constructor(
     private aiChatService: AiChatService,
+    private bookingStateService: BookingStateService,
+    private tokenService: TokenService,
+    private http: HttpClient,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -86,7 +116,6 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
     this.addMessage({ role: 'user', content: message, timestamp: new Date() });
 
     // Thêm loading indicator
-    const loadingId = Date.now();
     this.addMessage({ role: 'ai', content: '', timestamp: new Date(), isLoading: true });
 
     this.isLoading.set(true);
@@ -111,11 +140,11 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
         this.saveMessages();
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: () => {
         this.removeLoadingMessage();
         this.addMessage({
           role: 'ai',
-          content: 'Không thể kết nối. Vui lòng thử lại sau.',
+          content: 'Không thể kết nối tới dịch vụ AI. Vui lòng thử lại sau hoặc liên hệ Hotline: 0901 234 567.',
           timestamp: new Date()
         });
         this.isLoading.set(false);
@@ -165,6 +194,7 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
   }
 
   formatPrice(price: number): string {
+    if (!price) return '0 ₫';
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   }
 
@@ -173,16 +203,158 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
     return Array.isArray(payload) ? payload.slice(0, 4) : [];
   }
 
+  getExtraServicesList(payload: any): any[] {
+    if (!payload) return [];
+    return Array.isArray(payload) ? payload.slice(0, 6) : [];
+  }
+
   getBookingCode(payload: any): string {
     return payload?.bookingCode || payload?.id || '';
   }
 
-  // ======================== PRIVATE ========================
+  // ======================== SAFE BOOKING METHODS ========================
+
+  openBookingModal(draft: any): void {
+    this.currentDraft = draft;
+    this.bookingModalError.set(null);
+
+    // Pre-fill user information if logged in
+    const user = this.tokenService.getUser();
+    this.bookingForm.fullName = user?.fullName || '';
+    this.bookingForm.email = user?.email || draft?.userEmail || '';
+    this.bookingForm.phone = user?.phone || '';
+    this.bookingForm.specialRequest = '';
+
+    this.showBookingModal.set(true);
+  }
+
+  closeBookingModal(): void {
+    this.showBookingModal.set(false);
+    this.currentDraft = null;
+  }
+
+  confirmBookingSubmit(): void {
+    if (!this.currentDraft) return;
+
+    if (!this.bookingForm.fullName || !this.bookingForm.phone) {
+      this.bookingModalError.set('Vui lòng điền đầy đủ Họ tên và Số điện thoại nhận phòng');
+      return;
+    }
+
+    this.isSubmittingBooking.set(true);
+    this.bookingModalError.set(null);
+
+    const bookingPayload = {
+      checkInDate: this.currentDraft.checkInDate,
+      checkOutDate: this.currentDraft.checkOutDate,
+      villaId: this.currentDraft.villaId || null,
+      villaTypeId: this.currentDraft.villaTypeId || null,
+      quantity: 1,
+      promotionCode: this.currentDraft.promoCode || null,
+      guestName: this.bookingForm.fullName,
+      guestPhone: this.bookingForm.phone,
+      guestEmail: this.bookingForm.email,
+      specialRequest: this.bookingForm.specialRequest
+    };
+
+    this.http.post<any>(`${environment.apiUrl}/bookings`, bookingPayload).subscribe({
+      next: (res) => {
+        this.isSubmittingBooking.set(false);
+        this.closeBookingModal();
+
+        // Add confirmed booking message to chat
+        const bookingData = res.data || res;
+        this.addMessage({
+          role: 'ai',
+          content: `🎉 **Đặt phòng thành công!** Cảm ơn quý khách **${this.bookingForm.fullName}** đã lựa chọn Aura Resort.\n\nMã đơn đặt phòng: **${bookingData.bookingCode || bookingData.id}**.\nNhân viên resort sẽ liên hệ xác nhận trong thời gian sớm nhất!`,
+          timestamp: new Date(),
+          actionType: 'BOOKING_CREATED',
+          actionPayload: bookingData
+        });
+        this.shouldScrollToBottom = true;
+        this.saveMessages();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSubmittingBooking.set(false);
+        const errMsg = err?.error?.message || 'Có lỗi xảy ra khi tạo đơn đặt phòng. Vui lòng thử lại hoặc tới trang thanh toán chi tiết.';
+        this.bookingModalError.set(errMsg);
+      }
+    });
+  }
+
+  proceedToCheckout(draft: any): void {
+    if (!draft) return;
+
+    // Set state in BookingStateService
+    this.bookingStateService.setState({
+      villa: {
+        id: draft.villaId,
+        villaNumber: draft.villaNumber || '',
+        basePrice: draft.pricePerNight,
+        imageUrl: draft.imageUrl,
+        villaTypeName: draft.villaName,
+        zone: draft.zone
+      } as any,
+      checkInDate: draft.checkInDate,
+      checkOutDate: draft.checkOutDate,
+      numberOfGuests: draft.adults || 2,
+      promoCode: draft.promoCode || ''
+    });
+
+    this.closeBookingModal();
+    this.closeChat();
+    this.router.navigate(['/checkout']);
+  }
+
+  // ======================== HUMAN HANDOFF METHODS ========================
+
+  openHumanHandoff(payload?: any): void {
+    this.currentHandoffData = payload || {
+      hotline: '0901 234 567',
+      receptionEmail: 'reception@auraresort.com',
+      zaloUrl: 'https://zalo.me/0901234567',
+      operatingHours: '24/7 (Phục vụ liên tục)',
+      reason: 'Khách hàng yêu cầu hỗ trợ trực tiếp từ lễ tân'
+    };
+
+    const user = this.tokenService.getUser();
+    this.callbackForm.name = user?.fullName || '';
+    this.callbackForm.phone = user?.phone || '';
+    this.callbackForm.note = '';
+    this.callbackSubmitted.set(false);
+
+    this.showHandoffModal.set(true);
+  }
+
+  closeHumanHandoff(): void {
+    this.showHandoffModal.set(false);
+  }
+
+  submitCallbackRequest(): void {
+    if (!this.callbackForm.phone) return;
+
+    this.callbackSubmitted.set(true);
+
+    setTimeout(() => {
+      this.closeHumanHandoff();
+      this.addMessage({
+        role: 'ai',
+        content: `📞 **Đã tiếp nhận yêu cầu hỗ trợ!**\n\nBộ phận Lễ tân & CSKH Aura Resort đã ghi nhận số điện thoại **${this.callbackForm.phone}** của quý khách (${this.callbackForm.name || 'Quý khách'}).\n\nNhân viên phụ trách sẽ chủ động gọi lại tư vấn trong vòng **5 - 10 phút**. Cảm ơn quý khách!`,
+        timestamp: new Date()
+      });
+      this.shouldScrollToBottom = true;
+      this.saveMessages();
+      this.cdr.detectChanges();
+    }, 600);
+  }
+
+  // ======================== PRIVATE UTILITIES ========================
 
   private addWelcomeMessage(): void {
     this.addMessage({
       role: 'ai',
-      content: 'Xin chào! Tôi là **Villa AI** - trợ lý đặt phòng thông minh của Villa Paradise.\n\nTôi có thể giúp bạn:\n- Tìm biệt thự phù hợp\n- Kiểm tra khuyến mãi\n- Đặt phòng nhanh chóng\n\nHãy cho tôi biết bạn muốn làm gì!',
+      content: 'Xin chào! Tôi là **Villa AI** - trợ lý thông minh của khu nghỉ dưỡng 5 sao Aura Resort Sầm Sơn.\n\nTôi có thể giúp quý khách:\n- 🏖️ Tìm kiếm & kiểm tra phòng villa trống\n- 💆 Tư vấn dịch vụ Spa, BBQ tại villa & xe đưa đón\n- 🎁 Cập nhật ưu đãi & gói combo đặc biệt\n- 🛎️ Hỗ trợ lập đơn đặt phòng hoặc kết nối lễ tân trực tiếp\n\nQuý khách muốn trải nghiệm dịch vụ gì hôm nay?',
       timestamp: new Date()
     });
   }
@@ -201,7 +373,7 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
       if (container) {
         container.scrollTop = container.scrollHeight;
       }
-    } catch (e) {}
+    } catch {}
   }
 
   private saveMessages(): void {
@@ -217,7 +389,7 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
         const msgs = parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) }));
         this.messages.set(msgs);
       }
-    } catch (e) {
+    } catch {
       localStorage.removeItem(this.STORAGE_KEY);
     }
   }
