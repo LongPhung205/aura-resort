@@ -313,7 +313,7 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
     this.currentHandoffData = payload || {
       hotline: '0901 234 567',
       receptionEmail: 'reception@auraresort.com',
-      zaloUrl: 'https://zalo.me/0901234567',
+      zaloUrl: 'https://zalo.me/0378203598',
       operatingHours: '24/7 (Phục vụ liên tục)',
       reason: 'Khách hàng yêu cầu hỗ trợ trực tiếp từ lễ tân'
     };

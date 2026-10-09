@@ -501,7 +501,7 @@ public class AiAgentServiceImpl implements AiAgentService {
                     Map<String, Object> handoff = new HashMap<>();
                     handoff.put("hotline", "0901 234 567");
                     handoff.put("receptionEmail", "reception@auraresort.com");
-                    handoff.put("zaloUrl", "https://zalo.me/0901234567");
+                    handoff.put("zaloUrl", "https://zalo.me/0378203598");
                     handoff.put("operatingHours", "24/7 (Phục vụ liên tục)");
                     handoff.put("reason", reason);
                     handoff.put("userEmail", userEmail != null ? userEmail : "");
