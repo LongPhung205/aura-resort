@@ -39,7 +39,9 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
     fullName: '',
     phone: '',
     email: '',
-    specialRequest: ''
+    specialRequest: '',
+    checkInDate: '',
+    checkOutDate: ''
   };
 
   // Human Handoff Modal State
@@ -214,8 +216,56 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
 
   // ======================== SAFE BOOKING METHODS ========================
 
+  get minCheckInDate(): string {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  }
+
+  get minCheckOutDate(): string {
+    if (this.bookingForm.checkInDate) {
+      const nextDay = new Date(this.bookingForm.checkInDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      return nextDay.toISOString().split('T')[0];
+    }
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
+
+  onDateChange(): void {
+    if (!this.bookingForm.checkInDate || !this.bookingForm.checkOutDate || !this.currentDraft) {
+      return;
+    }
+
+    const checkIn = new Date(this.bookingForm.checkInDate);
+    let checkOut = new Date(this.bookingForm.checkOutDate);
+
+    if (isNaN(checkIn.getTime())) return;
+
+    if (isNaN(checkOut.getTime()) || checkOut <= checkIn) {
+      const nextDay = new Date(checkIn);
+      nextDay.setDate(nextDay.getDate() + 1);
+      this.bookingForm.checkOutDate = nextDay.toISOString().split('T')[0];
+      checkOut = nextDay;
+    }
+
+    const diffMs = checkOut.getTime() - checkIn.getTime();
+    const nights = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+
+    this.currentDraft.checkInDate = this.bookingForm.checkInDate;
+    this.currentDraft.checkOutDate = this.bookingForm.checkOutDate;
+    this.currentDraft.nights = nights;
+
+    const basePrice = this.currentDraft.pricePerNight ||
+      (this.currentDraft.estimatedTotal && this.currentDraft.nights
+        ? Math.round(this.currentDraft.estimatedTotal / this.currentDraft.nights)
+        : 3500000);
+    this.currentDraft.pricePerNight = basePrice;
+    this.currentDraft.estimatedTotal = basePrice * nights;
+  }
+
   openBookingModal(draft: any): void {
-    this.currentDraft = draft;
+    this.currentDraft = { ...draft };
     this.bookingModalError.set(null);
 
     // Pre-fill user information if logged in
@@ -224,6 +274,17 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
     this.bookingForm.email = user?.email || draft?.userEmail || '';
     this.bookingForm.phone = user?.phone || '';
     this.bookingForm.specialRequest = '';
+
+    // Set dates from draft or default to today and tomorrow
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrowDate = new Date();
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrow = tomorrowDate.toISOString().split('T')[0];
+
+    this.bookingForm.checkInDate = draft?.checkInDate || today;
+    this.bookingForm.checkOutDate = draft?.checkOutDate || tomorrow;
+
+    this.onDateChange();
 
     this.showBookingModal.set(true);
   }
@@ -241,12 +302,17 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
       return;
     }
 
+    if (!this.bookingForm.checkInDate || !this.bookingForm.checkOutDate) {
+      this.bookingModalError.set('Vui lòng chọn ngày nhận phòng và ngày trả phòng hợp lệ');
+      return;
+    }
+
     this.isSubmittingBooking.set(true);
     this.bookingModalError.set(null);
 
     const bookingPayload = {
-      checkInDate: this.currentDraft.checkInDate,
-      checkOutDate: this.currentDraft.checkOutDate,
+      checkInDate: this.bookingForm.checkInDate,
+      checkOutDate: this.bookingForm.checkOutDate,
       villaId: this.currentDraft.villaId || null,
       villaTypeId: this.currentDraft.villaTypeId || null,
       quantity: 1,
@@ -286,6 +352,9 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
   proceedToCheckout(draft: any): void {
     if (!draft) return;
 
+    const checkIn = this.bookingForm.checkInDate || draft.checkInDate;
+    const checkOut = this.bookingForm.checkOutDate || draft.checkOutDate;
+
     // Set state in BookingStateService
     this.bookingStateService.setState({
       villa: {
@@ -296,8 +365,8 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
         villaTypeName: draft.villaName,
         zone: draft.zone
       } as any,
-      checkInDate: draft.checkInDate,
-      checkOutDate: draft.checkOutDate,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
       numberOfGuests: draft.adults || 2,
       promoCode: draft.promoCode || ''
     });
