@@ -77,4 +77,14 @@ public class AdminUserController {
         adminUserService.resetPassword(id, request);
         return ResponseEntity.ok(ApiResponse.success(null, "Đặt lại mật khẩu thành công"));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @PathVariable Long id,
+            Authentication authentication) {
+        String currentAdminEmail = authentication != null ? authentication.getName() : "";
+        adminUserService.deleteUser(id, currentAdminEmail);
+        return ResponseEntity.ok(ApiResponse.success(null, "Xóa tài khoản người dùng thành công"));
+    }
 }
+

@@ -16,4 +16,5 @@ public interface AdminUserService {
     UserResponseDto updateUser(Long id, UpdateUserAdminRequest request, String currentAdminEmail);
     UserResponseDto toggleUserStatus(Long id, String currentAdminEmail);
     void resetPassword(Long id, ResetPasswordAdminRequest request);
+    void deleteUser(Long id, String currentAdminEmail);
 }

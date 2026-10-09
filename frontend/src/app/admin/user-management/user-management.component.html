@@ -326,6 +326,13 @@
                     {{ user.isActive ? 'lock' : 'lock_open' }}
                   </span>
                 </button>
+
+                <!-- Delete Button -->
+                <button (click)="openDeleteModal(user, $event)" 
+                        title="Xóa tài khoản vĩnh viễn" 
+                        class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition">
+                  <span class="material-symbols-outlined text-[18px]">delete_outline</span>
+                </button>
               </div>
             </td>
 
@@ -610,9 +617,14 @@
         </div>
       </div>
 
-      <div class="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end">
+      <div class="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+        <button (click)="openDeleteModal(selectedUser)" 
+                class="px-3.5 py-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200/80 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-[16px]">delete_outline</span>
+          <span>Xóa Tài Khoản</span>
+        </button>
         <button (click)="showDetailModal = false" 
-                class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
           Đóng
         </button>
       </div>
@@ -657,6 +669,74 @@
                 [class.hover:bg-emerald-700]="!selectedUser.isActive">
           <span *ngIf="isSaving" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
           <span>{{ selectedUser.isActive ? 'Khóa Tài Khoản' : 'Kích Hoạt Ngay' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. MODAL CONFIRM DELETE -->
+  <div *ngIf="showDeleteModal && userToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <!-- Header / Icon -->
+      <div class="p-6 text-center space-y-3.5">
+        <div class="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center bg-rose-50 text-rose-600 border border-rose-100 shadow-2xs">
+          <span class="material-symbols-outlined text-[30px]">person_remove</span>
+        </div>
+
+        <div>
+          <h3 class="text-base font-black text-slate-900">
+            Xác Nhận Xóa Vĩnh Viễn Tài Khoản?
+          </h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Hành động này không thể hoàn tác sau khi đã thực hiện.
+          </p>
+        </div>
+
+        <!-- Target user summary pill -->
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-left flex items-center space-x-3">
+          <div [class]="getAvatarBg(userToDelete.fullName)"
+               class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-2xs">
+            {{ getInitials(userToDelete.fullName) }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="font-bold text-slate-900 text-xs truncate">{{ userToDelete.fullName }}</div>
+            <div class="text-[11px] text-slate-500 truncate">{{ userToDelete.email }}</div>
+            <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+              <span [class]="getRoleBadgeClass(userToDelete.role)" class="px-1.5 py-0.2 rounded text-[9px] font-bold border">
+                {{ getRoleLabel(userToDelete.role) }}
+              </span>
+              <span *ngIf="userToDelete.totalBookings" class="px-1.5 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200 text-[9px] font-bold">
+                {{ userToDelete.totalBookings }} đơn đặt phòng
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Safety Notice -->
+        <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-left text-[11px] text-amber-800 space-y-1">
+          <div class="font-bold flex items-center gap-1 text-amber-900">
+            <span class="material-symbols-outlined text-[15px]">info</span>
+            <span>Lưu ý an toàn hệ thống:</span>
+          </div>
+          <ul class="list-disc list-inside space-y-0.5 text-amber-800/90 pl-0.5 leading-relaxed">
+            <li>Tài khoản đang có đơn đặt phòng hoạt động hoặc lưu trú sẽ <strong>bị từ chối xóa</strong>.</li>
+            <li>Lịch sử hóa đơn và lưu trú cũ sẽ được giữ nguyên ở dạng ẩn danh để duy trì tính chính xác của sổ sách kế toán.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end space-x-2.5">
+        <button (click)="showDeleteModal = false" 
+                [disabled]="isDeleting"
+                class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+          Hủy Bỏ
+        </button>
+        <button (click)="confirmDelete()" 
+                [disabled]="isDeleting"
+                class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-1.5 cursor-pointer">
+          <span *ngIf="isDeleting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          <span>{{ isDeleting ? 'Đang Xóa...' : 'Xác Nhận Xóa' }}</span>
         </button>
       </div>
     </div>

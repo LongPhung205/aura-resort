@@ -79,4 +79,11 @@ export class AdminUserService {
       .patch<ApiResponse<void>>(`${this.baseUrl}/${id}/reset-password`, request)
       .pipe(map(() => void 0));
   }
+
+  deleteUser(id: number): Observable<void> {
+    return this.http
+      .delete<ApiResponse<void>>(`${this.baseUrl}/${id}`)
+      .pipe(map(() => void 0));
+  }
 }
+

@@ -81,10 +81,12 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Page<Booking> findAllWithDetails(Pageable pageable);
 
     @EntityGraph(attributePaths = {"user", "bookingDetails.villa.villaType"})
-    @Query("SELECT b FROM Booking b WHERE " +
+    @Query("SELECT b FROM Booking b LEFT JOIN b.user u WHERE " +
            "(:search IS NULL OR LOWER(b.bookingCode) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           " OR LOWER(b.user.fullName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           " OR LOWER(b.user.phone) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           " OR (u IS NOT NULL AND LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           " OR (u IS NOT NULL AND LOWER(u.phone) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           " OR (b.guestName IS NOT NULL AND LOWER(b.guestName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           " OR (b.guestPhone IS NOT NULL AND LOWER(b.guestPhone) LIKE LOWER(CONCAT('%', :search, '%')))) " +
            "AND (:status IS NULL OR b.status = :status) " +
            "AND (:fromDate IS NULL OR b.checkInDate >= :fromDate) " +
            "AND (:toDate IS NULL OR b.checkOutDate <= :toDate)")

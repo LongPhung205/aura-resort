@@ -52,8 +52,11 @@ export class UserManagementComponent implements OnInit {
   showResetPasswordModal = false;
   showDetailModal = false;
   showConfirmStatusModal = false;
+  showDeleteModal = false;
 
   selectedUser: AdminUser | null = null;
+  userToDelete: AdminUser | null = null;
+  isDeleting = false;
 
   // Forms
   createForm: CreateUserRequest = {
@@ -297,6 +300,40 @@ export class UserManagementComponent implements OnInit {
       error: (err) => {
         this.isSaving = false;
         this.showToast(err.error?.message || 'Không thể thay đổi trạng thái tài khoản!', 'error');
+      },
+    });
+  }
+
+  // DELETE USER
+  openDeleteModal(user: AdminUser, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.userToDelete = user;
+    this.showDeleteModal = true;
+  }
+
+  confirmDelete(): void {
+    if (!this.userToDelete) return;
+
+    this.isDeleting = true;
+    this.userService.deleteUser(this.userToDelete.id).subscribe({
+      next: () => {
+        const deletedName = this.userToDelete?.fullName;
+        this.isDeleting = false;
+        this.showDeleteModal = false;
+        if (this.selectedUser?.id === this.userToDelete?.id) {
+          this.showDetailModal = false;
+          this.selectedUser = null;
+        }
+        this.userToDelete = null;
+        this.showToast(`Xóa tài khoản ${deletedName} thành công!`, 'success');
+        this.loadStats();
+        this.loadUsers();
+      },
+      error: (err) => {
+        this.isDeleting = false;
+        this.showToast(err.error?.message || 'Có lỗi xảy ra khi xóa tài khoản!', 'error');
       },
     });
   }

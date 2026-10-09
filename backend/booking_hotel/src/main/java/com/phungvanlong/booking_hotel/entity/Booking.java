@@ -72,7 +72,7 @@ public class Booking extends BaseEntity {
     private LocalDateTime checkOutTime;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     // 1 Đơn đặt phòng có thể đặt 1 hoặc nhiều phòng cùng lúc
