@@ -55,7 +55,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_STAFF", "ROLE_ACCOUNTANT")
-                        .requestMatchers("/housekeeping/**").permitAll()
+                        .requestMatchers("/housekeeping/**").hasAnyAuthority("ROLE_HOUSEKEEPING", "ROLE_ADMIN", "ROLE_STAFF")
                         .requestMatchers("/room-types/**", "/rooms/**", "/villa-types/**", "/villas/**", "/banners/**", "/zones/**", "/public/**", "/promotions/**", "/reviews/**", "/extra-services/**", "/combo-packages/**").permitAll()
                         // AI Chat — public (auth optional, AI dùng để create booking nếu đã đăng nhập)
                         .requestMatchers("/ai/**").permitAll()

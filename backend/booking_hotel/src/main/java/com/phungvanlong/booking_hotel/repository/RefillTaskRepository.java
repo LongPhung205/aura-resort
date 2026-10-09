@@ -21,5 +21,7 @@ public interface RefillTaskRepository extends JpaRepository<RefillTask, Long> {
 
     Optional<RefillTask> findByTaskCode(String taskCode);
 
+    List<RefillTask> findByHousekeepingTaskBookingId(Long bookingId);
+
     long countByStatus(RefillTaskStatus status);
 }

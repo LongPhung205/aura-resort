@@ -336,17 +336,41 @@ export class AiChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecke
 
     this.callbackSubmitted.set(true);
 
-    setTimeout(() => {
-      this.closeHumanHandoff();
-      this.addMessage({
-        role: 'ai',
-        content: `📞 **Đã tiếp nhận yêu cầu hỗ trợ!**\n\nBộ phận Lễ tân & CSKH Aura Resort đã ghi nhận số điện thoại **${this.callbackForm.phone}** của quý khách (${this.callbackForm.name || 'Quý khách'}).\n\nNhân viên phụ trách sẽ chủ động gọi lại tư vấn trong vòng **5 - 10 phút**. Cảm ơn quý khách!`,
-        timestamp: new Date()
-      });
-      this.shouldScrollToBottom = true;
-      this.saveMessages();
-      this.cdr.detectChanges();
-    }, 600);
+    const payload = {
+      phone: this.callbackForm.phone,
+      name: this.callbackForm.name || '',
+      note: this.callbackForm.note || '',
+      preferredTime: 'Càng sớm càng tốt'
+    };
+
+    this.http.post<any>(`${environment.apiUrl}/ai/callback-request`, payload).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.closeHumanHandoff();
+          this.addMessage({
+            role: 'ai',
+            content: `📞 **Đã tiếp nhận yêu cầu hỗ trợ!**\n\nBộ phận Lễ tân & CSKH Aura Resort đã ghi nhận số điện thoại **${this.callbackForm.phone}** của quý khách (${this.callbackForm.name || 'Quý khách'}).\n\nNhân viên phụ trách đã nhận được thông báo tức thời và sẽ chủ động gọi lại tư vấn trong vòng **5 - 10 phút**. Cảm ơn quý khách!`,
+            timestamp: new Date()
+          });
+          this.shouldScrollToBottom = true;
+          this.saveMessages();
+          this.cdr.detectChanges();
+        }, 400);
+      },
+      error: () => {
+        setTimeout(() => {
+          this.closeHumanHandoff();
+          this.addMessage({
+            role: 'ai',
+            content: `📞 **Đã ghi nhận yêu cầu hỗ trợ!**\n\nResort đã lưu số điện thoại **${this.callbackForm.phone}**. Quý khách cũng có thể gọi hotline trực tiếp **0901 234 567** để được phục vụ ngay!`,
+            timestamp: new Date()
+          });
+          this.shouldScrollToBottom = true;
+          this.saveMessages();
+          this.cdr.detectChanges();
+        }, 400);
+      }
+    });
   }
 
   // ======================== PRIVATE UTILITIES ========================

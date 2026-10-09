@@ -57,35 +57,55 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user: " + userEmail));
 
         Long targetTypeId = request.getTargetVillaTypeId();
-        if (targetTypeId == null) {
+        Villa specificVilla = null;
+        if (request.getVillaId() != null) {
+            specificVilla = villaRepository.findById(request.getVillaId())
+                    .orElseThrow(() -> new BusinessException("Không tìm thấy căn Villa được chọn"));
+            if (targetTypeId == null && specificVilla.getVillaType() != null) {
+                targetTypeId = specificVilla.getVillaType().getId();
+            }
+        }
+
+        if (targetTypeId == null && specificVilla == null) {
             throw new BusinessException("Vui lòng chọn hạng Villa cần đặt");
         }
 
-        VillaType villaType = villaTypeRepository.findById(targetTypeId).orElse(null);
+        VillaType villaType = targetTypeId != null ? villaTypeRepository.findById(targetTypeId).orElse(null) : null;
         int quantity = request.getQuantity() != null && request.getQuantity() > 0 ? request.getQuantity() : 1;
         long days = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
         if (days <= 0)
             days = 1;
 
-        BigDecimal basePrice;
+        BigDecimal dailyPrice;
         List<Villa> selectedVillas = new ArrayList<>();
         List<Room> selectedRooms = new ArrayList<>();
 
-        if (request.getVillaId() != null) {
-            Villa specificVilla = villaRepository.findById(request.getVillaId())
-                    .orElseThrow(() -> new BusinessException("Không tìm thấy căn Villa được chọn"));
-
+        if (specificVilla != null) {
             long overlaps = bookingRepository.countOverlappingBookingsForVilla(
                     specificVilla.getId(), request.getCheckInDate(), request.getCheckOutDate());
             if (overlaps > 0) {
                 throw new BusinessException("Căn " + specificVilla.getVillaNumber() + " (" + (specificVilla.getVillaType() != null ? specificVilla.getVillaType().getName() : "") + ") đã có khách đặt trong khoảng thời gian " + request.getCheckInDate() + " - " + request.getCheckOutDate() + ". Vui lòng chọn căn khác hoặc đổi ngày!");
             }
             selectedVillas.add(specificVilla);
-            basePrice = specificVilla.getBasePrice() != null && specificVilla.getBasePrice().compareTo(BigDecimal.ZERO) > 0
-                    ? specificVilla.getBasePrice()
-                    : (specificVilla.getVillaType() != null ? specificVilla.getVillaType().getBasePrice() : BigDecimal.ZERO);
+
+            // Áp dụng Dynamic Pricing nếu hạng Villa đang kích hoạt định giá linh hoạt
+            VillaType vt = specificVilla.getVillaType();
+            if (vt != null && Boolean.TRUE.equals(vt.getIsDynamicPricingEnabled()) && vt.getDynamicPrice() != null && vt.getDynamicPrice().compareTo(BigDecimal.ZERO) > 0) {
+                dailyPrice = vt.getDynamicPrice();
+            } else if (specificVilla.getBasePrice() != null && specificVilla.getBasePrice().compareTo(BigDecimal.ZERO) > 0) {
+                dailyPrice = specificVilla.getBasePrice();
+            } else if (vt != null && vt.getBasePrice() != null) {
+                dailyPrice = vt.getBasePrice();
+            } else {
+                dailyPrice = BigDecimal.ZERO;
+            }
         } else if (villaType != null) {
-            basePrice = villaType.getBasePrice();
+            if (Boolean.TRUE.equals(villaType.getIsDynamicPricingEnabled()) && villaType.getDynamicPrice() != null && villaType.getDynamicPrice().compareTo(BigDecimal.ZERO) > 0) {
+                dailyPrice = villaType.getDynamicPrice();
+            } else {
+                dailyPrice = villaType.getBasePrice();
+            }
+
             List<Villa> availableVillas = bookingRepository.findAvailableVillas(
                     villaType.getId(), request.getCheckInDate(), request.getCheckOutDate());
 
@@ -97,7 +117,12 @@ public class BookingServiceImpl implements BookingService {
             // Backward compatibility: Fallback if old roomType requested
             RoomType roomType = roomTypeRepository.findById(targetTypeId)
                     .orElseThrow(() -> new BusinessException("Không tìm thấy hạng Villa/phòng"));
-            basePrice = roomType.getBasePrice();
+            if (Boolean.TRUE.equals(roomType.getIsDynamicPricingEnabled()) && roomType.getDynamicPrice() != null && roomType.getDynamicPrice().compareTo(BigDecimal.ZERO) > 0) {
+                dailyPrice = roomType.getDynamicPrice();
+            } else {
+                dailyPrice = roomType.getBasePrice();
+            }
+
             List<Room> availableRooms = bookingRepository.findAvailableRooms(
                     roomType.getId(), request.getCheckInDate(), request.getCheckOutDate());
             if (availableRooms.size() < quantity) {
@@ -106,7 +131,7 @@ public class BookingServiceImpl implements BookingService {
             selectedRooms = availableRooms.subList(0, quantity);
         }
 
-        BigDecimal totalAmount = basePrice
+        BigDecimal totalAmount = dailyPrice
                 .multiply(BigDecimal.valueOf(days))
                 .multiply(BigDecimal.valueOf(quantity));
 
@@ -196,14 +221,14 @@ public class BookingServiceImpl implements BookingService {
             details.add(BookingDetail.builder()
                     .booking(savedBooking)
                     .villa(v)
-                    .pricePerNight(basePrice)
+                    .pricePerNight(dailyPrice)
                     .build());
         }
         for (Room r : selectedRooms) {
             details.add(BookingDetail.builder()
                     .booking(savedBooking)
                     .room(r)
-                    .pricePerNight(basePrice)
+                    .pricePerNight(dailyPrice)
                     .build());
         }
 
@@ -292,6 +317,27 @@ public class BookingServiceImpl implements BookingService {
 
         if (booking.getStatus() == BookingStatus.CHECKED_IN || booking.getStatus() == BookingStatus.CHECKED_OUT) {
             throw new BusinessException("Không thể hủy đơn đã check-in hoặc check-out");
+        }
+
+        if (booking.getStatus() == BookingStatus.CANCELLED) {
+            throw new BusinessException("Đơn đặt phòng này đã được hủy trước đó");
+        }
+
+        // Chính sách hủy: Khách tự hủy phải trước ngày nhận phòng. Nếu hủy sát ngày, yêu cầu liên hệ Lễ tân.
+        if (user.getRole() != Role.ROLE_ADMIN && user.getRole() != Role.ROLE_STAFF) {
+            if (booking.getCheckInDate() != null) {
+                LocalDate today = LocalDate.now();
+                if (!today.isBefore(booking.getCheckInDate())) {
+                    throw new BusinessException("Đã đến hoặc cận ngày nhận phòng. Vui lòng liên hệ trực tiếp Lễ tân qua hotline 0901 234 567 để được hỗ trợ hủy.");
+                }
+            }
+        }
+
+        // Nếu đơn đã thanh toán trực tuyến thành công, lưu ghi chú đối soát hoàn tiền cho kế toán
+        Payment payment = booking.getPayment();
+        if (payment != null && payment.getStatus() == PaymentStatus.SUCCESS) {
+            payment.setReconciliationNote("Khách hủy đơn ngày " + LocalDate.now() + " - Chờ kế toán kiểm tra hoàn tiền");
+            paymentRepository.save(payment);
         }
 
         booking.setStatus(BookingStatus.CANCELLED);

@@ -29,6 +29,7 @@ public class AiAgentServiceImpl implements AiAgentService {
     private final BookingService bookingService;
     private final ComboPackageService comboPackageService;
     private final ExtraServiceService extraServiceService;
+    private final com.phungvanlong.booking_hotel.service.NotificationService notificationService;
 
     // Lưu lịch sử chat theo sessionId (InMemory)
     private final Map<String, List<ObjectNode>> sessionHistory = new ConcurrentHashMap<>();
@@ -174,7 +175,8 @@ public class AiAgentServiceImpl implements AiAgentService {
             PromotionService promotionService,
             BookingService bookingService,
             ComboPackageService comboPackageService,
-            ExtraServiceService extraServiceService) {
+            ExtraServiceService extraServiceService,
+            com.phungvanlong.booking_hotel.service.NotificationService notificationService) {
         this.restClient = restClientBuilder.build();
         this.objectMapper = objectMapper;
         this.villaService = villaService;
@@ -182,6 +184,7 @@ public class AiAgentServiceImpl implements AiAgentService {
         this.bookingService = bookingService;
         this.comboPackageService = comboPackageService;
         this.extraServiceService = extraServiceService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -530,5 +533,16 @@ public class AiAgentServiceImpl implements AiAgentService {
     @Override
     public void clearSession(String sessionId) {
         sessionHistory.remove(sessionId);
+    }
+
+    @Override
+    public void submitCallbackRequest(com.phungvanlong.booking_hotel.dto.request.AiCallbackRequest request) {
+        log.info("Nhận yêu cầu gọi lại từ khách hàng: SĐT={}, Tên={}, Ghi chú={}, Khung giờ={}",
+                request.getPhone(), request.getName(), request.getNote(), request.getPreferredTime());
+        String clientName = (request.getName() != null && !request.getName().isBlank()) ? request.getName() : "Khách lưu trú";
+        String note = (request.getNote() != null && !request.getNote().isBlank()) ? request.getNote() : "Tư vấn tổng quan";
+        String notification = String.format("CALLBACK_REQUEST: %s (SĐT: %s) yêu cầu lễ tân gọi lại tư vấn. Nội dung: %s",
+                clientName, request.getPhone(), note);
+        notificationService.sendNotification(notification);
     }
 }

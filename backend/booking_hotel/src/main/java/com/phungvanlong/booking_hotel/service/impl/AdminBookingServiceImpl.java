@@ -49,6 +49,7 @@ public class AdminBookingServiceImpl implements AdminBookingService {
     private final BookingDetailRepository bookingDetailRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final com.phungvanlong.booking_hotel.repository.RefillTaskRepository refillTaskRepository;
 
     @Override
     @Transactional
@@ -150,6 +151,33 @@ public class AdminBookingServiceImpl implements AdminBookingService {
 
         booking.setStatus(BookingStatus.CHECKED_OUT);
         booking.setCheckOutTime(LocalDateTime.now());
+
+        // Kiểm tra chi phí Minibar / vật tư phát sinh từ các đợt kiểm kê buồng phòng
+        try {
+            var refillTasks = refillTaskRepository.findByHousekeepingTaskBookingId(id);
+            BigDecimal minibarCharges = BigDecimal.ZERO;
+            if (refillTasks != null && !refillTasks.isEmpty()) {
+                for (var rt : refillTasks) {
+                    if (rt.getItems() != null) {
+                        for (var item : rt.getItems()) {
+                            int consumed = (item.getConsumedQuantity() != null ? item.getConsumedQuantity() : 0)
+                                    + (item.getDamagedQuantity() != null ? item.getDamagedQuantity() : 0);
+                            if (consumed > 0 && item.getItem() != null && item.getItem().getUnitPrice() != null) {
+                                minibarCharges = minibarCharges.add(item.getItem().getUnitPrice().multiply(BigDecimal.valueOf(consumed)));
+                            }
+                        }
+                    }
+                }
+            }
+            if (minibarCharges.compareTo(BigDecimal.ZERO) > 0) {
+                booking.setTotalAmount(booking.getTotalAmount().add(minibarCharges));
+                String existingNote = booking.getNote() != null ? booking.getNote() : "";
+                booking.setNote(existingNote + String.format(" [Phụ thu Minibar/hỏng hóc: %,.0f VNĐ]", minibarCharges));
+            }
+        } catch (Exception e) {
+            // Không làm gián đoạn luồng checkout nếu có lỗi tính phụ thu
+        }
+
         if (booking.getBookingDetails() != null) {
             for (BookingDetail bd : booking.getBookingDetails()) {
                 if (bd.getVilla() != null) {

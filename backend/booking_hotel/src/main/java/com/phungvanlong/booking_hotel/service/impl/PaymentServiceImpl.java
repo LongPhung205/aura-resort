@@ -162,9 +162,9 @@ public class PaymentServiceImpl implements PaymentService {
         String computedSignature = HmacSHA256Utils.sign(rawSignature, moMoConfig.getSecretKey());
 
         boolean isSuccessCode = "0".equals(resultCode);
-        if (isSuccessCode && signature != null && !computedSignature.equals(signature)) {
-            log.warn("Chữ ký MoMo không hợp lệ cho OrderId: {}", orderId);
-            return; // Ignore fake success request
+        if (signature == null || !computedSignature.equals(signature)) {
+            log.warn("Chữ ký MoMo không hợp lệ hoặc bị thiếu cho OrderId: {}", orderId);
+            return; // Reject fake or unauthorized request
         }
 
         if (isSuccessCode) {

@@ -44,6 +44,16 @@ public class AiChatController {
         }
 
         /**
+         * Tiếp nhận yêu cầu gọi lại từ khách hàng qua chatbot.
+         */
+        @PostMapping("/callback-request")
+        public ResponseEntity<ApiResponse<Void>> requestCallback(
+                        @jakarta.validation.Valid @RequestBody com.phungvanlong.booking_hotel.dto.request.AiCallbackRequest request) {
+                aiAgentService.submitCallbackRequest(request);
+                return ResponseEntity.ok(ApiResponse.success(null, "Đã tiếp nhận yêu cầu gọi lại"));
+        }
+
+        /**
          * Xóa lịch sử hội thoại của session.
          */
         @DeleteMapping("/chat/session/{sessionId}")

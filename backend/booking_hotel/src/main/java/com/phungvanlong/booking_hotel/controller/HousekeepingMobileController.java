@@ -23,7 +23,10 @@ public class HousekeepingMobileController {
     private final com.phungvanlong.booking_hotel.repository.UserRepository userRepository;
 
     private String getStaffEmail(Authentication authentication) {
-        return authentication != null ? authentication.getName() : "hoa.housekeeping@auraholdings.vn";
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            throw new com.phungvanlong.booking_hotel.exception.BusinessException("Yêu cầu đăng nhập để truy cập chức năng buồng phòng");
+        }
+        return authentication.getName();
     }
 
     @GetMapping("/my-tasks")
