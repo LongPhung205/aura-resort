@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../../environments/environment';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-momo-result',
@@ -40,30 +38,7 @@ import { environment } from '../../../../environments/environment';
           <h1 class="text-2xl font-black text-slate-900 mb-2">Thanh toán chưa hoàn tất</h1>
           <p class="text-slate-500 text-sm mb-4">{{ message || 'Giao dịch bị hủy hoặc chưa hoàn tất qua cổng thanh toán MoMo.' }}</p>
 
-          <!-- Sandbox Simulator Helper for Developers & Testers -->
-          <div *ngIf="bookingId" class="mb-6 p-4 bg-pink-50/80 border border-pink-200/80 rounded-2xl text-left shadow-2xs">
-            <div class="flex items-center gap-2 text-pink-900 font-bold text-xs mb-1.5">
-              <span class="material-symbols-outlined text-[18px] text-pink-600">science</span>
-              <span>Chế độ thử nghiệm MoMo Sandbox</span>
-            </div>
-            <p class="text-[12px] text-pink-800 leading-relaxed mb-3">
-              Nếu bạn không sử dụng ứng dụng MoMo Test để quét mã QR, bạn có thể nhấn nút dưới đây để giả lập thanh toán thành công và kiểm tra toàn bộ luồng hệ thống:
-            </p>
-            <button
-              type="button"
-              (click)="simulateSandboxPayment()"
-              [disabled]="isSimulating"
-              class="w-full py-2.5 px-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
-              <span *ngIf="isSimulating" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              <span class="material-symbols-outlined text-[16px]">verified</span>
-              <span>{{ isSimulating ? 'Đang xử lý...' : 'Xác nhận thanh toán thành công (Sandbox)' }}</span>
-            </button>
-            <p *ngIf="simulateError" class="text-[11px] text-red-600 font-semibold mt-2 text-center">
-              {{ simulateError }}
-            </p>
-          </div>
-
-          <div *ngIf="!bookingId" class="bg-rose-50 border border-rose-200 rounded-xl p-4 mb-6 text-left">
+          <div class="bg-rose-50 border border-rose-200 rounded-xl p-4 mb-6 text-left">
             <p class="text-[13px] text-rose-800 font-semibold">✕ Đơn đặt phòng chưa hoàn tất thanh toán.</p>
             <p class="text-[12px] text-rose-600 mt-1">Quý khách vui lòng thử lại hoặc chọn hình thức thanh toán khác.</p>
           </div>
@@ -96,13 +71,9 @@ export class MomoResultComponent implements OnInit {
   orderId = '';
   message = '';
   bookingId: number | null = null;
-  isSimulating = false;
-  simulateError = '';
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private http: HttpClient
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -117,25 +88,6 @@ export class MomoResultComponent implements OnInit {
         if (rawId && !isNaN(Number(rawId))) {
           this.bookingId = Number(rawId);
         }
-      }
-    });
-  }
-
-  simulateSandboxPayment(): void {
-    if (!this.bookingId || this.isSimulating) return;
-    this.isSimulating = true;
-    this.simulateError = '';
-
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    this.http.post<any>(`${environment.apiUrl}/payments/sandbox-simulate/${this.bookingId}`, {}).subscribe({
-      next: () => {
-        this.isSimulating = false;
-        this.isSuccess = true;
-        this.resultCode = '0';
-      },
-      error: (err) => {
-        this.isSimulating = false;
-        this.simulateError = err?.error?.message || 'Không thể xác nhận thanh toán giả lập. Vui lòng kiểm tra lại backend!';
       }
     });
   }
