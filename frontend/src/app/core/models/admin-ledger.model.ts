@@ -3,6 +3,7 @@ export interface LedgerItem {
   transactionId?: string;
   referenceNo?: string;
   bookingCode?: string;
+  bookingStatus?: string;
   guestName: string;
   guestPhone?: string;
   guestEmail?: string;

@@ -18,6 +18,7 @@ public class LedgerItemResponse {
     private String transactionId;
     private String referenceNo;
     private String bookingCode;
+    private String bookingStatus;
     private String guestName;
     private String guestPhone;
     private String guestEmail;
@@ -36,12 +37,16 @@ public class LedgerItemResponse {
         String guestPhone = null;
         String guestEmail = null;
         String bookingCode = null;
+        String bookingStatus = null;
         String roomName = null;
 
         try {
             if (payment.getBooking() != null) {
                 var b = payment.getBooking();
                 bookingCode = b.getBookingCode();
+                if (b.getStatus() != null) {
+                    bookingStatus = b.getStatus().name();
+                }
                 if (guestName == null || guestName.isBlank()) {
                     if (b.getGuestName() != null && !b.getGuestName().isBlank()) {
                         guestName = b.getGuestName();
@@ -84,11 +89,17 @@ public class LedgerItemResponse {
             payTime = LocalDateTime.now();
         }
 
+        String effectiveStatus = payment.getStatus() != null ? payment.getStatus().name() : "PENDING";
+        if ("CANCELLED".equalsIgnoreCase(bookingStatus) && !"SUCCESS".equalsIgnoreCase(effectiveStatus)) {
+            effectiveStatus = "CANCELLED";
+        }
+
         return LedgerItemResponse.builder()
                 .id(payment.getId())
                 .transactionId(txnId)
                 .referenceNo(payment.getReferenceNo())
                 .bookingCode(bookingCode)
+                .bookingStatus(bookingStatus)
                 .guestName(guestName)
                 .guestPhone(guestPhone)
                 .guestEmail(guestEmail)
@@ -96,7 +107,7 @@ public class LedgerItemResponse {
                 .amount(payment.getAmount() != null ? payment.getAmount() : BigDecimal.ZERO)
                 .paymentMethod(payment.getPaymentMethod() != null ? payment.getPaymentMethod() : "CASH")
                 .ledgerType(payment.getLedgerType() != null ? payment.getLedgerType() : "ROOM_CHARGE")
-                .status(payment.getStatus() != null ? payment.getStatus().name() : "PENDING")
+                .status(effectiveStatus)
                 .paymentTime(payTime)
                 .reconciliationNote(payment.getReconciliationNote())
                 .reconciliationTime(payment.getReconciliationTime())

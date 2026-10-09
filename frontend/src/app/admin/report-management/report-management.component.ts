@@ -31,6 +31,8 @@ export class ReportManagementComponent implements OnInit {
   pendingCount = 0;
   failedCount = 0;
   reconciledCount = 0;
+  eligibleCount = 0;
+  unreconciledCount = 0;
   reconciliationRate = 0;
 
   // Filters
@@ -131,13 +133,28 @@ export class ReportManagementComponent implements OnInit {
     });
   }
 
+  isCancelledOrFailed(tx: LedgerItem | null | undefined): boolean {
+    if (!tx) return false;
+    return (
+      tx.status === 'FAILED' ||
+      tx.status === 'CANCELLED' ||
+      tx.bookingStatus === 'CANCELLED'
+    );
+  }
+
+  isEligibleForReconcile(tx: LedgerItem | null | undefined): boolean {
+    if (!tx) return false;
+    return !this.isCancelledOrFailed(tx);
+  }
+
   calculateKpis(): void {
     const successList = this.transactions.filter((t) => t.status === 'SUCCESS');
-    const pendingList = this.transactions.filter((t) => t.status === 'PENDING');
-    const failedList = this.transactions.filter(
-      (t) => t.status === 'FAILED' || t.status === 'CANCELLED'
+    const pendingList = this.transactions.filter(
+      (t) => t.status === 'PENDING' && !this.isCancelledOrFailed(t)
     );
-    const reconciledList = this.transactions.filter(
+    const failedList = this.transactions.filter((t) => this.isCancelledOrFailed(t));
+    const eligibleList = this.transactions.filter((t) => this.isEligibleForReconcile(t));
+    const reconciledList = eligibleList.filter(
       (t) => !!t.reconciledBy || !!t.reconciliationNote
     );
 
@@ -148,12 +165,16 @@ export class ReportManagementComponent implements OnInit {
     this.successCount = successList.length;
     this.pendingCount = pendingList.length;
     this.failedCount = failedList.length;
+    this.eligibleCount = eligibleList.length;
     this.reconciledCount = reconciledList.length;
+    this.unreconciledCount = eligibleList.filter(
+      (t) => !t.reconciledBy && !t.reconciliationNote
+    ).length;
 
     this.reconciliationRate =
-      this.transactions.length > 0
-        ? Math.round((this.reconciledCount / this.transactions.length) * 100)
-        : 0;
+      this.eligibleCount > 0
+        ? Math.round((this.reconciledCount / this.eligibleCount) * 100)
+        : 100;
   }
 
   applyFilter(): void {
@@ -200,24 +221,27 @@ export class ReportManagementComponent implements OnInit {
 
       // 3. Status Tab
       if (this.selectedStatusTab === 'SUCCESS' && t.status !== 'SUCCESS') return false;
-      if (this.selectedStatusTab === 'PENDING' && t.status !== 'PENDING') return false;
+      if (
+        this.selectedStatusTab === 'PENDING' &&
+        (t.status !== 'PENDING' || this.isCancelledOrFailed(t))
+      ) {
+        return false;
+      }
       if (
         this.selectedStatusTab === 'FAILED' &&
-        t.status !== 'FAILED' &&
-        t.status !== 'CANCELLED'
+        !this.isCancelledOrFailed(t)
       ) {
         return false;
       }
       if (
         this.selectedStatusTab === 'RECONCILED' &&
-        !t.reconciledBy &&
-        !t.reconciliationNote
+        (!this.isEligibleForReconcile(t) || (!t.reconciledBy && !t.reconciliationNote))
       ) {
         return false;
       }
       if (
         this.selectedStatusTab === 'UNRECONCILED' &&
-        (t.reconciledBy || t.reconciliationNote)
+        (!this.isEligibleForReconcile(t) || t.reconciledBy || t.reconciliationNote)
       ) {
         return false;
       }
@@ -275,10 +299,11 @@ export class ReportManagementComponent implements OnInit {
       endIndex
     );
 
-    // Update selectAll status
+    // Update selectAll status (only consider eligible transactions)
+    const eligibleOnPage = this.paginatedTransactions.filter((t) => this.isEligibleForReconcile(t));
     this.selectAll =
-      this.paginatedTransactions.length > 0 &&
-      this.paginatedTransactions.every((t) => this.selectedTxIds.has(t.id));
+      eligibleOnPage.length > 0 &&
+      eligibleOnPage.every((t) => this.selectedTxIds.has(t.id));
 
     // Calculate pages array (max 5 visible buttons)
     const pages: number[] = [];
@@ -301,9 +326,10 @@ export class ReportManagementComponent implements OnInit {
       startIndex,
       startIndex + this.pageSize
     );
+    const eligibleOnPage = this.paginatedTransactions.filter((t) => this.isEligibleForReconcile(t));
     this.selectAll =
-      this.paginatedTransactions.length > 0 &&
-      this.paginatedTransactions.every((t) => this.selectedTxIds.has(t.id));
+      eligibleOnPage.length > 0 &&
+      eligibleOnPage.every((t) => this.selectedTxIds.has(t.id));
   }
 
   onPageSizeChange(): void {
@@ -342,23 +368,30 @@ export class ReportManagementComponent implements OnInit {
 
   // Selection Checkbox Methods
   toggleSelectAll(): void {
+    const eligibleOnPage = this.paginatedTransactions.filter((t) => this.isEligibleForReconcile(t));
     if (this.selectAll) {
-      this.paginatedTransactions.forEach((t) => this.selectedTxIds.delete(t.id));
+      eligibleOnPage.forEach((t) => this.selectedTxIds.delete(t.id));
       this.selectAll = false;
     } else {
-      this.paginatedTransactions.forEach((t) => this.selectedTxIds.add(t.id));
-      this.selectAll = true;
+      eligibleOnPage.forEach((t) => this.selectedTxIds.add(t.id));
+      this.selectAll = eligibleOnPage.length > 0;
     }
   }
 
   toggleSelectTx(id: number, event?: Event): void {
     if (event) event.stopPropagation();
+    const tx = this.transactions.find((t) => t.id === id);
+    if (tx && !this.isEligibleForReconcile(tx)) {
+      this.showToast('Giao dịch đã hủy / thất bại được miễn đối soát!', 'info');
+      return;
+    }
     if (this.selectedTxIds.has(id)) {
       this.selectedTxIds.delete(id);
       this.selectAll = false;
     } else {
       this.selectedTxIds.add(id);
-      if (this.paginatedTransactions.every((t) => this.selectedTxIds.has(t.id))) {
+      const eligibleOnPage = this.paginatedTransactions.filter((t) => this.isEligibleForReconcile(t));
+      if (eligibleOnPage.length > 0 && eligibleOnPage.every((t) => this.selectedTxIds.has(t.id))) {
         this.selectAll = true;
       }
     }
@@ -370,14 +403,22 @@ export class ReportManagementComponent implements OnInit {
 
   // Batch Reconcile Modal
   openBatchReconcileModal(): void {
+    // Exclude any ineligible items that might be in selection
+    for (const id of Array.from(this.selectedTxIds)) {
+      const tx = this.transactions.find((t) => t.id === id);
+      if (tx && !this.isEligibleForReconcile(tx)) {
+        this.selectedTxIds.delete(id);
+      }
+    }
+
     if (this.selectedTxIds.size === 0) {
-      // Auto-select all unreconciled in filtered list
+      // Auto-select all eligible unreconciled in filtered list
       const unreconciled = this.filteredTransactions.filter(
-        (t) => !t.reconciledBy && !t.reconciliationNote
+        (t) => this.isEligibleForReconcile(t) && !t.reconciledBy && !t.reconciliationNote
       );
       if (unreconciled.length === 0) {
         this.showToast(
-          'Tất cả giao dịch hiển thị đã được đối soát hoàn tất!',
+          'Tất cả giao dịch hợp lệ hiển thị đã được đối soát hoàn tất (đơn hủy được miễn đối soát)!',
           'info'
         );
         return;
@@ -446,6 +487,10 @@ export class ReportManagementComponent implements OnInit {
   // Quick One-Click Reconcile from Table Row
   quickReconcileOne(tx: LedgerItem, event?: MouseEvent): void {
     if (event) event.stopPropagation();
+    if (!this.isEligibleForReconcile(tx)) {
+      this.showToast('Đơn hàng/giao dịch đã hủy không cần đối soát!', 'info');
+      return;
+    }
     const defaultNote = tx.reconciledBy ? 'Xác nhận lại khớp tiền' : 'Đã khớp sao kê tài khoản ngân hàng';
     
     this.ledgerService
@@ -491,6 +536,10 @@ export class ReportManagementComponent implements OnInit {
   openReconcileModal(tx: LedgerItem, event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
+    }
+    if (!this.isEligibleForReconcile(tx)) {
+      this.showToast('Đơn hàng/giao dịch đã hủy được miễn đối soát!', 'info');
+      return;
     }
     this.selectedTransaction = tx;
     this.reconcileForm = {
@@ -638,9 +687,9 @@ export class ReportManagementComponent implements OnInit {
       `"${this.getLedgerTypeLabel(t.ledgerType)}"`,
       `"${t.paymentMethod || 'CASH'}"`,
       t.amount || 0,
-      `"${t.status === 'SUCCESS' ? 'Thành công' : t.status === 'PENDING' ? 'Chờ thu tiền' : 'Thất bại/Hủy'}"`,
+      `"${this.getStatusLabel(t.status, t.bookingStatus)}"`,
       `"${t.paymentTime ? new Date(t.paymentTime).toLocaleString('vi-VN') : ''}"`,
-      `"${t.reconciledBy ? 'Đã đối soát' : 'Chưa đối soát'}"`,
+      `"${this.isCancelledOrFailed(t) ? 'Miễn đối soát (Đã hủy)' : (t.reconciledBy ? 'Đã đối soát' : 'Chưa đối soát')}"`,
       `"${t.reconciledBy || ''}"`,
       `"${t.reconciliationTime ? new Date(t.reconciliationTime).toLocaleString('vi-VN') : ''}"`,
       `"${(t.reconciliationNote || '').replace(/"/g, '""')}"`,
@@ -679,6 +728,13 @@ export class ReportManagementComponent implements OnInit {
   }
 
   // UI Helpers
+  getStatusLabel(status: string | undefined, bookingStatus?: string): string {
+    if (status === 'CANCELLED' || bookingStatus === 'CANCELLED') return 'Đã hủy';
+    if (status === 'SUCCESS') return 'Thành công';
+    if (status === 'PENDING') return 'Chờ thu / COD';
+    return 'Thất bại';
+  }
+
   getBadgeColor(method: string | undefined): string {
     if (!method) return 'bg-slate-100 text-slate-700 border-slate-200';
     const m = method.toUpperCase();
@@ -704,6 +760,7 @@ export class ReportManagementComponent implements OnInit {
   getStatusIcon(status: string): string {
     if (status === 'SUCCESS') return 'check_circle';
     if (status === 'PENDING') return 'hourglass_empty';
+    if (status === 'CANCELLED') return 'cancel';
     return 'cancel';
   }
 

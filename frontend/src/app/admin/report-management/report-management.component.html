@@ -139,7 +139,8 @@
             <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" [style.width.%]="reconciliationRate"></div>
           </div>
           <p class="text-[11px] text-slate-500 mt-1.5 font-medium">
-            <b>{{ reconciledCount }}</b> / {{ transactions.length }} giao dịch đã đối soát
+            <b>{{ reconciledCount }}</b> / {{ eligibleCount }} giao dịch hợp lệ
+            <span *ngIf="failedCount > 0" class="text-slate-400">({{ failedCount }} đơn hủy miễn đối soát)</span>
           </p>
         </div>
         <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex-shrink-0 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
@@ -302,7 +303,7 @@
                   class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1.5"
                   [ngClass]="selectedStatusTab === 'UNRECONCILED' ? 'bg-purple-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'">
             <span>Chưa đối soát</span>
-            <span class="px-1.5 py-0.2 rounded-full text-[10px]" [ngClass]="selectedStatusTab === 'UNRECONCILED' ? 'bg-purple-700 text-white' : 'bg-slate-200 text-slate-700'">{{ transactions.length - reconciledCount }}</span>
+            <span class="px-1.5 py-0.2 rounded-full text-[10px]" [ngClass]="selectedStatusTab === 'UNRECONCILED' ? 'bg-purple-700 text-white' : 'bg-slate-200 text-slate-700'">{{ unreconciledCount }}</span>
           </button>
 
         </div>
@@ -318,7 +319,7 @@
     </div>
 
     <!-- BANNER: Giao dịch chưa đối soát -->
-    <div *ngIf="!loading && (transactions.length - reconciledCount) > 0" 
+    <div *ngIf="!loading && unreconciledCount > 0" 
          class="mx-5 my-3 p-4 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-sky-50 border border-emerald-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
       <div class="flex items-center space-x-3">
         <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm flex-shrink-0">
@@ -326,11 +327,11 @@
         </div>
         <div>
           <div class="font-bold text-slate-800 text-xs flex items-center space-x-2">
-            <span>Hiện có <span class="text-emerald-700 font-black">{{ transactions.length - reconciledCount }}</span> giao dịch cần đối soát khớp tiền</span>
+            <span>Hiện có <span class="text-emerald-700 font-black">{{ unreconciledCount }}</span> giao dịch hợp lệ cần đối soát khớp tiền</span>
             <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200">CẦN XỬ LÝ</span>
           </div>
           <p class="text-[11px] text-slate-500 mt-0.5">
-            Chọn các giao dịch bên dưới bằng ô vuông (checkbox) hoặc bấm nút bên phải để đối soát tất cả ngay.
+            Chỉ tính các giao dịch hợp lệ (đơn đã hủy được tự động miễn đối soát). Chọn ô vuông hoặc bấm nút bên phải để đối soát ngay.
           </p>
         </div>
       </div>
@@ -338,7 +339,7 @@
         <button (click)="setStatusTab('UNRECONCILED')" 
                 class="px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold shadow-2xs transition flex items-center space-x-1 cursor-pointer">
           <span class="material-symbols-outlined text-[16px] text-slate-500">filter_alt</span>
-          <span>Lọc chưa đối soát</span>
+          <span>Lọc chưa đối soát ({{ unreconciledCount }})</span>
         </button>
         <button (click)="openBatchReconcileModal()" 
                 class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center space-x-1.5 cursor-pointer active:scale-95">
@@ -385,10 +386,12 @@
             
             <!-- Checkbox -->
             <td class="w-12 px-4 py-4 text-center align-middle" (click)="$event.stopPropagation()">
-              <input type="checkbox" 
+              <input *ngIf="isEligibleForReconcile(tx)" 
+                     type="checkbox" 
                      [checked]="isTxSelected(tx.id)" 
                      (change)="toggleSelectTx(tx.id, $event)" 
                      class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer">
+              <span *ngIf="!isEligibleForReconcile(tx)" class="text-slate-300 font-bold select-none text-sm" title="Đã hủy - Miễn đối soát">—</span>
             </td>
 
             <!-- Mã GD & Đơn hàng -->
@@ -456,14 +459,25 @@
               <div class="inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-bold space-x-1" 
                    [ngClass]="getStatusColor(tx.status)">
                 <span class="material-symbols-outlined text-[15px]">{{ getStatusIcon(tx.status) }}</span>
-                <span>{{ tx.status === 'SUCCESS' ? 'Thành công' : (tx.status === 'PENDING' ? 'Chờ thu / COD' : 'Thất bại') }}</span>
+                <span>{{ getStatusLabel(tx.status, tx.bookingStatus) }}</span>
               </div>
             </td>
 
             <!-- Tình trạng đối soát -->
             <td class="px-4 py-4 align-top">
-              <!-- Reconciled badge -->
-              <div *ngIf="isTxReconciled(tx)">
+              <!-- Cancelled / Failed badge: Exempt from reconciliation -->
+              <div *ngIf="isCancelledOrFailed(tx)">
+                <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 space-x-1" title="Đơn đã hủy/thất bại, không phát sinh thu tiền nên miễn đối soát">
+                  <span class="material-symbols-outlined text-[13px] text-slate-400">block</span>
+                  <span>Miễn đối soát</span>
+                </div>
+                <div class="text-[10px] text-slate-400 mt-1">
+                  Đã hủy đơn
+                </div>
+              </div>
+
+              <!-- Reconciled badge (for eligible transactions) -->
+              <div *ngIf="!isCancelledOrFailed(tx) && isTxReconciled(tx)">
                 <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 space-x-1">
                   <span class="material-symbols-outlined text-[13px]">verified</span>
                   <span>Đã đối soát</span>
@@ -472,8 +486,9 @@
                   {{ tx.reconciledBy || 'Kế toán' }} • {{ tx.reconciliationTime ? (tx.reconciliationTime | date:'dd/MM HH:mm') : '' }}
                 </div>
               </div>
-              <!-- Unreconciled badge -->
-              <div *ngIf="!isTxReconciled(tx)">
+
+              <!-- Unreconciled badge (for eligible transactions) -->
+              <div *ngIf="!isCancelledOrFailed(tx) && !isTxReconciled(tx)">
                 <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 space-x-1">
                   <span class="material-symbols-outlined text-[13px] text-amber-500">schedule</span>
                   <span>Chưa đối soát</span>
@@ -486,7 +501,19 @@
 
             <!-- Thao tác đối soát -->
             <td class="px-4 py-4 align-top text-center" (click)="$event.stopPropagation()">
-              <div class="flex items-center justify-center space-x-1.5">
+              <!-- If Cancelled / Failed: Only detail button, no reconcile action -->
+              <div *ngIf="isCancelledOrFailed(tx)" class="flex items-center justify-center space-x-1.5">
+                <span class="text-[11px] text-slate-400 font-medium italic">Không áp dụng</span>
+                <!-- View detail button -->
+                <button (click)="openDetailModal(tx)" 
+                        class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" 
+                        title="Xem chứng từ chi tiết">
+                  <span class="material-symbols-outlined text-[17px]">visibility</span>
+                </button>
+              </div>
+
+              <!-- If Eligible for Reconcile -->
+              <div *ngIf="!isCancelledOrFailed(tx)" class="flex items-center justify-center space-x-1.5">
                 
                 <!-- If Unreconciled: PROMINENT GREEN BUTTON TO RECONCILE -->
                 <button *ngIf="!isTxReconciled(tx)" 
@@ -900,7 +927,7 @@
           <div class="text-2xl font-black text-emerald-400 mt-0.5">{{ selectedTransaction.amount | number:'1.0-0' }} VNĐ</div>
         </div>
         <div class="px-3 py-1 rounded-full text-xs font-bold border" [ngClass]="getStatusColor(selectedTransaction.status)">
-          {{ selectedTransaction.status === 'SUCCESS' ? 'Thành công' : (selectedTransaction.status === 'PENDING' ? 'Chờ thu tiền' : 'Thất bại') }}
+          {{ getStatusLabel(selectedTransaction.status, selectedTransaction.bookingStatus) }}
         </div>
       </div>
     </div>
@@ -955,7 +982,16 @@
       <!-- Audit Details -->
       <div class="pt-3">
         <span class="text-slate-400 font-semibold block mb-1">Tình trạng đối soát kế toán</span>
-        <div *ngIf="selectedTransaction.reconciledBy || selectedTransaction.reconciliationNote" 
+
+        <!-- Cancelled / Failed state -->
+        <div *ngIf="isCancelledOrFailed(selectedTransaction)" 
+             class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-500 flex items-center space-x-2">
+          <span class="material-symbols-outlined text-slate-400 text-[18px]">block</span>
+          <span>Đơn hàng/giao dịch này ở trạng thái đã hủy hoặc thất bại (Miễn đối soát doanh thu sổ quỹ).</span>
+        </div>
+
+        <!-- Reconciled state -->
+        <div *ngIf="!isCancelledOrFailed(selectedTransaction) && (selectedTransaction.reconciledBy || selectedTransaction.reconciliationNote)" 
              class="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 space-y-1 text-emerald-900">
           <div class="flex items-center space-x-1.5 font-bold">
             <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
@@ -966,7 +1002,9 @@
             "{{ selectedTransaction.reconciliationNote }}"
           </div>
         </div>
-        <div *ngIf="!selectedTransaction.reconciledBy && !selectedTransaction.reconciliationNote" 
+
+        <!-- Unreconciled state (eligible) -->
+        <div *ngIf="!isCancelledOrFailed(selectedTransaction) && !selectedTransaction.reconciledBy && !selectedTransaction.reconciliationNote" 
              class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-500 flex items-center justify-between">
           <span>Giao dịch này chưa được nhân viên đối soát ghi chú.</span>
           <button (click)="closeDetailModal(); openReconcileModal(selectedTransaction)" class="text-sky-600 font-bold hover:underline">
@@ -989,7 +1027,8 @@
         <button (click)="closeDetailModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 transition-colors">
           Đóng
         </button>
-        <button (click)="closeDetailModal(); openReconcileModal(selectedTransaction)" 
+        <button *ngIf="isEligibleForReconcile(selectedTransaction)" 
+                (click)="closeDetailModal(); openReconcileModal(selectedTransaction)" 
                 class="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/20 transition-all flex items-center space-x-1.5">
           <span class="material-symbols-outlined text-[16px]">edit_note</span>
           <span>Đối Soát Giao Dịch Này</span>
