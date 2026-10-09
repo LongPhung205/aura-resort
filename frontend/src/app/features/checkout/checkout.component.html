@@ -193,10 +193,31 @@
             <label class="flex items-center justify-between p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" [class.border-[#0369A1]]="paymentMethod === 'momo'" [class.bg-sky-50]="paymentMethod === 'momo'">
               <div class="flex items-center space-x-3">
                 <input type="radio" name="paymentMethod" value="momo" [(ngModel)]="paymentMethod" class="w-4 h-4 text-[#0369A1] focus:ring-[#0369A1] border-slate-300">
-                <span class="text-[14px] font-bold text-slate-800">Ví MoMo</span>
+                <div>
+                  <span class="text-[14px] font-bold text-slate-800">Cổng MoMo (Thẻ quốc tế Visa / Mastercard)</span>
+                  <p class="text-[11px] text-slate-500 font-medium">Thanh toán an toàn qua cổng MoMo (hỗ trợ Visa, Mastercard, JCB)</p>
+                </div>
               </div>
               <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" class="h-8 object-contain">
             </label>
+
+            <!-- Helper hướng dẫn test thẻ MoMo Sandbox -->
+            <div *ngIf="paymentMethod === 'momo'" class="p-3.5 bg-pink-50/80 border border-pink-200/80 rounded-xl text-left space-y-1.5 shadow-2xs">
+              <p class="font-bold text-pink-900 text-xs flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-pink-600">credit_card</span>
+                <span>Thông tin thẻ test MoMo Sandbox (payWithCC):</span>
+              </p>
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-pink-900 font-medium bg-white/70 p-2.5 rounded-lg border border-pink-100">
+                <div>• Số thẻ: <strong class="font-mono text-pink-700">5200 0000 0000 1096</strong></div>
+                <div>• Hạn thẻ: <strong class="font-mono text-pink-700">05/30</strong></div>
+                <div>• Tên chủ thẻ: <strong class="font-mono text-pink-700">NGUYEN VAN A</strong></div>
+                <div>• CVC: <strong class="font-mono text-pink-700">111</strong></div>
+              </div>
+              <p class="text-[11px] text-pink-700 flex items-center gap-1 pt-0.5">
+                <span class="material-symbols-outlined text-[14px] text-amber-600">info</span>
+                <span>Lưu ý: Bắt buộc nhập <strong>Số điện thoại</strong> (VD: 0901234567) trên cổng MoMo để xác thực.</span>
+              </p>
+            </div>
             
             <label class="flex items-center justify-between p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors" [class.border-[#0369A1]]="paymentMethod === 'transfer'" [class.bg-sky-50]="paymentMethod === 'transfer'">
               <div class="flex items-center space-x-3">
