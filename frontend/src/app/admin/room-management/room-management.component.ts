@@ -582,12 +582,22 @@ export class RoomManagementComponent implements OnInit {
                     : r.status === 'MAINTENANCE'
                       ? 'dark'
                       : 'green',
-              guestName: r.currentGuestName,
-              guestTier: r.currentGuestName ? 'VIP Diamond' : undefined,
-              guestTierClass: r.currentGuestName
-                ? 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-950 border border-amber-300 font-bold'
-                : undefined,
-              details: [zoneName ? `Phân khu: ${zoneName}` : 'Chưa phân khu'],
+              guestName: r.status === 'OCCUPIED' ? r.currentGuestName : undefined,
+              guestTier: r.status === 'OCCUPIED' && r.currentGuestName ? 'VIP Diamond' : undefined,
+              guestTierClass:
+                r.status === 'OCCUPIED' && r.currentGuestName
+                  ? 'bg-gradient-to-r from-amber-100 to-amber-200 text-amber-950 border border-amber-300 font-bold'
+                  : undefined,
+              details: [
+                zoneName ? `Phân khu: ${zoneName}` : 'Chưa phân khu',
+                r.status === 'AVAILABLE'
+                  ? '✨ Sẵn sàng đón khách mới'
+                  : r.status === 'CLEANING'
+                    ? '🧹 Đang dọn buồng phòng'
+                    : r.status === 'MAINTENANCE'
+                      ? '🛠️ Đang bảo trì kỹ thuật'
+                      : '🏠 Đang phục vụ khách lưu trú',
+              ],
               footerLeft: zoneName || 'Chưa phân khu',
               btnLabel:
                 r.status === 'OCCUPIED'
@@ -2144,21 +2154,70 @@ export class RoomManagementComponent implements OnInit {
   }
 
   syncBookingsWithRooms(): void {
-    if (!this.rooms || this.rooms.length === 0 || !this.allBookings || this.allBookings.length === 0) {
+    if (!this.rooms || this.rooms.length === 0) {
       return;
     }
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+
     this.rooms.forEach((r) => {
-      const activeBooking = this.allBookings.find(
-        (b) =>
-          b.statusCode !== 'CANCELLED' &&
-          (b.villaNumber === r.number ||
-            b.villaNumber === `Villa #${r.number}` ||
-            (b.villaNumber && r.number && (b.villaNumber.includes(r.number) || r.number.includes(b.villaNumber))))
-      );
-      if (activeBooking) {
-        if (!r.guestName && activeBooking.guestName) {
-          r.guestName = activeBooking.guestName;
+      // 1. Nếu phòng không ở trạng thái OCCUPIED (ví dụ AVAILABLE, CLEANING, MAINTENANCE):
+      // Tuyệt đối không gắn thông tin khách lưu trú vào thẻ phòng!
+      if (r.statusRaw !== 'OCCUPIED') {
+        r.guestName = undefined;
+        r.guestTier = undefined;
+        r.guestTierClass = undefined;
+        r.guestSub = undefined;
+        r.bookingDetail = undefined;
+        return;
+      }
+
+      // 2. Nếu phòng OCCUPIED: Chỉ tìm đơn đặt phòng ĐANG THỰC SỰ LƯU TRÚ (in-house)
+      if (!this.allBookings || this.allBookings.length === 0) {
+        return;
+      }
+
+      const activeBooking = this.allBookings.find((b) => {
+        // Loại bỏ đơn đã hủy hoặc đã check-out
+        if (b.statusCode === 'CANCELLED' || b.statusCode === 'CHECKED_OUT') {
+          return false;
         }
+
+        const matchesVilla =
+          b.villaNumber === r.number ||
+          b.villaNumber === `Villa #${r.number}` ||
+          (b.villaNumber && r.number && (b.villaNumber.includes(r.number) || r.number.includes(b.villaNumber)));
+
+        if (!matchesVilla) return false;
+
+        const checkIn = b.checkInDate ? b.checkInDate.slice(0, 10) : '';
+        const checkOut = b.checkOutDate ? b.checkOutDate.slice(0, 10) : '';
+
+        // Đơn đã quá hạn ngày trả phòng (khách cũ đã đi) -> loại bỏ!
+        if (checkOut && checkOut < todayStr) {
+          return false;
+        }
+
+        // Đơn đã check-in thực tế
+        if (b.statusCode === 'CHECKED_IN') {
+          return true;
+        }
+
+        // Đơn đã xác nhận và thời gian lưu trú bao gồm ngày hôm nay
+        if (
+          (b.statusCode === 'CONFIRMED' || b.statusCode === 'PAID') &&
+          checkIn &&
+          checkIn <= todayStr &&
+          (!checkOut || checkOut >= todayStr)
+        ) {
+          return true;
+        }
+
+        return false;
+      });
+
+      if (activeBooking) {
+        r.guestName = activeBooking.guestName || r.guestName;
         const amt = activeBooking.totalAmount || 0;
         let tierName = activeBooking.guestTier;
         if (!tierName || tierName === 'Thành viên') {
@@ -2171,6 +2230,11 @@ export class RoomManagementComponent implements OnInit {
         } else if (activeBooking.nights) {
           r.guestSub = `Lưu trú ${activeBooking.nights} đêm`;
         }
+        r.bookingDetail = this.mapBookingToRecord(activeBooking, r);
+      } else if (!r.guestName) {
+        r.guestTier = undefined;
+        r.guestTierClass = undefined;
+        r.guestSub = undefined;
       }
     });
   }
@@ -2379,6 +2443,14 @@ export class RoomManagementComponent implements OnInit {
       return;
     }
 
+    // Nếu phòng trống hoặc đang bảo trì: Mở view chi tiết phòng trống, không gắn khách cũ!
+    if (room.statusRaw === 'AVAILABLE' || room.statusRaw === 'MAINTENANCE') {
+      this.isAvailableRoomView = true;
+      this.currentBooking = null;
+      this.showGuestModal = true;
+      return;
+    }
+
     if (room.bookingDetail) {
       this.isAvailableRoomView = false;
       this.currentBooking = room.bookingDetail;
@@ -2386,13 +2458,17 @@ export class RoomManagementComponent implements OnInit {
       return;
     }
 
-    // Match with real booking
+    // Match with real in-house booking (chỉ cho phòng OCCUPIED)
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
     const matched = this.allBookings.find(
       (b) =>
         b.statusCode !== 'CANCELLED' &&
+        b.statusCode !== 'CHECKED_OUT' &&
         (b.villaNumber === room.number ||
           b.villaNumber === `Villa #${room.number}` ||
-          (b.villaNumber && room.number && (b.villaNumber.includes(room.number) || room.number.includes(b.villaNumber))))
+          (b.villaNumber && room.number && (b.villaNumber.includes(room.number) || room.number.includes(b.villaNumber)))) &&
+        (!b.checkOutDate || b.checkOutDate.slice(0, 10) >= todayStr)
     );
 
     if (matched) {
@@ -2402,14 +2478,14 @@ export class RoomManagementComponent implements OnInit {
       return;
     }
 
-    if (room.statusRaw === 'OCCUPIED' || room.guestName) {
+    if (room.statusRaw === 'OCCUPIED' && room.guestName) {
       this.isAvailableRoomView = false;
       this.currentBooking = this.createInHouseRecord(room);
       this.showGuestModal = true;
       return;
     }
 
-    // Room is AVAILABLE / MAINTENANCE (Phòng trống hoặc đang bảo trì)
+    // Mặc định phòng trống
     this.isAvailableRoomView = true;
     this.currentBooking = null;
     this.showGuestModal = true;

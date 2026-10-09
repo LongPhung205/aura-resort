@@ -900,7 +900,7 @@
                 class="mt-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 min-h-[72px] flex flex-col justify-center text-xs"
               >
                 <!-- Guest In-House Profile Card (Đã làm đẹp chuẩn 5 sao) -->
-                <div *ngIf="room.guestName" class="space-y-1.5">
+                <div *ngIf="room.statusRaw === 'OCCUPIED' && room.guestName" class="space-y-1.5">
                   <div class="flex items-center justify-between gap-1.5">
                     <div class="flex items-center space-x-1.5 min-w-0">
                       <div
@@ -940,7 +940,7 @@
                 </div>
 
                 <div
-                  *ngIf="!room.guestName && room.details"
+                  *ngIf="(room.statusRaw !== 'OCCUPIED' || !room.guestName) && room.details"
                   class="space-y-1 text-[10px] text-slate-600"
                 >
                   <div *ngFor="let d of room.details" class="flex items-center space-x-1 truncate">
@@ -1151,7 +1151,7 @@
 
                 <!-- Col 4: Khách lưu trú -->
                 <td class="py-3.5 px-4">
-                  <div *ngIf="room.guestName" class="flex items-center space-x-2">
+                  <div *ngIf="room.statusRaw === 'OCCUPIED' && room.guestName" class="flex items-center space-x-2">
                     <div
                       class="w-7 h-7 rounded-full bg-gradient-to-br from-[#0284c7] to-sky-700 text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-2xs border border-sky-300/50"
                     >
@@ -1177,7 +1177,7 @@
                       </span>
                     </div>
                   </div>
-                  <span *ngIf="!room.guestName" class="text-slate-400 italic text-[11px]"
+                  <span *ngIf="room.statusRaw !== 'OCCUPIED' || !room.guestName" class="text-slate-400 italic text-[11px]"
                     >— Trống —</span
                   >
                 </td>
