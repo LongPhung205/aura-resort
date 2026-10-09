@@ -213,27 +213,59 @@ public class AdminUserServiceImpl implements AdminUserService {
                 b.setUser(null);
                 bookingRepository.save(b);
             }
+            bookingRepository.flush();
+
+            try {
+                jdbcTemplate.update("UPDATE bookings SET user_id = NULL WHERE user_id = ?", id);
+            } catch (Exception ignored) {}
+
+            if (user.getBookings() != null) {
+                user.getBookings().clear();
+            }
         }
 
-        // 3. Tháo gỡ các liên kết nhân viên nếu có (Housekeeping, Dispatch, Ticket...)
+        // 3. Tháo gỡ và dọn dẹp các dữ liệu liên kết nhân sự / điều hành
         try {
-            jdbcTemplate.execute("UPDATE housekeeping_tasks SET housekeeper_id = NULL WHERE housekeeper_id = " + id);
-            jdbcTemplate.execute("UPDATE housekeeping_tasks SET supervisor_id = NULL WHERE supervisor_id = " + id);
-            jdbcTemplate.execute("UPDATE service_recovery_tickets SET assigned_manager_id = NULL WHERE assigned_manager_id = " + id);
-            jdbcTemplate.execute("UPDATE service_dispatches SET assigned_staff_id = NULL WHERE assigned_staff_id = " + id);
-            jdbcTemplate.execute("UPDATE weekly_shift_registrations SET approver_id = NULL WHERE approver_id = " + id);
-            jdbcTemplate.execute("UPDATE shift_swap_requests SET approver_id = NULL WHERE approver_id = " + id);
+            // Lịch trực & phân ca nhân viên
+            jdbcTemplate.update("DELETE FROM staff_schedules WHERE staff_id = ?", id);
+
+            // Nhật ký điểm danh
+            jdbcTemplate.update("DELETE FROM attendance_logs WHERE staff_id = ?", id);
+
+            // Đăng ký ca làm việc theo tuần (xóa chi tiết trước rồi xóa phiếu)
+            jdbcTemplate.update("DELETE FROM weekly_shift_registration_details WHERE registration_id IN (SELECT id FROM weekly_shift_registrations WHERE staff_id = ?)", id);
+            jdbcTemplate.update("DELETE FROM weekly_shift_registrations WHERE staff_id = ?", id);
+            jdbcTemplate.update("UPDATE weekly_shift_registrations SET approver_id = NULL WHERE approver_id = ?", id);
+
+            // Yêu cầu đổi ca làm việc
+            jdbcTemplate.update("UPDATE shift_swap_requests SET target_staff_id = NULL WHERE target_staff_id = ?", id);
+            jdbcTemplate.update("UPDATE shift_swap_requests SET approver_id = NULL WHERE approver_id = ?", id);
+            jdbcTemplate.update("DELETE FROM shift_swap_requests WHERE requester_id = ?", id);
+
+            // Công việc buồng phòng & giám sát
+            jdbcTemplate.update("UPDATE housekeeping_tasks SET housekeeper_id = NULL WHERE housekeeper_id = ?", id);
+            jdbcTemplate.update("UPDATE housekeeping_tasks SET supervisor_id = NULL WHERE supervisor_id = ?", id);
+
+            // Phiếu xử lý khiếu nại (quản lý xử lý)
+            jdbcTemplate.update("UPDATE service_recovery_tickets SET assigned_manager_id = NULL WHERE assigned_manager_id = ?", id);
+
+            // Điều phối dịch vụ (nhân viên phục vụ)
+            jdbcTemplate.update("UPDATE service_dispatches SET assigned_staff_id = NULL WHERE assigned_staff_id = ?", id);
+
+            // Chốt sổ cuối ngày
+            jdbcTemplate.update("UPDATE day_end_closings SET closed_by_user_id = NULL WHERE closed_by_user_id = ?", id);
         } catch (Exception e) {
-            log.warn("Non-critical cleanup for staff references: {}", e.getMessage());
+            log.warn("Error during staff related cleanup for user ID {}: {}", id, e.getMessage());
         }
 
         // 4. Xóa tài khoản
         try {
             userRepository.delete(user);
+            userRepository.flush();
             log.info("Admin [{}] deleted user ID={} ({}) successfully", currentAdminEmail, id, user.getEmail());
-        } catch (DataIntegrityViolationException ex) {
-            log.error("Failed to delete user ID={} due to integrity constraint: {}", id, ex.getMessage());
-            throw new BusinessException("Không thể xóa tài khoản này do có dữ liệu liên kết nghiệp vụ (chấm công, lịch trực, hoặc chứng từ kế toán). Vui lòng sử dụng tính năng Khóa tài khoản.");
+        } catch (Exception ex) {
+            log.error("Failed to delete user ID={} due to constraint: {}", id, ex.getMessage());
+            throw new BusinessException("Không thể xóa tài khoản này do ràng buộc dữ liệu: " + ex.getMessage());
         }
     }
 
