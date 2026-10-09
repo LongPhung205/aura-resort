@@ -54,6 +54,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/admin/staff/roster", "/admin/staff/swap-requests/**", "/admin/staff/weekly-registrations/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_STAFF", "ROLE_ACCOUNTANT", "ROLE_HOUSEKEEPING", "ROLE_BUTLER")
                         .requestMatchers("/admin/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_RECEPTIONIST", "ROLE_STAFF", "ROLE_ACCOUNTANT")
                         .requestMatchers("/housekeeping/**").hasAnyAuthority("ROLE_HOUSEKEEPING", "ROLE_ADMIN", "ROLE_STAFF")
                         .requestMatchers("/room-types/**", "/rooms/**", "/villa-types/**", "/villas/**", "/banners/**", "/zones/**", "/public/**", "/promotions/**", "/reviews/**", "/extra-services/**", "/combo-packages/**").permitAll()

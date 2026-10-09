@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { HousekeepingTask } from '../../core/models/housekeeping.model';
 import { HousekeepingMobileService } from '../../core/services/housekeeping-mobile.service';
+import { AdminStaffService } from '../../core/services/admin-staff.service';
 import { TokenService } from '../../core/services/token.service';
 import { TaskWorkspaceComponent } from './task-workspace/task-workspace.component';
 
@@ -96,9 +97,17 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
   ];
   swapRequests: any[] = [];
 
+  // Metrics
+  workingShiftsCount = 6;
+  offShiftsCount = 1;
+  completedShiftsCount = 2;
+  completedHours = 16;
+  totalStandardHours = 48;
+
   constructor(
     private hkService: HousekeepingMobileService,
     private tokenService: TokenService,
+    private adminStaffService: AdminStaffService,
     private router: Router
   ) {}
 
@@ -441,85 +450,146 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
     const startStr = `${baseMonday.getDate()}/${baseMonday.getMonth() + 1}`;
     const endStr = `${endSunday.getDate()}/${endSunday.getMonth() + 1}/${endSunday.getFullYear()}`;
     this.weekDateLabel = `${startStr} - ${endStr}`;
+    const mondayIso = baseMonday.toISOString().split('T')[0];
 
+    const savedUser = localStorage.getItem('user') || localStorage.getItem('currentUser');
+    let currentUserId: number | null = null;
+    let currentUserName = this.staffName;
+    if (savedUser) {
+      try {
+        const u = JSON.parse(savedUser);
+        if (u.id) currentUserId = Number(u.id);
+        if (u.fullName) currentUserName = u.fullName;
+      } catch {}
+    }
+
+    this.adminStaffService.getRoster(mondayIso).subscribe({
+      next: (roster) => {
+        if (roster && roster.staffMembers && roster.staffMembers.length > 0) {
+          let member = roster.staffMembers.find(
+            (m) => (currentUserId && m.staffId === currentUserId) ||
+                   (m.fullName && currentUserName && m.fullName.toLowerCase().trim() === currentUserName.toLowerCase().trim())
+          );
+
+          if (!member && roster.staffMembers.length > 0) {
+            member = roster.staffMembers[0];
+          }
+
+          if (member && member.days && member.days.length === 7) {
+            this.buildShiftsFromRosterMember(member, roster.staffMembers, baseMonday, today);
+            return;
+          }
+        }
+        this.buildFallbackShifts(baseMonday, today);
+      },
+      error: () => {
+        this.buildFallbackShifts(baseMonday, today);
+      },
+    });
+  }
+
+  private buildShiftsFromRosterMember(member: any, allMembers: any[], baseMonday: Date, today: Date): void {
+    const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+    const dayOfWeeks = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const zones = [
+      'Zone Ngọc Trai (NT)',
+      'Zone San Hô (SH)',
+      'Tòa Khách Sạn Central',
+      'Zone Sông Băng (SB)',
+      'Zone Ngọc Trai (NT)',
+      'Toàn Resort (Trực cao điểm)',
+      'Toàn Resort (Trực cuối tuần)',
+    ];
+
+    this.currentWeekShifts = member.days.map((dItem: any, idx: number) => {
+      const d = new Date(baseMonday);
+      d.setDate(d.getDate() + idx);
+      const isToday = d.getTime() === today.getTime();
+      const isPast = d.getTime() < today.getTime();
+
+      const shiftName = dItem.shiftName || '';
+      let shiftType: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'OFF' = 'OFF';
+      let shiftLabel = 'Nghỉ Tuần Định Kỳ (OFF)';
+      let timeRange = 'Nghỉ chế độ';
+      let zone = 'Nghỉ ngơi tiêu chuẩn';
+
+      if (dItem.status === 'OFF' || shiftName.includes('OFF') || shiftName.includes('Nghỉ')) {
+        shiftType = 'OFF';
+        shiftLabel = 'Nghỉ Tuần Định Kỳ (OFF)';
+        timeRange = 'Nghỉ ca tuần';
+        zone = 'Nghỉ ngơi tiêu chuẩn';
+      } else if (shiftName.includes('Sáng')) {
+        shiftType = 'MORNING';
+        shiftLabel = 'Ca Sáng (06:00 - 14:30)';
+        timeRange = '06:00 - 14:30';
+        zone = zones[idx % zones.length];
+      } else if (shiftName.includes('Chiều')) {
+        shiftType = 'AFTERNOON';
+        shiftLabel = 'Ca Chiều (14:00 - 22:30)';
+        timeRange = '14:00 - 22:30';
+        zone = zones[idx % zones.length];
+      } else if (shiftName.includes('Đêm')) {
+        shiftType = 'NIGHT';
+        shiftLabel = 'Ca Đêm (22:00 - 06:30)';
+        timeRange = '22:00 - 06:30';
+        zone = 'Toàn Resort (Ca Đêm)';
+      } else {
+        shiftType = 'MORNING';
+        shiftLabel = shiftName;
+        timeRange = '06:00 - 14:30';
+        zone = zones[idx % zones.length];
+      }
+
+      let status = 'SCHEDULED';
+      let checkInTime: string | undefined = undefined;
+
+      if (shiftType === 'OFF') {
+        status = 'OFF';
+      } else if (isPast) {
+        status = 'COMPLETED';
+        checkInTime = shiftType === 'MORNING' ? '05:54' : '13:52';
+      } else if (isToday) {
+        status = 'IN_PROGRESS';
+        checkInTime = '05:58';
+      }
+
+      const coWorkers = allMembers
+        .filter((m) => m.staffId !== member.staffId && m.days && m.days[idx] && m.days[idx].shiftName === shiftName && shiftType !== 'OFF')
+        .map((m) => m.fullName);
+
+      return {
+        id: `shift_${this.shiftWeekOffset}_${idx}`,
+        dayOfWeek: dayOfWeeks[idx],
+        dayName: dayNames[idx],
+        dateStr: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`,
+        dateNumber: d.getDate(),
+        monthNumber: d.getMonth() + 1,
+        shiftType,
+        shiftLabel,
+        timeRange,
+        zone,
+        status,
+        coWorkers,
+        checkInTime,
+        isToday,
+        isPast,
+        supervisor: 'Trần Hoàng (Giám sát Buồng)',
+        tasksCount: shiftType === 'OFF' ? 0 : 7,
+      };
+    });
+
+    this.calculateShiftMetrics();
+  }
+
+  private buildFallbackShifts(baseMonday: Date, today: Date): void {
     const daysInfo = [
-      {
-        dayOfWeek: 'T2',
-        dayName: 'Thứ Hai',
-        shiftType: 'MORNING',
-        shiftLabel: 'Ca Sáng (06:00 - 14:30)',
-        timeRange: '06:00 - 14:30',
-        zone: 'Zone Ngọc Trai (NT)',
-        coWorkers: ['Lê Văn Long', 'Nguyễn Thị Mai'],
-        supervisor: 'Trần Hoàng (Giám sát Buồng)',
-        tasksCount: 8,
-      },
-      {
-        dayOfWeek: 'T3',
-        dayName: 'Thứ Ba',
-        shiftType: 'MORNING',
-        shiftLabel: 'Ca Sáng (06:00 - 14:30)',
-        timeRange: '06:00 - 14:30',
-        zone: 'Zone San Hô (SH)',
-        coWorkers: ['Trần Văn Hùng', 'Hoàng Thị Hoa'],
-        supervisor: 'Ngô Thanh Sơn (QC Lead)',
-        tasksCount: 7,
-      },
-      {
-        dayOfWeek: 'T4',
-        dayName: 'Thứ Tư',
-        shiftType: 'AFTERNOON',
-        shiftLabel: 'Ca Chiều (14:00 - 22:30)',
-        timeRange: '14:00 - 22:30',
-        zone: 'Tòa Khách Sạn Central',
-        coWorkers: ['Đỗ Thị Tuyết'],
-        supervisor: 'Trần Hoàng (Giám sát Buồng)',
-        tasksCount: 6,
-      },
-      {
-        dayOfWeek: 'T5',
-        dayName: 'Thứ Năm',
-        shiftType: 'MORNING',
-        shiftLabel: 'Ca Sáng (06:00 - 14:30)',
-        timeRange: '06:00 - 14:30',
-        zone: 'Zone Sông Băng (SB)',
-        coWorkers: ['Lê Văn Long', 'Phạm Minh Tuấn'],
-        supervisor: 'Trần Hoàng (Giám sát Buồng)',
-        tasksCount: 8,
-      },
-      {
-        dayOfWeek: 'T6',
-        dayName: 'Thứ Sáu',
-        shiftType: 'AFTERNOON',
-        shiftLabel: 'Ca Chiều (14:00 - 22:30)',
-        timeRange: '14:00 - 22:30',
-        zone: 'Zone Ngọc Trai (NT)',
-        coWorkers: ['Nguyễn Thị Mai'],
-        supervisor: 'Ngô Thanh Sơn (QC Lead)',
-        tasksCount: 7,
-      },
-      {
-        dayOfWeek: 'T7',
-        dayName: 'Thứ Bảy',
-        shiftType: 'OFF',
-        shiftLabel: 'Nghỉ Tuần Định Kỳ (OFF)',
-        timeRange: 'Nghỉ chế độ',
-        zone: 'Nghỉ ngơi tiêu chuẩn',
-        coWorkers: [],
-        supervisor: '',
-        tasksCount: 0,
-      },
-      {
-        dayOfWeek: 'CN',
-        dayName: 'Chủ Nhật',
-        shiftType: 'MORNING',
-        shiftLabel: 'Ca Sáng (06:00 - 14:30)',
-        timeRange: '06:00 - 14:30',
-        zone: 'Toàn Resort (Trực cao điểm cuối tuần)',
-        coWorkers: ['Trần Văn Hùng', 'Lê Thị Thảo'],
-        supervisor: 'Trần Hoàng (Giám sát Buồng)',
-        tasksCount: 9,
-      },
+      { dayOfWeek: 'T2', dayName: 'Thứ Hai', shiftType: 'MORNING', shiftLabel: 'Ca Sáng (06:00 - 14:30)', timeRange: '06:00 - 14:30', zone: 'Zone Ngọc Trai (NT)', coWorkers: ['Lê Văn Long', 'Nguyễn Thị Mai'], supervisor: 'Trần Hoàng (Giám sát Buồng)', tasksCount: 8 },
+      { dayOfWeek: 'T3', dayName: 'Thứ Ba', shiftType: 'MORNING', shiftLabel: 'Ca Sáng (06:00 - 14:30)', timeRange: '06:00 - 14:30', zone: 'Zone San Hô (SH)', coWorkers: ['Trần Văn Hùng', 'Hoàng Thị Hoa'], supervisor: 'Ngô Thanh Sơn (QC Lead)', tasksCount: 7 },
+      { dayOfWeek: 'T4', dayName: 'Thứ Tư', shiftType: 'AFTERNOON', shiftLabel: 'Ca Chiều (14:00 - 22:30)', timeRange: '14:00 - 22:30', zone: 'Tòa Khách Sạn Central', coWorkers: ['Đỗ Thị Tuyết'], supervisor: 'Trần Hoàng (Giám sát Buồng)', tasksCount: 6 },
+      { dayOfWeek: 'T5', dayName: 'Thứ Năm', shiftType: 'MORNING', shiftLabel: 'Ca Sáng (06:00 - 14:30)', timeRange: '06:00 - 14:30', zone: 'Zone Sông Băng (SB)', coWorkers: ['Lê Văn Long', 'Phạm Minh Tuấn'], supervisor: 'Trần Hoàng (Giám sát Buồng)', tasksCount: 8 },
+      { dayOfWeek: 'T6', dayName: 'Thứ Sáu', shiftType: 'AFTERNOON', shiftLabel: 'Ca Chiều (14:00 - 22:30)', timeRange: '14:00 - 22:30', zone: 'Zone Ngọc Trai (NT)', coWorkers: ['Nguyễn Thị Mai'], supervisor: 'Ngô Thanh Sơn (QC Lead)', tasksCount: 7 },
+      { dayOfWeek: 'T7', dayName: 'Thứ Bảy', shiftType: 'OFF', shiftLabel: 'Nghỉ Tuần Định Kỳ (OFF)', timeRange: 'Nghỉ chế độ', zone: 'Nghỉ ngơi tiêu chuẩn', coWorkers: [], supervisor: '', tasksCount: 0 },
+      { dayOfWeek: 'CN', dayName: 'Chủ Nhật', shiftType: 'MORNING', shiftLabel: 'Ca Sáng (06:00 - 14:30)', timeRange: '06:00 - 14:30', zone: 'Toàn Resort (Trực cao điểm cuối tuần)', coWorkers: ['Trần Văn Hùng', 'Lê Thị Thảo'], supervisor: 'Trần Hoàng (Giám sát Buồng)', tasksCount: 9 },
     ];
 
     this.currentWeekShifts = daysInfo.map((info, idx) => {
@@ -548,7 +618,7 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
         dateStr: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`,
         dateNumber: d.getDate(),
         monthNumber: d.getMonth() + 1,
-        shiftType: info.shiftType,
+        shiftType: info.shiftType as any,
         shiftLabel: info.shiftLabel,
         timeRange: info.timeRange,
         zone: info.zone,
@@ -561,6 +631,16 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
         tasksCount: info.tasksCount,
       };
     });
+
+    this.calculateShiftMetrics();
+  }
+
+  private calculateShiftMetrics(): void {
+    this.workingShiftsCount = this.currentWeekShifts.filter((s) => s.shiftType !== 'OFF').length;
+    this.offShiftsCount = this.currentWeekShifts.filter((s) => s.shiftType === 'OFF').length;
+    this.completedShiftsCount = this.currentWeekShifts.filter((s) => s.status === 'COMPLETED').length;
+    this.completedHours = this.completedShiftsCount * 8;
+    this.totalStandardHours = this.workingShiftsCount * 8;
   }
 
   changeShiftWeek(delta: number): void {
