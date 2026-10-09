@@ -44,16 +44,17 @@ public class NotificationServiceImpl implements NotificationService, MessageList
 
     @Override
     public void sendNotification(String message) {
-        // Publish to Redis instead of sending directly to emitters
-        redisTemplate.convertAndSend(REDIS_CHANNEL, message);
-        log.info("Published message to Redis channel '{}': {}", REDIS_CHANNEL, message);
+        try {
+            // Publish to Redis instead of sending directly to emitters
+            redisTemplate.convertAndSend(REDIS_CHANNEL, message);
+            log.info("Published message to Redis channel '{}': {}", REDIS_CHANNEL, message);
+        } catch (Exception e) {
+            log.warn("Redis unavailable ({}), broadcasting notification locally via SSE", e.getMessage());
+            broadcastLocal(message);
+        }
     }
 
-    @Override
-    public void onMessage(Message message, byte[] pattern) {
-        String msgBody = new String(message.getBody());
-        log.info("Received message from Redis channel '{}': {}", REDIS_CHANNEL, msgBody);
-        
+    private void broadcastLocal(String msgBody) {
         // Broadcast to all local SSE clients
         emitters.forEach((clientId, emitter) -> {
             try {
@@ -64,5 +65,12 @@ public class NotificationServiceImpl implements NotificationService, MessageList
                 emitters.remove(clientId);
             }
         });
+    }
+
+    @Override
+    public void onMessage(Message message, byte[] pattern) {
+        String msgBody = new String(message.getBody());
+        log.info("Received message from Redis channel '{}': {}", REDIS_CHANNEL, msgBody);
+        broadcastLocal(msgBody);
     }
 }
