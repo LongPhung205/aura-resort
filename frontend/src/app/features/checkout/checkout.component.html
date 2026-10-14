@@ -203,20 +203,6 @@
               <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" class="h-8 object-contain">
             </label>
 
-            <!-- Helper thông tin thẻ ATM Test -->
-            <div *ngIf="paymentMethod === 'momo'" class="p-3.5 bg-sky-50 border border-sky-200 rounded-xl text-left space-y-1.5 shadow-2xs">
-              <p class="font-bold text-sky-900 text-xs flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-sky-600">credit_card</span>
-                <span>Thông tin thẻ ATM Test MoMo (Napas):</span>
-              </p>
-              <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-slate-800 font-medium bg-white/80 p-2.5 rounded-lg border border-sky-100">
-                <div>• Số thẻ: <strong class="font-mono text-sky-700">9704 0000 0000 0018</strong></div>
-                <div>• Ngày phát hành: <strong class="font-mono text-sky-700">03/07</strong></div>
-                <div>• Tên chủ thẻ: <strong class="font-mono text-sky-700">NGUYEN VAN A</strong></div>
-                <div>• OTP: <strong class="font-mono text-sky-700">000000</strong> (hoặc bất kỳ)</div>
-              </div>
-            </div>
-
             <label
               class="flex items-center justify-between p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors"
               [class.border-[#0369A1]]="paymentMethod === 'transfer'" [class.bg-sky-50]="paymentMethod === 'transfer'">

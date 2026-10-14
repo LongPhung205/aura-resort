@@ -40,10 +40,10 @@ public class Review extends BaseEntity {
     private Booking booking;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "villa_type_id")
+    @JoinColumn(name = "villa_type_id", nullable = true)
     private VillaType villaType;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_type_id")
+    @JoinColumn(name = "room_type_id", nullable = true)
     private RoomType roomType;
 }

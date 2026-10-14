@@ -24,10 +24,19 @@ public class ReviewController {
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(
             @Valid @RequestBody ReviewRequest request,
             Authentication authentication) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new com.phungvanlong.booking_hotel.exception.BusinessException("Vui lòng đăng nhập để gửi đánh giá");
+        }
         String userEmail = authentication.getName();
         ReviewResponse review = reviewService.createReview(request, userEmail);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(review, "Đánh giá thành công"));
+    }
+
+    @GetMapping("/villa/{villaId}")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getReviewsByVillaId(@PathVariable Long villaId) {
+        List<ReviewResponse> reviews = reviewService.getReviewsByVillaId(villaId);
+        return ResponseEntity.ok(ApiResponse.success(reviews, "Lấy danh sách đánh giá của biệt thự thành công"));
     }
 
     @GetMapping("/room-type/{roomTypeId}")

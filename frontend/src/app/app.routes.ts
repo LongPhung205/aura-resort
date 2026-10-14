@@ -111,6 +111,14 @@ export const routes: Routes = [
       ),
   },
   {
+    // Trang kết quả thanh toán PayOS
+    path: 'payment/payos-result',
+    loadComponent: () =>
+      import('./features/payment/payos-result/payos-result.component').then(
+        (m) => m.PayosResultComponent
+      ),
+  },
+  {
     path: 'housekeeping',
     loadComponent: () =>
       import('./features/housekeeping/housekeeping-portal.component').then(

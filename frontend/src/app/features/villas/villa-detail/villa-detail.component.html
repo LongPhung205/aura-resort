@@ -772,39 +772,15 @@
                 <span>Nhận xét & Trải nghiệm khách hàng</span>
               </h3>
             </div>
-            <div class="flex items-center gap-2 bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl self-start sm:self-auto shadow-2xs">
+            <div *ngIf="reviews.length > 0" class="flex items-center gap-2 bg-amber-50 border border-amber-200/80 px-4 py-2 rounded-2xl self-start sm:self-auto shadow-2xs">
               <span class="material-symbols-outlined text-amber-500 text-xl fill-current">star</span>
-              <span class="text-base font-black text-amber-900">4.96 / 5.0</span>
-              <span class="text-xs text-amber-700 font-bold">(48 đánh giá xác thực)</span>
-            </div>
-          </div>
-
-          <!-- Score Breakdown Grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5 rounded-2xl bg-gradient-to-r from-slate-50 via-sky-50/30 to-slate-50 border border-slate-200 text-center">
-            <div class="p-2">
-              <div class="text-lg font-black text-slate-900">5.0 ★</div>
-              <div class="text-xs font-bold text-slate-700 mt-0.5">Khử trùng Ozone</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">Tiệt trùng y tế 100%</div>
-            </div>
-            <div class="p-2 border-l border-slate-200">
-              <div class="text-lg font-black text-slate-900">4.9 ★</div>
-              <div class="text-xs font-bold text-slate-700 mt-0.5">Vị trí sát biển</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">Cách bãi tắm 80m</div>
-            </div>
-            <div class="p-2 border-l border-slate-200">
-              <div class="text-lg font-black text-slate-900">5.0 ★</div>
-              <div class="text-xs font-bold text-slate-700 mt-0.5">Dịch vụ Quản gia</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">Phục vụ tận tâm 24/7</div>
-            </div>
-            <div class="p-2 border-l border-slate-200">
-              <div class="text-lg font-black text-slate-900">4.9 ★</div>
-              <div class="text-xs font-bold text-slate-700 mt-0.5">Hồ bơi & Tiện nghi</div>
-              <div class="text-[10px] text-slate-400 mt-0.5">Nước sạch trong ấm</div>
+              <span class="text-base font-black text-amber-900">{{ averageReviewScore }} / 5.0</span>
+              <span class="text-xs text-amber-700 font-bold">({{ reviews.length }} đánh giá thực tế)</span>
             </div>
           </div>
 
           <!-- Reviews Cards List -->
-          <div class="space-y-4">
+          <div *ngIf="reviews.length > 0" class="space-y-4">
             <div *ngFor="let rev of reviews" class="p-6 rounded-2xl border border-slate-200 bg-white shadow-xs hover:shadow-md transition-all">
               <div class="flex items-start justify-between gap-3 mb-3.5">
                 <div class="flex items-center gap-3.5">
@@ -820,20 +796,35 @@
                   </div>
                 </div>
                 <div class="flex text-amber-400 text-sm">
-                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
-                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
-                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
-                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
-                  <span class="material-symbols-outlined text-[18px] fill-current">star</span>
+                  <span *ngFor="let s of [1,2,3,4,5]" class="material-symbols-outlined text-[18px]" [ngClass]="s <= rev.rating ? 'fill-current text-amber-400' : 'text-slate-200'">star</span>
                 </div>
               </div>
               <p class="text-[13px] text-slate-600 leading-relaxed font-normal">{{ rev.comment }}</p>
-              <div class="flex flex-wrap gap-2 mt-4 pt-3.5 border-t border-slate-100">
+
+              <!-- Phản hồi từ Ban Quản Lý Resort -->
+              <div *ngIf="rev.managementReply" class="mt-4 p-4 rounded-xl bg-sky-50/70 border border-sky-100 space-y-1.5">
+                <div class="flex items-center space-x-2 text-xs font-black text-[#0369A1] uppercase tracking-wider">
+                  <span class="material-symbols-outlined text-[16px]">corporate_fare</span>
+                  <span>Phản hồi từ Ban Quản Lý Resort {{ rev.repliedAt ? '(' + rev.repliedAt + ')' : '' }}</span>
+                </div>
+                <p class="text-xs text-slate-700 leading-relaxed font-medium">
+                  {{ rev.managementReply }}
+                </p>
+              </div>
+
+              <div *ngIf="rev.highlights && rev.highlights.length > 0" class="flex flex-wrap gap-2 mt-4 pt-3.5 border-t border-slate-100">
                 <span *ngFor="let h of rev.highlights" class="text-[11px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg">
                   ✓ {{ h }}
                 </span>
               </div>
             </div>
+          </div>
+
+          <!-- Empty state when no reviews yet -->
+          <div *ngIf="reviews.length === 0" class="p-10 rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 text-center space-y-2">
+            <span class="material-symbols-outlined text-slate-300 text-4xl">rate_review</span>
+            <div class="text-sm font-bold text-slate-700">Chưa có đánh giá nào cho biệt thự này</div>
+            <p class="text-xs text-slate-400 max-w-md mx-auto">Các đánh giá và nhận xét trải nghiệm thực tế từ khách hàng sau khi lưu trú sẽ được hiển thị tại đây.</p>
           </div>
         </div>
 

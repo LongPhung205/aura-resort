@@ -20,6 +20,10 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
+    @Override
+    @EntityGraph(attributePaths = {"user", "bookingDetails.villa", "bookingDetails.room"})
+    java.util.Optional<Booking> findById(Long id);
+
     // 1. Tìm các căn Villa trống theo Hạng Villa và khoảng ngày
     @Query("SELECT v FROM Villa v WHERE v.villaType.id = :villaTypeId " +
            "AND v.status != 'MAINTENANCE' " +

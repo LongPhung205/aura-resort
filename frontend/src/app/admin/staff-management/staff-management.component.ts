@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdminStaffService } from '../../core/services/admin-staff.service';
-import { ShiftSwapRequest, WeeklyShiftRegistration } from '../../core/models/admin-staff.model';
+import { ShiftSwapRequest, WeeklyShiftRegistration, WeeklyRegistrationDayItem } from '../../core/models/admin-staff.model';
 
 export type ShiftType = 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'ONCALL' | 'OFF';
 
@@ -257,7 +257,7 @@ export class StaffManagementComponent implements OnInit {
     // Load swap requests
     this.staffService.getSwapRequests().subscribe({
       next: (reqs) => {
-        this.swapRequests = reqs || [];
+        this.swapRequests = (reqs || []).filter((r) => r.status === 'PENDING');
       },
       error: (err) => {
         console.error('Error loading swap requests:', err);
@@ -268,7 +268,16 @@ export class StaffManagementComponent implements OnInit {
     // Load weekly shift registrations
     this.staffService.getWeeklyRegistrations().subscribe({
       next: (regs) => {
-        this.weeklyRegistrations = regs || [];
+        this.weeklyRegistrations = (regs || [])
+          .filter((r) => r.status === 'PENDING')
+          .map((r) => {
+            if (r.days && r.days.length > 0) {
+              r.days = [...r.days].sort(
+                (a, b) => new Date(a.workDate).getTime() - new Date(b.workDate).getTime()
+              );
+            }
+            return r;
+          });
       },
       error: (err) => {
         console.error('Error loading weekly registrations:', err);
@@ -620,12 +629,13 @@ export class StaffManagementComponent implements OnInit {
   approveSwap(req: ShiftSwapRequest): void {
     this.staffService.processSwap(req.id, true).subscribe({
       next: () => {
-        req.status = 'APPROVED';
+        this.swapRequests = this.swapRequests.filter((r) => r.id !== req.id);
         this.showToast(`Đã phê duyệt đề xuất đổi ca cho nhân viên ${req.requesterName}!`, 'success');
+        this.loadStaffData();
       },
-      error: () => {
-        req.status = 'APPROVED';
-        this.showToast(`Đã phê duyệt đề xuất đổi ca cho nhân viên ${req.requesterName}!`, 'success');
+      error: (err) => {
+        console.error('Lỗi khi duyệt đề xuất đổi ca:', err);
+        this.showToast('Không thể phê duyệt đề xuất', 'error');
       },
     });
   }
@@ -633,12 +643,13 @@ export class StaffManagementComponent implements OnInit {
   rejectSwap(req: ShiftSwapRequest): void {
     this.staffService.processSwap(req.id, false, 'Không đủ nhân sự bù ca').subscribe({
       next: () => {
-        req.status = 'REJECTED';
+        this.swapRequests = this.swapRequests.filter((r) => r.id !== req.id);
         this.showToast(`Đã từ chối đề xuất đổi ca của ${req.requesterName}`, 'info');
+        this.loadStaffData();
       },
-      error: () => {
-        req.status = 'REJECTED';
-        this.showToast(`Đã từ chối đề xuất đổi ca của ${req.requesterName}`, 'info');
+      error: (err) => {
+        console.error('Lỗi khi từ chối đề xuất đổi ca:', err);
+        this.showToast('Không thể từ chối đề xuất', 'error');
       },
     });
   }
@@ -647,7 +658,7 @@ export class StaffManagementComponent implements OnInit {
   approveWeeklyRegistration(reg: WeeklyShiftRegistration): void {
     this.staffService.processWeeklyRegistration(reg.id, true).subscribe({
       next: () => {
-        reg.status = 'APPROVED';
+        this.weeklyRegistrations = this.weeklyRegistrations.filter((r) => r.id !== reg.id);
         this.showToast(`Đã phê duyệt lịch trực tuần cho ${reg.staffName}! Bảng phân ca đã tự động cập nhật.`, 'success');
         this.loadStaffData();
       },
@@ -664,7 +675,7 @@ export class StaffManagementComponent implements OnInit {
 
     this.staffService.processWeeklyRegistration(reg.id, false, reason || 'Yêu cầu điều chỉnh lại ca trực').subscribe({
       next: () => {
-        reg.status = 'REJECTED';
+        this.weeklyRegistrations = this.weeklyRegistrations.filter((r) => r.id !== reg.id);
         this.showToast(`Đã từ chối đơn đăng ký ca của ${reg.staffName}.`, 'info');
         this.loadStaffData();
       },
@@ -710,6 +721,29 @@ export class StaffManagementComponent implements OnInit {
       'bg-indigo-900 text-indigo-200 border-indigo-400/40',
     ];
     return bgs[id % bgs.length];
+  }
+
+  getShiftStats(days?: WeeklyRegistrationDayItem[]) {
+    if (!days || days.length === 0) {
+      return { totalWork: 0, offCount: 0, morningCount: 0, afternoonCount: 0, nightCount: 0 };
+    }
+    let morningCount = 0;
+    let afternoonCount = 0;
+    let nightCount = 0;
+    let offCount = 0;
+    for (const d of days) {
+      if (d.shiftType === 'MORNING') morningCount++;
+      else if (d.shiftType === 'AFTERNOON') afternoonCount++;
+      else if (d.shiftType === 'NIGHT') nightCount++;
+      else offCount++;
+    }
+    return {
+      totalWork: morningCount + afternoonCount + nightCount,
+      offCount,
+      morningCount,
+      afternoonCount,
+      nightCount,
+    };
   }
 
   showToast(msg: string, type: 'success' | 'error' | 'info' = 'success'): void {

@@ -276,11 +276,12 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingResponse getBookingById(Long id, String userEmail) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy đơn đặt phòng"));
 
-        if (!booking.getUser().getEmail().equals(userEmail)) {
+        if (booking.getUser() != null && !booking.getUser().getEmail().equals(userEmail)) {
             User user = userRepository.findByEmail(userEmail)
                     .orElseThrow(() -> new BusinessException("Không tìm thấy user: " + userEmail));
             if (user.getRole() != Role.ROLE_ADMIN && user.getRole() != Role.ROLE_STAFF) {
@@ -291,6 +292,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingResponse> getMyBookings(String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy user"));

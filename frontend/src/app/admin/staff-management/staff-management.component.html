@@ -432,105 +432,206 @@
       <!-- Registrations Grid -->
       <div *ngIf="weeklyRegistrations.length > 0" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div *ngFor="let reg of weeklyRegistrations"
-             class="p-4.5 rounded-2xl bg-slate-50/70 border border-slate-200/90 flex flex-col justify-between space-y-3.5 hover:border-sky-300 transition shadow-2xs">
+             class="group relative bg-white rounded-2xl border border-slate-200/90 hover:border-sky-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-2xs">
           
-          <div>
-            <!-- Card Header -->
-            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/60">
-              <div class="flex items-center space-x-2">
-                <span class="px-2 py-0.5 rounded-md font-bold text-[10px] bg-sky-100 text-[#0284c7] border border-sky-300">
-                  {{ reg.department || 'Bộ phận Resort' }}
-                </span>
-                <span class="text-[11px] font-bold text-slate-500">
-                  Tuần: {{ reg.weekStartDate | date:'dd/MM' }} - {{ reg.weekEndDate | date:'dd/MM' }}
-                </span>
-              </div>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                    [ngClass]="{
-                      'bg-amber-50 text-amber-800 border-amber-200': reg.status === 'PENDING',
-                      'bg-emerald-50 text-emerald-700 border-emerald-200': reg.status === 'APPROVED',
-                      'bg-rose-50 text-rose-700 border-rose-200': reg.status === 'REJECTED'
-                    }">
-                {{ reg.status === 'PENDING' ? 'Chờ Phê Duyệt' : reg.status === 'APPROVED' ? 'Đã Phê Duyệt' : 'Đã Từ Chối' }}
-              </span>
-            </div>
+          <!-- Top Accent Status Indicator Bar -->
+          <div class="h-1 w-full"
+               [ngClass]="{
+                 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500': reg.status === 'PENDING',
+                 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600': reg.status === 'APPROVED',
+                 'bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600': reg.status === 'REJECTED'
+               }">
+          </div>
 
-            <!-- Staff Info -->
-            <div class="mt-3 flex items-center justify-between">
-              <div>
-                <h4 class="text-xs font-black text-slate-900">{{ reg.staffName }}</h4>
-                <p class="text-[10px] text-slate-400 mt-0.5">
-                  Khu vực ưu tiên: <strong class="text-slate-600">{{ reg.preferredZone || 'Toàn bộ resort' }}</strong>
-                </p>
-              </div>
-              <span class="text-[10px] text-slate-400">
-                Nộp: {{ reg.createdAt ? (reg.createdAt | date:'dd/MM/yyyy HH:mm') : 'Hôm nay' }}
-              </span>
-            </div>
+          <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div>
+              <!-- Header Section: Staff Profile & Status -->
+              <div class="flex items-start justify-between gap-3 pb-3.5 border-b border-slate-100">
+                <div class="flex items-center space-x-3 min-w-0">
+                  <!-- Avatar -->
+                  <div class="relative shrink-0">
+                    <img *ngIf="reg.avatarUrl" [src]="reg.avatarUrl" [alt]="reg.staffName"
+                         class="w-11 h-11 rounded-xl object-cover ring-2 ring-slate-100 shadow-2xs" />
+                    <div *ngIf="!reg.avatarUrl"
+                         class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0284c7] to-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-2xs ring-2 ring-sky-50">
+                      {{ getInitials(reg.staffName) }}
+                    </div>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white"
+                          [ngClass]="{
+                            'bg-amber-400': reg.status === 'PENDING',
+                            'bg-emerald-500': reg.status === 'APPROVED',
+                            'bg-rose-500': reg.status === 'REJECTED'
+                          }"></span>
+                  </div>
 
-            <!-- 7-Day Selected Shifts Pill Board -->
-            <div class="mt-3 pt-3 border-t border-slate-200/50">
-              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Lịch Đăng Ký 7 Ngày (Thứ 2 ➔ Chủ Nhật):</div>
-              <div class="grid grid-cols-7 gap-1.5 text-center">
-                <div *ngFor="let day of reg.days" class="p-1.5 rounded-xl border bg-white shadow-2xs"
-                     [ngClass]="{
-                       'border-emerald-200 bg-emerald-50/50': day.shiftType === 'MORNING',
-                       'border-sky-200 bg-sky-50/50': day.shiftType === 'AFTERNOON',
-                       'border-indigo-200 bg-indigo-50/50': day.shiftType === 'NIGHT',
-                       'border-slate-200 bg-slate-100/60': day.shiftType === 'OFF'
-                     }">
-                  <span class="block text-[9px] font-bold text-slate-500">{{ day.dayOfWeek }}</span>
-                  <span class="block text-[9px] font-normal text-slate-400">{{ day.workDate | date:'dd/MM' }}</span>
-                  <span class="block text-[10px] font-extrabold mt-1"
+                  <!-- Name & Department info -->
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h4 class="text-sm font-black text-slate-900 truncate tracking-tight group-hover:text-sky-900 transition-colors">
+                        {{ reg.staffName }}
+                      </h4>
+                      <span *ngIf="reg.staffRole" class="text-[10px] font-semibold text-slate-400 truncate">
+                        ({{ reg.staffRole }})
+                      </span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                      <span class="px-2 py-0.5 rounded-md font-bold text-[10px] bg-sky-50 text-[#0284c7] border border-sky-200/70 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]">domain</span>
+                        {{ reg.department || 'Buồng Phòng & Ozone' }}
+                      </span>
+                      <span class="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100/70 text-slate-600 border border-slate-200/60 inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px] text-slate-400">location_on</span>
+                        Khu vực: <strong class="text-slate-700 font-semibold">{{ reg.preferredZone || 'ALL' }}</strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status Badge & Submission Time -->
+                <div class="flex flex-col items-end shrink-0 space-y-1">
+                  <span class="text-[10.5px] font-bold px-2.5 py-1 rounded-full border inline-flex items-center gap-1.5 shadow-2xs"
                         [ngClass]="{
-                          'text-emerald-700': day.shiftType === 'MORNING',
-                          'text-[#0284c7]': day.shiftType === 'AFTERNOON',
-                          'text-indigo-800': day.shiftType === 'NIGHT',
-                          'text-slate-500': day.shiftType === 'OFF'
+                          'bg-amber-50 text-amber-800 border-amber-200/90': reg.status === 'PENDING',
+                          'bg-emerald-50 text-emerald-800 border-emerald-200/90': reg.status === 'APPROVED',
+                          'bg-rose-50 text-rose-800 border-rose-200/90': reg.status === 'REJECTED'
                         }">
-                    {{ day.shiftType === 'MORNING' ? 'Sáng' : day.shiftType === 'AFTERNOON' ? 'Chiều' : day.shiftType === 'NIGHT' ? 'Đêm' : 'OFF' }}
+                    <span *ngIf="reg.status === 'PENDING'" class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span *ngIf="reg.status === 'APPROVED'" class="material-symbols-outlined text-[13px] text-emerald-600">check_circle</span>
+                    <span *ngIf="reg.status === 'REJECTED'" class="material-symbols-outlined text-[13px] text-rose-600">cancel</span>
+                    <span>{{ reg.status === 'PENDING' ? 'Chờ Phê Duyệt' : reg.status === 'APPROVED' ? 'Đã Phê Duyệt' : 'Đã Từ Chối' }}</span>
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-medium">
+                    Nộp: {{ reg.createdAt ? (reg.createdAt | date:'dd/MM/yyyy HH:mm') : 'Hôm nay' }}
                   </span>
                 </div>
               </div>
+
+              <!-- Week Bar & Shift Stats Summary -->
+              <div class="mt-3.5 mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center space-x-1.5 font-bold text-slate-700">
+                  <span class="material-symbols-outlined text-[16px] text-[#0284c7]">event</span>
+                  <span>Tuần: {{ reg.weekStartDate | date:'dd/MM' }} – {{ reg.weekEndDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+
+                <!-- Summary Breakdown Pills -->
+                <div *ngIf="reg.days && reg.days.length > 0" class="flex items-center gap-1 text-[10px] font-semibold">
+                  <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60"
+                        *ngIf="getShiftStats(reg.days).morningCount > 0">
+                    {{ getShiftStats(reg.days).morningCount }} Sáng
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200/60"
+                        *ngIf="getShiftStats(reg.days).afternoonCount > 0">
+                    {{ getShiftStats(reg.days).afternoonCount }} Chiều
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200/60"
+                        *ngIf="getShiftStats(reg.days).nightCount > 0">
+                    {{ getShiftStats(reg.days).nightCount }} Đêm
+                  </span>
+                  <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200/60"
+                        *ngIf="getShiftStats(reg.days).offCount > 0">
+                    {{ getShiftStats(reg.days).offCount }} OFF
+                  </span>
+                </div>
+              </div>
+
+              <!-- 7-Day Selected Shifts Pill Board -->
+              <div class="grid grid-cols-7 gap-1.5 text-center">
+                <div *ngFor="let day of reg.days"
+                     class="p-2 rounded-xl border flex flex-col items-center justify-between transition-all duration-150 hover:-translate-y-0.5 hover:shadow-2xs"
+                     [ngClass]="{
+                       'bg-emerald-50/30 border-emerald-200/60': day.shiftType === 'MORNING',
+                       'bg-sky-50/30 border-sky-200/60': day.shiftType === 'AFTERNOON',
+                       'bg-indigo-50/30 border-indigo-200/60': day.shiftType === 'NIGHT',
+                       'bg-slate-50 border-slate-200/60': day.shiftType === 'OFF'
+                     }"
+                     [title]="day.note ? ('Ghi chú: ' + day.note) : ''">
+                  
+                  <!-- Day of week & Date -->
+                  <div>
+                    <span class="block text-[10.5px] font-black uppercase tracking-tight"
+                          [class.text-rose-600]="day.dayOfWeek === 'CN'"
+                          [class.text-amber-700]="day.dayOfWeek === 'T7'"
+                          [class.text-slate-700]="day.dayOfWeek !== 'CN' && day.dayOfWeek !== 'T7'">
+                      {{ day.dayOfWeek }}
+                    </span>
+                    <span class="block text-[9.5px] font-semibold text-slate-400 mt-0.5">
+                      {{ day.workDate | date:'dd/MM' }}
+                    </span>
+                  </div>
+
+                  <!-- Shift Pill Badge -->
+                  <div class="mt-2 w-full py-1 px-0.5 rounded-lg text-[10px] font-black flex items-center justify-center gap-0.5 shadow-2xs"
+                       [ngClass]="{
+                         'bg-emerald-600 text-white shadow-emerald-600/20': day.shiftType === 'MORNING',
+                         'bg-[#0284c7] text-white shadow-sky-600/20': day.shiftType === 'AFTERNOON',
+                         'bg-indigo-700 text-white shadow-indigo-700/20': day.shiftType === 'NIGHT',
+                         'bg-slate-200 text-slate-600 font-bold': day.shiftType === 'OFF'
+                       }">
+                    <span class="material-symbols-outlined text-[11px] leading-none" *ngIf="day.shiftType === 'MORNING'">wb_sunny</span>
+                    <span class="material-symbols-outlined text-[11px] leading-none" *ngIf="day.shiftType === 'AFTERNOON'">wb_twilight</span>
+                    <span class="material-symbols-outlined text-[11px] leading-none" *ngIf="day.shiftType === 'NIGHT'">bedtime</span>
+                    <span class="material-symbols-outlined text-[11px] leading-none" *ngIf="day.shiftType === 'OFF'">remove</span>
+                    <span>{{ day.shiftType === 'MORNING' ? 'Sáng' : day.shiftType === 'AFTERNOON' ? 'Chiều' : day.shiftType === 'NIGHT' ? 'Đêm' : 'OFF' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div *ngIf="reg.notes"
+                   class="mt-3 p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-start space-x-2 text-[11px] text-slate-600">
+                <span class="material-symbols-outlined text-[15px] text-slate-400 shrink-0 mt-0.5">chat_bubble_outline</span>
+                <p class="leading-relaxed"><strong class="text-slate-700 font-bold">Ghi chú:</strong> "{{ reg.notes }}"</p>
+              </div>
+
+              <!-- Rejection Reason -->
+              <div *ngIf="reg.rejectionReason"
+                   class="mt-2.5 p-2.5 rounded-xl bg-rose-50/90 border border-rose-200 flex items-start space-x-2 text-[11px] text-rose-800">
+                <span class="material-symbols-outlined text-[15px] text-rose-500 shrink-0 mt-0.5">error_outline</span>
+                <p class="leading-relaxed"><strong class="font-bold">Lý do từ chối:</strong> {{ reg.rejectionReason }}</p>
+              </div>
             </div>
 
-            <!-- Notes -->
-            <div *ngIf="reg.notes" class="mt-2.5 p-2 rounded-lg bg-white border border-slate-200/70 text-[11px] text-slate-600 italic leading-relaxed">
-              "{{ reg.notes }}"
+            <!-- Card Actions Footer -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <!-- Left metadata / Approver -->
+              <div class="text-[11px] text-slate-400">
+                <span *ngIf="reg.status === 'APPROVED'" class="text-slate-500 font-medium">
+                  Duyệt bởi: <strong class="text-slate-700">{{ reg.approverName || 'Admin' }}</strong>
+                  <span *ngIf="reg.approvedAt"> ({{ reg.approvedAt | date:'dd/MM HH:mm' }})</span>
+                </span>
+                <span *ngIf="reg.status === 'PENDING'" class="text-slate-400 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[14px]">info</span>
+                  Tổng cộng: <strong class="text-slate-600">{{ getShiftStats(reg.days).totalWork }} ca trực</strong>
+                </span>
+              </div>
+
+              <!-- Action Buttons -->
+              <div *ngIf="reg.status === 'PENDING'" class="flex items-center space-x-2 font-bold text-xs">
+                <button (click)="rejectWeeklyRegistration(reg)" 
+                        class="px-3.5 py-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 rounded-xl transition duration-150 cursor-pointer flex items-center space-x-1 active:scale-95">
+                  <span class="material-symbols-outlined text-[15px]">close</span>
+                  <span>Từ chối</span>
+                </button>
+                <button (click)="approveWeeklyRegistration(reg)" 
+                        class="px-4 py-1.5 bg-gradient-to-r from-sky-600 to-[#0284c7] hover:from-sky-700 hover:to-[#0369a1] text-white rounded-xl transition shadow-xs hover:shadow flex items-center space-x-1.5 cursor-pointer active:scale-95">
+                  <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                  <span>Phê Duyệt Lịch Tuần</span>
+                </button>
+              </div>
+
+              <div *ngIf="reg.status === 'APPROVED'" class="text-emerald-700 text-xs font-bold flex items-center space-x-1.5 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200/60">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span>
+                <span>Đã cập nhật Bảng phân ca</span>
+              </div>
+
+              <div *ngIf="reg.status === 'REJECTED'" class="text-slate-400 text-xs font-bold flex items-center space-x-1 bg-slate-100 px-3 py-1 rounded-xl border border-slate-200">
+                <span class="material-symbols-outlined text-[15px]">cancel</span>
+                <span>Đã từ chối</span>
+              </div>
             </div>
-            <div *ngIf="reg.rejectionReason" class="mt-2 p-2 rounded-lg bg-rose-50 border border-rose-200 text-[11px] text-rose-700">
-              Lý do từ chối: <strong>{{ reg.rejectionReason }}</strong>
-            </div>
+
           </div>
-
-          <!-- Card Actions -->
-          <div class="pt-2.5 border-t border-slate-200/60 flex items-center justify-between">
-            <span class="text-[10px] text-slate-400">
-              {{ reg.status === 'APPROVED' ? ('Duyệt bởi: ' + (reg.approverName || 'Admin')) : '' }}
-            </span>
-
-            <div *ngIf="reg.status === 'PENDING'" class="flex items-center space-x-2 font-bold text-xs">
-              <button (click)="rejectWeeklyRegistration(reg)" 
-                      class="px-3 py-1.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-xl transition cursor-pointer">
-                Từ chối
-              </button>
-              <button (click)="approveWeeklyRegistration(reg)" 
-                      class="px-4 py-1.5 bg-[#0284c7] hover:bg-[#0369a1] text-white rounded-xl transition shadow-xs flex items-center space-x-1 cursor-pointer">
-                <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                <span>Phê Duyệt Lịch Tuần</span>
-              </button>
-            </div>
-
-            <div *ngIf="reg.status === 'APPROVED'" class="text-emerald-700 text-xs font-bold flex items-center space-x-1">
-              <span class="material-symbols-outlined text-[16px]">verified</span>
-              <span>Đã cập nhật vào Bảng phân ca</span>
-            </div>
-
-            <div *ngIf="reg.status === 'REJECTED'" class="text-slate-400 text-xs font-bold">
-              Đã từ chối đơn
-            </div>
-          </div>
-
         </div>
       </div>
     </div>

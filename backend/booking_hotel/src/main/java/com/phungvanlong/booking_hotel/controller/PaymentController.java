@@ -27,6 +27,12 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(payUrl, "Tạo link thanh toán MoMo thành công"));
     }
 
+    @PostMapping("/payos/{bookingId}")
+    public ResponseEntity<ApiResponse<String>> createPayOSPayment(@PathVariable Long bookingId) {
+        String payUrl = paymentService.createPayOSPayment(bookingId);
+        return ResponseEntity.ok(ApiResponse.success(payUrl, "Tạo link thanh toán PayOS thành công"));
+    }
+
     @GetMapping("/momo-return")
     public ResponseEntity<Void> processMoMoReturn(@RequestParam Map<String, String> params) {
         try {
@@ -46,6 +52,34 @@ public class PaymentController {
                 + "&orderId=" + orderId
                 + "&message=" + java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8);
         return ResponseEntity.status(302).location(URI.create(redirectFe)).build();
+    }
+
+    @GetMapping("/payos-return")
+    public ResponseEntity<Void> processPayOSReturn(@RequestParam Map<String, String> params) {
+        try {
+            paymentService.processPayOSReturn(params);
+        } catch (Exception e) {
+            log.warn("Lỗi xử lý PayOS return callback: {}", e.getMessage());
+        }
+        
+        String code = params.getOrDefault("code", "");
+        String cancel = params.getOrDefault("cancel", "false");
+        String status = params.getOrDefault("status", "");
+        String orderCode = params.getOrDefault("orderCode", "");
+        
+        String redirectFe = "http://localhost:4200/payment/payos-result"
+                + "?code=" + code
+                + "&cancel=" + cancel
+                + "&status=" + status
+                + "&orderCode=" + orderCode;
+                
+        return ResponseEntity.status(302).location(URI.create(redirectFe)).build();
+    }
+
+    @PostMapping("/payos-webhook")
+    public ResponseEntity<Map<String, Boolean>> processPayOSWebhook(@RequestBody Map<String, Object> body) {
+        paymentService.processPayOSWebhook(body);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     @PostMapping("/momo-ipn")

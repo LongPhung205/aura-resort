@@ -56,4 +56,10 @@ export class ClientReviewService {
       map(res => res.data || [])
     );
   }
+
+  getReviewsByVillaId(villaId: number): Observable<ClientReview[]> {
+    return this.http.get<ApiResponse<ClientReview[]>>(`${this.API_URL}/villa/${villaId}`).pipe(
+      map(res => res.data || [])
+    );
+  }
 }

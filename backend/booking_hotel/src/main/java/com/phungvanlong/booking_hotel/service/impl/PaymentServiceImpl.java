@@ -21,10 +21,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import vn.payos.PayOS;
+import vn.payos.type.CheckoutResponseData;
+import vn.payos.type.ItemData;
+import vn.payos.type.PaymentData;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -38,6 +43,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final NotificationService notificationService;
     private final RestTemplate restTemplate;
     private final com.phungvanlong.booking_hotel.service.EmailService emailService;
+    private final PayOS payOS;
 
     @Override
     @Transactional
@@ -96,6 +102,145 @@ public class PaymentServiceImpl implements PaymentService {
         } catch (Exception e) {
             log.error("Lỗi gọi API MoMo", e);
             throw new BusinessException("Không thể kết nối tới MoMo: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public String createPayOSPayment(Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BusinessException("Không tìm thấy Booking với ID: " + bookingId));
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new BusinessException("Đơn đặt phòng này không ở trạng thái chờ thanh toán");
+        }
+
+        try {
+            String domain = "http://localhost:4200"; // Should be configurable
+            // Note: PayOS orderCode must be <= 9007199254740991 and unique. We can use bookingId + timestamp suffix but that might exceed Javascript MAX_SAFE_INTEGER
+            // Using bookingId directly but multiplied by 1000 + some random to make it unique across tests
+            long orderCode = booking.getId() * 10000 + (System.currentTimeMillis() % 10000);
+            
+            ItemData item = ItemData.builder()
+                .name("Đặt phòng " + booking.getId())
+                .price(booking.getTotalAmount().intValue())
+                .quantity(1)
+                .build();
+
+            PaymentData paymentData = PaymentData.builder()
+                .orderCode(orderCode)
+                .amount(booking.getTotalAmount().intValue())
+                .description("Thanh toan " + booking.getId())
+                .returnUrl("http://localhost:8080/api/v1/payments/payos-return?bookingId=" + booking.getId())
+                .cancelUrl("http://localhost:8080/api/v1/payments/payos-return?bookingId=" + booking.getId() + "&cancel=true")
+                .item(item)
+                .build();
+
+            CheckoutResponseData data = payOS.createPaymentLink(paymentData);
+            return data.getCheckoutUrl();
+        } catch (Exception e) {
+            log.error("Lỗi tạo PayOS link", e);
+            throw new BusinessException("Không thể kết nối tới PayOS: " + e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void processPayOSReturn(Map<String, String> params) {
+        String code = params.get("code");
+        String cancel = params.get("cancel");
+        String bookingIdStr = params.get("bookingId");
+        String orderCodeStr = params.get("orderCode");
+
+        if ("00".equals(code) && !"true".equals(cancel) && bookingIdStr != null) {
+            try {
+                Long bookingId = Long.parseLong(bookingIdStr);
+                Booking booking = bookingRepository.findById(bookingId)
+                        .orElseThrow(() -> new BusinessException("Booking not found: " + bookingId));
+
+                // Optional: verify with PayOS server
+                // vn.payos.type.PaymentLinkData data = payOS.getPaymentLinkInformation(Long.parseLong(orderCodeStr));
+                // if (!"PAID".equals(data.getStatus())) return;
+
+                if (booking.getStatus() == BookingStatus.PENDING) {
+                    booking.setStatus(BookingStatus.CONFIRMED);
+                    
+                    Payment payment = new Payment();
+                    payment.setBooking(booking);
+                    payment.setAmount(booking.getTotalAmount());
+                    payment.setPaymentMethod("PAYOS");
+                    payment.setPaymentTime(LocalDateTime.now());
+                    payment.setStatus(PaymentStatus.SUCCESS);
+                    payment.setTransactionId(orderCodeStr);
+                    
+                    paymentRepository.save(payment);
+                    bookingRepository.save(booking);
+
+                    try {
+                        emailService.sendBookingSuccessEmail(
+                                booking.getGuestEmail(), 
+                                booking.getBookingCode(), 
+                                booking.getGuestName(),
+                                booking.getCheckInDate(),
+                                booking.getCheckOutDate(),
+                                booking.getTotalAmount()
+                        );
+                    } catch (Exception e) {
+                        log.warn("Lỗi gửi email xác nhận PayOS: {}", e.getMessage());
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Lỗi xử lý PayOS return", e);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void processPayOSWebhook(Map<String, Object> body) {
+        try {
+            String code = (String) body.get("code");
+            if ("00".equals(code) && body.containsKey("data")) {
+                Map<String, Object> data = (Map<String, Object>) body.get("data");
+                String orderCodeStr = String.valueOf(data.get("orderCode"));
+                Long orderCode = Long.parseLong(orderCodeStr);
+                
+                // Móc ID Booking ra từ orderCode (nhớ lúc tạo là booking.getId() * 10000 + random)
+                Long bookingId = orderCode / 10000;
+                
+                Booking booking = bookingRepository.findById(bookingId)
+                        .orElseThrow(() -> new BusinessException("Booking not found from webhook: " + bookingId));
+
+                if (booking.getStatus() == BookingStatus.PENDING) {
+                    booking.setStatus(BookingStatus.CONFIRMED);
+                    
+                    Payment payment = new Payment();
+                    payment.setBooking(booking);
+                    payment.setAmount(booking.getTotalAmount());
+                    payment.setPaymentMethod("PAYOS");
+                    payment.setPaymentTime(LocalDateTime.now());
+                    payment.setStatus(PaymentStatus.SUCCESS);
+                    payment.setTransactionId(orderCodeStr);
+                    
+                    paymentRepository.save(payment);
+                    bookingRepository.save(booking);
+
+                    try {
+                        emailService.sendBookingSuccessEmail(
+                                booking.getGuestEmail(), 
+                                booking.getBookingCode(), 
+                                booking.getGuestName(),
+                                booking.getCheckInDate(),
+                                booking.getCheckOutDate(),
+                                booking.getTotalAmount()
+                        );
+                    } catch (Exception e) {
+                        log.warn("Lỗi gửi email xác nhận PayOS Webhook: {}", e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Lỗi xử lý PayOS Webhook", e);
         }
     }
 

@@ -10,6 +10,7 @@ import { BookingStateService } from '../../../core/services/booking-state.servic
 import { AdminExtraServiceService, ExtraServiceItem } from '../../../core/services/admin-extra-service.service';
 import { ComboPackageService, ComboPackage } from '../../../core/services/combo-package.service';
 import { PromotionService } from '../../../core/services/promotion.service';
+import { ClientReviewService, ClientReview } from '../../../core/services/client-review.service';
 
 @Component({
   selector: 'app-villa-detail',
@@ -68,39 +69,25 @@ export class VillaDetailComponent implements OnInit {
   toastType: 'success' | 'error' | 'info' = 'info';
   showToast = false;
 
-  // 5-Star Verified Reviews
-  reviews = [
-    {
-      guestName: 'Nguyễn Hoàng Long',
-      stayDate: 'Tháng 9/2026',
-      stayType: 'Gia đình 8 người • 3 đêm',
-      rating: 5,
-      initials: 'NL',
-      avatarBg: 'bg-emerald-600',
-      comment: 'Biệt thự thực sự đẳng cấp vượt kỳ vọng. Không gian sạch bóng không một hạt bụi, đã được khử khuẩn Ozone thơm tho trước khi cả nhà check-in. Hồ bơi riêng nước rất trong và ấm, trẻ con bơi cả ngày không biết chán. Quản gia hỗ trợ 24/7 cực kỳ chu đáo!',
-      highlights: ['Khử khuẩn Ozone tuyệt đối', 'Hồ bơi riêng sạch đẹp', 'Quản gia tận tâm']
-    },
-    {
-      guestName: 'Trần Minh Thu & Nhóm Bạn',
-      stayDate: 'Tháng 9/2026',
-      stayType: 'Kỳ nghỉ bạn bè • 2 đêm',
-      rating: 5,
-      initials: 'MT',
-      avatarBg: 'bg-sky-600',
-      comment: 'Vị trí sát bờ biển, đi bộ chỉ hơn 1 phút là ra tới bãi cát riêng. Buổi tối set up tiệc nướng BBQ ngay bên cạnh hồ bơi cực chill. Phòng ngủ Master rộng và đệm êm như khách sạn 6 sao.',
-      highlights: ['Sát biển riêng', 'BBQ sân vườn', 'Đệm ngủ 5 sao']
-    },
-    {
-      guestName: 'Phạm Quang Dũng',
-      stayDate: 'Tháng 8/2026',
-      stayType: 'Doanh nhân & Đối tác • 4 đêm',
-      rating: 5,
-      initials: 'QD',
-      avatarBg: 'bg-amber-600',
-      comment: 'Điểm 10 cho sự yên tĩnh và tính riêng tư tuyệt đối. Đưa đón nội khu bằng xe điện rất nhanh, thủ tục nhận trả phòng tức thì không mất thời gian. Chắc chắn sẽ quay lại vào kỳ nghỉ tới!',
-      highlights: ['Riêng tư yên tĩnh', 'Xe điện đưa đón', 'Check-in tức thì']
-    }
-  ];
+  // Real Verified Reviews from Database
+  reviews: {
+    guestName: string;
+    stayDate: string;
+    stayType: string;
+    rating: number;
+    initials: string;
+    avatarBg: string;
+    comment: string;
+    highlights: string[];
+    managementReply?: string | null;
+    repliedAt?: string | null;
+  }[] = [];
+
+  get averageReviewScore(): number {
+    if (!this.reviews || this.reviews.length === 0) return 5.0;
+    const sum = this.reviews.reduce((acc, r) => acc + (r.rating || 5), 0);
+    return Math.round((sum / this.reviews.length) * 10) / 10;
+  }
 
   // Surroundings / Proximity Highlights
   resortProximities = [
@@ -120,13 +107,15 @@ export class VillaDetailComponent implements OnInit {
     private bookingStateService: BookingStateService,
     private extraService: AdminExtraServiceService,
     private comboService: ComboPackageService,
-    private promotionService: PromotionService
+    private promotionService: PromotionService,
+    private reviewService: ClientReviewService
   ) {}
 
   ngOnInit(): void {
     this.villaId = this.route.snapshot.paramMap.get('id');
     if (this.villaId) {
       this.loadVilla(this.villaId);
+      this.loadVillaReviews(this.villaId);
     } else {
       this.hasError = true;
       this.loading = false;
@@ -193,6 +182,35 @@ export class VillaDetailComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  loadVillaReviews(id: string | null): void {
+    if (!id) return;
+    const numId = Number(id);
+    if (!isNaN(numId) && numId > 0) {
+      this.reviewService.getReviewsByVillaId(numId).subscribe({
+        next: (data: ClientReview[]) => {
+          if (data && data.length > 0) {
+            const mapped = data.map(r => ({
+              guestName: r.userName || 'Khách lưu trú',
+              stayDate: r.createdAt ? new Date(r.createdAt).toLocaleDateString('vi-VN') : 'Gần đây',
+              stayType: 'Kỳ nghỉ Aura Resort',
+              rating: r.rating || 5,
+              initials: (r.userName ? r.userName.charAt(0) : 'K').toUpperCase(),
+              avatarBg: 'bg-emerald-600',
+              comment: r.comment,
+              highlights: ['Xác thực đặt phòng'],
+              managementReply: r.managementReply,
+              repliedAt: r.repliedAt ? new Date(r.repliedAt).toLocaleDateString('vi-VN') : null
+            }));
+            this.reviews = mapped;
+          }
+        },
+        error: (err) => {
+          console.warn('Could not load dynamic reviews, fallback to default reviews', err);
+        }
+      });
+    }
   }
 
   private setupGallery(villa: Villa): void {

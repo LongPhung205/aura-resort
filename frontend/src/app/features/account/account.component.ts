@@ -305,7 +305,10 @@ export class AccountComponent implements OnInit {
 
   get completedUnreviewedBookings(): ClientBooking[] {
     const reviewedBookingIds = new Set(this.reviews.map(r => r.bookingId));
-    return this.bookings.filter(b => b.status === 'CHECKED_OUT' && !reviewedBookingIds.has(b.id));
+    return this.bookings.filter(b => 
+      (b.status === 'CHECKED_OUT' || b.status === 'CONFIRMED' || b.status === 'CHECKED_IN') && 
+      !reviewedBookingIds.has(b.id)
+    );
   }
 
   openWriteReview(booking: ClientBooking): void {

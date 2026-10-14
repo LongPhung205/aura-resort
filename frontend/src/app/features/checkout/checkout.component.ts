@@ -318,6 +318,24 @@ export class CheckoutComponent implements OnInit {
               this.isSubmitting = false;
             }
           });
+        } else if (this.paymentMethod === 'transfer' && bookingId) {
+          this.http.post<any>(`${environment.apiUrl}/payments/payos/${bookingId}`, {}).subscribe({
+            next: (payosRes) => {
+              if (payosRes.data) {
+                window.location.href = payosRes.data;
+              } else {
+                this.submitError = 'Không lấy được link thanh toán PayOS!';
+                this.showToastMessage('Không lấy được link thanh toán PayOS!', 'error');
+                this.isSubmitting = false;
+              }
+            },
+            error: (err) => {
+              console.error('Lỗi PayOS', err);
+              this.submitError = 'Lỗi kết nối PayOS. Vui lòng thử lại!';
+              this.showToastMessage('Lỗi kết nối PayOS. Vui lòng thử lại!', 'error');
+              this.isSubmitting = false;
+            }
+          });
         } else {
           this.showToastMessage('Đặt phòng thành công! Chúng tôi đã gửi email xác nhận.', 'success');
           this.isSubmitting = false;
