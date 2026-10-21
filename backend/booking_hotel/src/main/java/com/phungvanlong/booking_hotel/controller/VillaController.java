@@ -2,6 +2,7 @@ package com.phungvanlong.booking_hotel.controller;
 
 import com.phungvanlong.booking_hotel.dto.request.VillaRequest;
 import com.phungvanlong.booking_hotel.dto.response.ApiResponse;
+import com.phungvanlong.booking_hotel.dto.response.PageResponse;
 import com.phungvanlong.booking_hotel.dto.response.VillaResponse;
 import com.phungvanlong.booking_hotel.entity.VillaStatus;
 import com.phungvanlong.booking_hotel.service.VillaService;
@@ -9,6 +10,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,6 +38,22 @@ public class VillaController {
             @RequestParam(required = false) String zone) {
         List<VillaResponse> list = villaService.getAllVillas(typeId, status, zone);
         return ResponseEntity.ok(ApiResponse.success(list, "Lấy danh sách Villa thành công"));
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<ApiResponse<PageResponse<VillaResponse>>> getVillasPaged(
+            @RequestParam(required = false) Long typeId,
+            @RequestParam(required = false) VillaStatus status,
+            @RequestParam(required = false) String zone,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        String[] sortParams = sort.split(",");
+        Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("asc")
+                ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortParams[0]));
+        PageResponse<VillaResponse> result = villaService.getVillasPaged(typeId, status, zone, pageable);
+        return ResponseEntity.ok(ApiResponse.success(result, "Lấy danh sách Villa phân trang thành công"));
     }
 
     @GetMapping("/{id}")

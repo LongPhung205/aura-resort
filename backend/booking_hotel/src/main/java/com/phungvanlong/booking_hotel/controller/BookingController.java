@@ -24,10 +24,11 @@ public class BookingController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<BookingResponse>> createBooking(
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody BookingRequest request,
             Authentication authentication) {
         String userEmail = authentication.getName();
-        BookingResponse booking = bookingService.createBooking(request, userEmail);
+        BookingResponse booking = bookingService.createBooking(request, userEmail, idempotencyKey);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(booking, "Tạo đơn đặt phòng thành công"));
     }

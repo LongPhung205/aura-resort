@@ -3,6 +3,8 @@ package com.phungvanlong.booking_hotel.repository;
 import com.phungvanlong.booking_hotel.entity.Villa;
 import com.phungvanlong.booking_hotel.entity.VillaStatus;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -45,6 +47,17 @@ public interface VillaRepository extends JpaRepository<Villa, Long> {
             @Param("typeId") Long typeId,
             @Param("status") VillaStatus status,
             @Param("zone") String zone);
+
+    @EntityGraph(attributePaths = {"villaType", "zone", "images", "rooms.roomType"})
+    @Query("SELECT v FROM Villa v WHERE " +
+           "(:typeId IS NULL OR v.villaType.id = :typeId) AND " +
+           "(:status IS NULL OR v.status = :status) AND " +
+           "(:zone IS NULL OR (v.zone IS NOT NULL AND v.zone.name = :zone))")
+    Page<Villa> findByFilters(
+            @Param("typeId") Long typeId,
+            @Param("status") VillaStatus status,
+            @Param("zone") String zone,
+            Pageable pageable);
 
     // Dùng cho Gantt chart — chỉ cần villaType + zone, không cần images/rooms
     @EntityGraph(attributePaths = {"villaType", "zone"})

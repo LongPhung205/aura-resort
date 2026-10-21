@@ -3,10 +3,13 @@ package com.phungvanlong.booking_hotel.service.impl;
 import com.phungvanlong.booking_hotel.dto.request.ChildRoomRequestDto;
 import com.phungvanlong.booking_hotel.dto.request.VillaBedSelectionDto;
 import com.phungvanlong.booking_hotel.dto.request.VillaRequest;
+import com.phungvanlong.booking_hotel.dto.response.PageResponse;
 import com.phungvanlong.booking_hotel.dto.response.VillaResponse;
 import com.phungvanlong.booking_hotel.entity.Room;
 import com.phungvanlong.booking_hotel.entity.RoomStatus;
 import com.phungvanlong.booking_hotel.entity.RoomType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.phungvanlong.booking_hotel.entity.Villa;
 import com.phungvanlong.booking_hotel.entity.VillaImage;
 import com.phungvanlong.booking_hotel.entity.VillaStatus;
@@ -340,6 +343,13 @@ public class VillaServiceImpl implements VillaService {
     public List<VillaResponse> getAllVillas(Long villaTypeId, VillaStatus status, String zone) {
         List<Villa> list = villaRepository.findByFilters(villaTypeId, status, zone);
         return list.stream().map(villaMapper::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<VillaResponse> getVillasPaged(Long villaTypeId, VillaStatus status, String zone, Pageable pageable) {
+        Page<Villa> page = villaRepository.findByFilters(villaTypeId, status, zone, pageable);
+        return PageResponse.of(page.map(villaMapper::toResponse));
     }
 
     @Override

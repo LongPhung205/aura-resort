@@ -1,5 +1,6 @@
 package com.phungvanlong.booking_hotel.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.phungvanlong.booking_hotel.dto.request.AdminBookingFilterRequest;
 import com.phungvanlong.booking_hotel.dto.request.BookingExtraServiceDto;
 import com.phungvanlong.booking_hotel.dto.request.BookingRequest;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,12 +28,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class BookingServiceImpl implements BookingService {
+
+    private static final String IDEMPOTENCY_PREFIX = "idempotency:booking:";
 
     private final BookingRepository bookingRepository;
     private final BookingDetailRepository bookingDetailRepository;
@@ -47,10 +52,59 @@ public class BookingServiceImpl implements BookingService {
     private final BookingExtraServiceRepository bookingExtraServiceRepository;
     private final com.phungvanlong.booking_hotel.service.EmailService emailService;
     private final NotificationService notificationService;
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
-    public BookingResponse createBooking(BookingRequest request, String userEmail) {
+    public BookingResponse createBooking(BookingRequest request, String userEmail, String idempotencyKey) {
+        String cacheKey = (idempotencyKey != null && !idempotencyKey.trim().isEmpty())
+                ? IDEMPOTENCY_PREFIX + userEmail + ":" + idempotencyKey.trim()
+                : null;
+
+        if (cacheKey != null) {
+            try {
+                String existing = redisTemplate.opsForValue().get(cacheKey);
+                if ("PROCESSING".equals(existing)) {
+                    throw new BusinessException("Yêu cầu đặt phòng đang được xử lý, vui lòng không gửi lại!");
+                } else if (existing != null && !existing.isBlank()) {
+                    log.info("Trả về kết quả đặt phòng từ Idempotency Cache cho key: {}", idempotencyKey);
+                    return objectMapper.readValue(existing, BookingResponse.class);
+                }
+                redisTemplate.opsForValue().set(cacheKey, "PROCESSING", 60, TimeUnit.SECONDS);
+            } catch (BusinessException be) {
+                throw be;
+            } catch (Exception e) {
+                log.warn("Lỗi kiểm tra Idempotency cache Redis: {}", e.getMessage());
+            }
+        }
+
+        try {
+            BookingResponse response = doCreateBooking(request, userEmail);
+
+            if (cacheKey != null) {
+                try {
+                    String json = objectMapper.writeValueAsString(response);
+                    redisTemplate.opsForValue().set(cacheKey, json, 24, TimeUnit.HOURS);
+                } catch (Exception e) {
+                    log.warn("Lỗi lưu Idempotency cache Redis: {}", e.getMessage());
+                }
+            }
+
+            return response;
+        } catch (RuntimeException re) {
+            if (cacheKey != null) {
+                try {
+                    redisTemplate.delete(cacheKey);
+                } catch (Exception e) {
+                    log.warn("Lỗi xóa Idempotency cache key: {}", e.getMessage());
+                }
+            }
+            throw re;
+        }
+    }
+
+    private BookingResponse doCreateBooking(BookingRequest request, String userEmail) {
         if (!request.getCheckInDate().isBefore(request.getCheckOutDate())) {
             throw new BusinessException("Ngày trả phòng/villa phải sau ngày nhận");
         }

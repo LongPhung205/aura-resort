@@ -12,7 +12,11 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface BookingService {
-    BookingResponse createBooking(BookingRequest request, String userEmail);
+    BookingResponse createBooking(BookingRequest request, String userEmail, String idempotencyKey);
+
+    default BookingResponse createBooking(BookingRequest request, String userEmail) {
+        return createBooking(request, userEmail, null);
+    }
     BookingResponse getBookingById(Long id, String userEmail);
     List<BookingResponse> getMyBookings(String userEmail);
     void cancelBooking(Long id, String userEmail);
