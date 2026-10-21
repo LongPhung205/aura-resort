@@ -14,5 +14,5 @@ public class HousekeeperSummaryDto {
     private String fullName;
     private String email;
     private String phone;
-    private int activeTasksCount;
+    private Long activeTasksCount;
 }

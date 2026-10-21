@@ -48,6 +48,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 if (claims != null) {
+                    // 3. Reject non-ACCESS tokens (e.g. Refresh tokens used as auth credentials)
+                    String tokenType = claims.get("tokenType", String.class);
+                    if (!"ACCESS".equalsIgnoreCase(tokenType)) {
+                        logger.warn("Rejected token with invalid tokenType: " + tokenType
+                                + " for URI: " + request.getRequestURI());
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+
                     String email = claims.getSubject();
                     Object userIdObj = claims.get("userId");
                     Long userId = (userIdObj instanceof Number num) ? num.longValue() : null;

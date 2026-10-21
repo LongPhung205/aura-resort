@@ -1,6 +1,7 @@
 package com.phungvanlong.booking_hotel.dto.request;
 
 import com.phungvanlong.booking_hotel.entity.Role;
+import com.phungvanlong.booking_hotel.validation.VietnamesePhone;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +21,7 @@ public class CreateUserAdminRequest {
     @NotBlank(message = "Họ tên không được để trống")
     private String fullName;
 
+    @VietnamesePhone
     private String phone;
 
     @NotNull(message = "Vai trò không được để trống")

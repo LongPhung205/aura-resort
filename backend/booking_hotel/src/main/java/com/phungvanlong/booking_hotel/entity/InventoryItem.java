@@ -62,4 +62,8 @@ public class InventoryItem extends BaseEntity {
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<InventoryTransaction> transactions = new ArrayList<>();
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

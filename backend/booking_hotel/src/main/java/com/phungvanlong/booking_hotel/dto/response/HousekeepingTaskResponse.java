@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class HousekeepingTaskResponse {
     private Long id;
+    private String targetType; // VILLA hoặc ROOM
     
     // Villa info
     private Long villaId;
@@ -70,9 +71,11 @@ public class HousekeepingTaskResponse {
         String rNum = task.getRoom() != null ? task.getRoom().getRoomNumber() : vNum;
         String rName = task.getRoom() != null ? task.getRoom().getName() : null;
         String rType = task.getRoom() != null && task.getRoom().getRoomType() != null ? task.getRoom().getRoomType().getName() : vType;
+        String targetType = (task.getRoom() != null) ? "ROOM" : "VILLA";
 
         return HousekeepingTaskResponse.builder()
                 .id(task.getId())
+                .targetType(targetType)
                 .villaId(vId)
                 .villaNumber(vNum)
                 .villaTypeName(vType)

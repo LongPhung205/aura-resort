@@ -41,4 +41,8 @@ public class Promotion extends BaseEntity {
 
     @Column(name = "category", length = 50)
     private String category;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

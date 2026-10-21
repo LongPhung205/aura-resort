@@ -1,6 +1,7 @@
 package com.phungvanlong.booking_hotel.dto.request;
 
 import com.phungvanlong.booking_hotel.entity.DiscountType;
+import com.phungvanlong.booking_hotel.validation.ValidDateRange;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
@@ -18,6 +19,12 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidDateRange(
+        startField = "startDate",
+        endField = "endDate",
+        allowEqual = true,
+        message = "Ngày bắt đầu không thể sau ngày kết thúc"
+)
 public class PromotionRequest {
 
     @NotBlank(message = "Mã khuyến mãi không được để trống")

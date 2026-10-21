@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ public class EmailServiceImpl implements EmailService {
     private long otpExpiration;
 
     @Override
+    @Async("taskExecutor")
     public void sendOtpEmail(String to, String otp) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -53,6 +55,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
+    @Async("taskExecutor")
     public void sendPasswordResetOtpEmail(String to, String otp) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -79,16 +82,17 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             log.error("Failed to send password reset OTP email to {}: {}", to, e.getMessage(), e);
-            throw new RuntimeException("Failed to send email", e);
         }
     }
 
     @Override
+    @Async("taskExecutor")
     public void sendBookingSuccessEmail(String to, String bookingCode, String guestName) {
         sendBookingSuccessEmail(to, bookingCode, guestName, null, null, null);
     }
 
     @Override
+    @Async("taskExecutor")
     public void sendBookingSuccessEmail(String to, String bookingCode, String guestName, LocalDate checkInDate, LocalDate checkOutDate, BigDecimal totalAmount) {
         if (to == null || to.isBlank()) {
             log.warn("Cannot send booking success email: recipient email is blank for booking {}", bookingCode);

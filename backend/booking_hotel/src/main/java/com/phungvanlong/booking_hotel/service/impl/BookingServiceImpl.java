@@ -8,6 +8,7 @@ import com.phungvanlong.booking_hotel.entity.*;
 import com.phungvanlong.booking_hotel.exception.BusinessException;
 import com.phungvanlong.booking_hotel.repository.*;
 import com.phungvanlong.booking_hotel.service.BookingService;
+import com.phungvanlong.booking_hotel.service.NotificationService;
 import com.phungvanlong.booking_hotel.service.PromotionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class BookingServiceImpl implements BookingService {
     private final ExtraServiceRepository extraServiceRepository;
     private final BookingExtraServiceRepository bookingExtraServiceRepository;
     private final com.phungvanlong.booking_hotel.service.EmailService emailService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -59,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
         Long targetTypeId = request.getTargetVillaTypeId();
         Villa specificVilla = null;
         if (request.getVillaId() != null) {
-            specificVilla = villaRepository.findById(request.getVillaId())
+            specificVilla = villaRepository.findByIdForUpdate(request.getVillaId())
                     .orElseThrow(() -> new BusinessException("Không tìm thấy căn Villa được chọn"));
             if (targetTypeId == null && specificVilla.getVillaType() != null) {
                 targetTypeId = specificVilla.getVillaType().getId();
@@ -112,7 +114,23 @@ public class BookingServiceImpl implements BookingService {
             if (availableVillas.size() < quantity) {
                 throw new BusinessException("Không đủ Villa trống trong khoảng thời gian này (chỉ còn " + availableVillas.size() + " căn trống)");
             }
-            selectedVillas = availableVillas.subList(0, quantity);
+
+            // Khóa hàng (Pessimistic Lock) các căn Villa được phân bổ theo thứ tự ID tăng dần để tránh deadlock
+            List<Long> selectedVillaIds = availableVillas.subList(0, quantity).stream()
+                    .map(Villa::getId)
+                    .sorted()
+                    .collect(Collectors.toList());
+            List<Villa> lockedVillas = villaRepository.findAllByIdForUpdate(selectedVillaIds);
+
+            // Kiểm tra lại sau khi giữ lock để đảm bảo không bị race condition từ giao dịch đồng thời vừa commit
+            for (Villa v : lockedVillas) {
+                long overlaps = bookingRepository.countOverlappingBookingsForVilla(
+                        v.getId(), request.getCheckInDate(), request.getCheckOutDate());
+                if (overlaps > 0) {
+                    throw new BusinessException("Căn " + v.getVillaNumber() + " vừa có khách khác hoàn tất đặt. Vui lòng thử lại!");
+                }
+            }
+            selectedVillas = lockedVillas;
         } else {
             // Backward compatibility: Fallback if old roomType requested
             RoomType roomType = roomTypeRepository.findById(targetTypeId)
@@ -128,7 +146,12 @@ public class BookingServiceImpl implements BookingService {
             if (availableRooms.size() < quantity) {
                 throw new BusinessException("Không đủ phòng/villa trống trong khoảng thời gian này");
             }
-            selectedRooms = availableRooms.subList(0, quantity);
+
+            List<Long> selectedRoomIds = availableRooms.subList(0, quantity).stream()
+                    .map(Room::getId)
+                    .sorted()
+                    .collect(Collectors.toList());
+            selectedRooms = roomRepository.findAllByIdForUpdate(selectedRoomIds);
         }
 
         BigDecimal totalAmount = dailyPrice
@@ -343,8 +366,15 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(BookingStatus.CANCELLED);
+        booking.setExpireAt(null);
         restorePromotion(booking);
         bookingRepository.save(booking);
+
+        try {
+            notificationService.sendNotification("REFRESH_GANTT");
+        } catch (Exception e) {
+            log.warn("Không thể gửi SSE notification khi hủy đơn: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -378,20 +408,26 @@ public class BookingServiceImpl implements BookingService {
                 LocalDateTime.now());
         for (Booking booking : expiredBookings) {
             booking.setStatus(BookingStatus.CANCELLED);
+            booking.setExpireAt(null);
             restorePromotion(booking);
         }
         if (!expiredBookings.isEmpty()) {
             bookingRepository.saveAll(expiredBookings);
+            try {
+                notificationService.sendNotification("REFRESH_GANTT");
+            } catch (Exception e) {
+                log.warn("Không thể gửi SSE notification khi quét hủy đơn hết hạn: {}", e.getMessage());
+            }
         }
     }
-
-
 
     private void restorePromotion(Booking booking) {
         if (booking.getPromotion() != null && booking.getPromotion().getQuantity() != null) {
             Promotion promotion = booking.getPromotion();
-            promotion.setQuantity(promotion.getQuantity() + 1);
+            int oldQty = promotion.getQuantity();
+            promotion.setQuantity(oldQty + 1);
             promotionRepository.save(promotion);
+            log.info("Đã hoàn lại 1 lượt dùng cho voucher [{}]: {} -> {}", promotion.getCode(), oldQty, promotion.getQuantity());
         }
     }
 }

@@ -18,6 +18,7 @@ import com.phungvanlong.booking_hotel.repository.RoomTypeRepository;
 import com.phungvanlong.booking_hotel.repository.VillaRepository;
 import com.phungvanlong.booking_hotel.repository.VillaTypeRepository;
 import com.phungvanlong.booking_hotel.repository.ZoneRepository;
+import com.phungvanlong.booking_hotel.service.CloudinaryService;
 import com.phungvanlong.booking_hotel.service.VillaService;
 import lombok.RequiredArgsConstructor;
 import com.phungvanlong.booking_hotel.mapper.VillaMapper;
@@ -44,6 +45,7 @@ public class VillaServiceImpl implements VillaService {
     @Value("${app.upload-dir}")
     private String uploadDir;
 
+    private final CloudinaryService cloudinaryService;
     private final VillaRepository villaRepository;
     private final VillaTypeRepository villaTypeRepository;
     private final RoomTypeRepository roomTypeRepository;
@@ -322,37 +324,7 @@ public class VillaServiceImpl implements VillaService {
 
     @Override
     public String uploadImage(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessException("Vui lòng chọn tệp hình ảnh hợp lệ!");
-        }
-
-        try {
-            String originalFilename = file.getOriginalFilename();
-            String extension = ".jpg";
-            if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            }
-
-            String uniqueName = "villa_" + UUID.randomUUID().toString().substring(0, 8) + extension;
-
-            // Save to frontend public assets directory
-            Path frontendUploadDir = Paths.get(uploadDir);
-            if (!Files.exists(frontendUploadDir)) {
-                Files.createDirectories(frontendUploadDir);
-            }
-            Path targetPath = frontendUploadDir.resolve(uniqueName);
-            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-            return "/assets/images/uploads/" + uniqueName;
-        } catch (Exception e) {
-            try {
-                String base64 = Base64.getEncoder().encodeToString(file.getBytes());
-                String contentType = file.getContentType() != null ? file.getContentType() : "image/jpeg";
-                return "data:" + contentType + ";base64," + base64;
-            } catch (Exception ex) {
-                throw new BusinessException("Không thể xử lý tệp ảnh tải lên: " + ex.getMessage());
-            }
-        }
+        return cloudinaryService.uploadImage(file, "aura-resort/villas");
     }
 
     @Override

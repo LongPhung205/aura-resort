@@ -5,6 +5,7 @@ import com.phungvanlong.booking_hotel.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.phungvanlong.booking_hotel.config.MoMoConfig;
+import com.phungvanlong.booking_hotel.config.PayOSConfig;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final MoMoConfig moMoConfig;
+    private final PayOSConfig payOSConfig;
 
     // Không cần @PreAuthorize("hasRole('USER')") - bất kỳ user đã login đều có thể thanh toán
     @PostMapping("/momo/{bookingId}")
@@ -67,7 +69,11 @@ public class PaymentController {
         String status = params.getOrDefault("status", "");
         String orderCode = params.getOrDefault("orderCode", "");
         
-        String redirectFe = "http://localhost:4200/payment/payos-result"
+        String targetFe = (payOSConfig.getFrontendUrl() != null && !payOSConfig.getFrontendUrl().isBlank())
+                ? payOSConfig.getFrontendUrl()
+                : "http://localhost:4200/payment/payos-result";
+
+        String redirectFe = targetFe
                 + "?code=" + code
                 + "&cancel=" + cancel
                 + "&status=" + status

@@ -1,6 +1,8 @@
 package com.phungvanlong.booking_hotel.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.phungvanlong.booking_hotel.validation.ValidDateRange;
+import com.phungvanlong.booking_hotel.validation.VietnamesePhone;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
@@ -18,6 +20,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
+@ValidDateRange(
+        startField = "checkInDate",
+        endField = "checkOutDate",
+        message = "Ngày trả phòng/villa phải sau ngày nhận phòng"
+)
 public class BookingRequest {
 
     @NotNull(message = "Ngày nhận phòng/villa không được để trống")
@@ -50,6 +57,8 @@ public class BookingRequest {
     
     private String guestName;
     private String guestEmail;
+
+    @VietnamesePhone
     private String guestPhone;
     private String estimatedArrivalTime;
 

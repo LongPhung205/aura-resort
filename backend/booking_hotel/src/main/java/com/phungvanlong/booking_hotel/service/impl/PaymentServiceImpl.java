@@ -1,6 +1,7 @@
 package com.phungvanlong.booking_hotel.service.impl;
 
 import com.phungvanlong.booking_hotel.config.MoMoConfig;
+import com.phungvanlong.booking_hotel.config.PayOSConfig;
 import com.phungvanlong.booking_hotel.dto.request.MoMoPaymentRequest;
 import com.phungvanlong.booking_hotel.dto.response.MoMoPaymentResponse;
 import com.phungvanlong.booking_hotel.entity.Booking;
@@ -37,6 +38,7 @@ import java.util.List;
 public class PaymentServiceImpl implements PaymentService {
 
     private final MoMoConfig moMoConfig;
+    private final PayOSConfig payOSConfig;
     private final BookingRepository bookingRepository;
     private final PaymentRepository paymentRepository;
     private final PromotionRepository promotionRepository;
@@ -116,7 +118,6 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         try {
-            String domain = "http://localhost:4200"; // Should be configurable
             // Note: PayOS orderCode must be <= 9007199254740991 and unique. We can use bookingId + timestamp suffix but that might exceed Javascript MAX_SAFE_INTEGER
             // Using bookingId directly but multiplied by 1000 + some random to make it unique across tests
             long orderCode = booking.getId() * 10000 + (System.currentTimeMillis() % 10000);
@@ -127,12 +128,19 @@ public class PaymentServiceImpl implements PaymentService {
                 .quantity(1)
                 .build();
 
+            String baseReturnUrl = (payOSConfig.getReturnUrl() != null && !payOSConfig.getReturnUrl().isBlank())
+                    ? payOSConfig.getReturnUrl()
+                    : "http://localhost:8080/api/v1/payments/payos-return";
+            String separator = baseReturnUrl.contains("?") ? "&" : "?";
+            String returnUrl = baseReturnUrl + separator + "bookingId=" + booking.getId();
+            String cancelUrl = baseReturnUrl + separator + "bookingId=" + booking.getId() + "&cancel=true";
+
             PaymentData paymentData = PaymentData.builder()
                 .orderCode(orderCode)
                 .amount(booking.getTotalAmount().intValue())
                 .description("Thanh toan " + booking.getId())
-                .returnUrl("http://localhost:8080/api/v1/payments/payos-return?bookingId=" + booking.getId())
-                .cancelUrl("http://localhost:8080/api/v1/payments/payos-return?bookingId=" + booking.getId() + "&cancel=true")
+                .returnUrl(returnUrl)
+                .cancelUrl(cancelUrl)
                 .item(item)
                 .build();
 
@@ -366,6 +374,7 @@ public class PaymentServiceImpl implements PaymentService {
             
             if (booking.getStatus() == BookingStatus.PENDING) {
                 booking.setStatus(BookingStatus.CANCELLED);
+                booking.setExpireAt(null);
                 restorePromotion(booking);
                 bookingRepository.save(booking);
             }
@@ -389,8 +398,10 @@ public class PaymentServiceImpl implements PaymentService {
         if (booking.getPromotion() != null) {
             Promotion promotion = booking.getPromotion();
             if (promotion.getQuantity() != null) {
-                promotion.setQuantity(promotion.getQuantity() + 1);
+                int oldQty = promotion.getQuantity();
+                promotion.setQuantity(oldQty + 1);
                 promotionRepository.save(promotion);
+                log.info("Đã hoàn lại 1 lượt dùng cho voucher [{}]: {} -> {}", promotion.getCode(), oldQty, promotion.getQuantity());
             }
         }
     }

@@ -2,8 +2,10 @@ package com.phungvanlong.booking_hotel.repository;
 
 import com.phungvanlong.booking_hotel.entity.Villa;
 import com.phungvanlong.booking_hotel.entity.VillaStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,6 +15,14 @@ import java.util.Optional;
 
 @Repository
 public interface VillaRepository extends JpaRepository<Villa, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT v FROM Villa v WHERE v.id = :id")
+    Optional<Villa> findByIdForUpdate(@Param("id") Long id);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT v FROM Villa v WHERE v.id IN :ids")
+    List<Villa> findAllByIdForUpdate(@Param("ids") List<Long> ids);
 
     Optional<Villa> findByVillaNumber(String villaNumber);
     Optional<Villa> findByVillaNumberAndZoneId(String villaNumber, Long zoneId);

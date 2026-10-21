@@ -40,6 +40,7 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     private final NotificationService notificationService;
 
     @Override
+    @Transactional(readOnly = true)
     public List<HousekeepingTaskResponse> getAllTasks(String status) {
         List<HousekeepingTask> tasks;
         if (status != null && !status.isBlank() && !status.equalsIgnoreCase("ALL")) {
@@ -51,6 +52,7 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<HousekeepingTaskResponse> getMyTasks(String housekeeperEmail, Long housekeeperId) {
         List<HousekeepingTask> tasks;
         if (housekeeperId != null) {
@@ -69,20 +71,9 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<HousekeeperSummaryDto> getAvailableHousekeepers() {
-        List<User> housekeepers = userRepository.findByRole(Role.ROLE_HOUSEKEEPING);
-        return housekeepers.stream().map(u -> {
-            List<HousekeepingTask> active = housekeepingTaskRepository.findByHousekeeperIdOrderByCreatedAtDesc(u.getId()).stream()
-                    .filter(t -> !"COMPLETED".equalsIgnoreCase(t.getStatus()))
-                    .collect(Collectors.toList());
-            return HousekeeperSummaryDto.builder()
-                    .id(u.getId())
-                    .fullName(u.getFullName())
-                    .email(u.getEmail())
-                    .phone(u.getPhone())
-                    .activeTasksCount(active.size())
-                    .build();
-        }).collect(Collectors.toList());
+        return housekeepingTaskRepository.findHousekeeperSummariesWithActiveTaskCount(Role.ROLE_HOUSEKEEPING);
     }
 
     @Override
@@ -371,9 +362,7 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     @Override
     @Transactional(readOnly = true)
     public List<HousekeepingTaskResponse> getAvailableDirtyRooms(String staffEmail) {
-        // Lấy danh sách nhiệm vụ chưa ai nhận hoặc đang chờ dọn
-        return housekeepingTaskRepository.findAll().stream()
-                .filter(t -> "PENDING".equalsIgnoreCase(t.getStatus()) || t.getHousekeeper() == null)
+        return housekeepingTaskRepository.findAvailableDirtyTasks().stream()
                 .map(HousekeepingTaskResponse::fromEntity)
                 .collect(Collectors.toList());
     }
