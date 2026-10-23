@@ -52,7 +52,7 @@ public class RefillTask extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
-    @OneToMany(mappedBy = "refillTask", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "refillTask", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<RefillTaskItem> items = new ArrayList<>();
 }

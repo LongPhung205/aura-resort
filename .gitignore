@@ -64,7 +64,11 @@ pnpm-debug.log*
 *.env.*
 *.local
 *-local.properties
-application-local.properties
+application*.properties
+application*.yml
+application*.yaml
+!application*.example
+!application*.sample
 *.pem
 *.key
 *.jks
