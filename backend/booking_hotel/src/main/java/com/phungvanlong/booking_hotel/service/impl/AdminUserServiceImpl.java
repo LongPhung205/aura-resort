@@ -25,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.phungvanlong.booking_hotel.repository.specification.UserSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,13 +58,14 @@ public class AdminUserServiceImpl implements AdminUserService {
         String search = (filter.getSearch() != null && !filter.getSearch().trim().isEmpty()) 
                 ? filter.getSearch().trim() : null;
 
-        Page<User> userPage = userRepository.findByFilters(
+        Specification<User> spec = UserSpecification.filter(
                 tab,
                 filter.getRole(),
                 filter.getIsActive(),
-                search,
-                pageable
+                search
         );
+
+        Page<User> userPage = userRepository.findAll(spec, pageable);
 
         Page<UserResponseDto> dtoPage = userPage.map(this::mapToDto);
         return PageResponse.of(dtoPage);

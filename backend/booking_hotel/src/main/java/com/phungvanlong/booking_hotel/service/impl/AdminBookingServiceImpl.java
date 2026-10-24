@@ -22,6 +22,9 @@ import com.phungvanlong.booking_hotel.repository.UserRepository;
 import com.phungvanlong.booking_hotel.service.AdminBookingService;
 import com.phungvanlong.booking_hotel.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import com.phungvanlong.booking_hotel.repository.specification.BookingSpecification;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -211,7 +214,11 @@ public class AdminBookingServiceImpl implements AdminBookingService {
     public PageResponse<AdminBookingItemResponse> getAdminBookings(AdminBookingFilterRequest filterRequest) {
         int pageNo = Math.max(0, filterRequest.getPage());
         int pageSize = filterRequest.getSize() > 0 ? filterRequest.getSize() : 10;
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Sort sort = Sort.by(
+                "DESC".equalsIgnoreCase(filterRequest.getSortDirection()) ? Sort.Direction.DESC : Sort.Direction.ASC,
+                filterRequest.getSortBy() != null ? filterRequest.getSortBy() : "checkInDate"
+        );
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
         BookingStatus statusEnum = null;
         if (filterRequest.getStatus() != null && !filterRequest.getStatus().isBlank()
@@ -223,12 +230,14 @@ public class AdminBookingServiceImpl implements AdminBookingService {
             }
         }
 
-        Page<Booking> pageResult = bookingRepository.searchAdminBookings(
+        Specification<Booking> spec = BookingSpecification.filter(
                 filterRequest.getSearch(),
                 statusEnum,
                 filterRequest.getFromDate(),
-                filterRequest.getToDate(),
-                pageable);
+                filterRequest.getToDate()
+        );
+
+        Page<Booking> pageResult = bookingRepository.findAll(spec, pageable);
 
         List<AdminBookingItemResponse> items = new ArrayList<>();
 

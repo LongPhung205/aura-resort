@@ -25,6 +25,8 @@ import com.phungvanlong.booking_hotel.service.CloudinaryService;
 import com.phungvanlong.booking_hotel.service.VillaService;
 import lombok.RequiredArgsConstructor;
 import com.phungvanlong.booking_hotel.mapper.VillaMapper;
+import com.phungvanlong.booking_hotel.repository.specification.VillaSpecification;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -341,14 +343,16 @@ public class VillaServiceImpl implements VillaService {
     @Override
     @Transactional(readOnly = true)
     public List<VillaResponse> getAllVillas(Long villaTypeId, VillaStatus status, String zone) {
-        List<Villa> list = villaRepository.findByFilters(villaTypeId, status, zone);
+        Specification<Villa> spec = VillaSpecification.filter(villaTypeId, status, zone);
+        List<Villa> list = villaRepository.findAll(spec);
         return list.stream().map(villaMapper::toResponse).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
     public PageResponse<VillaResponse> getVillasPaged(Long villaTypeId, VillaStatus status, String zone, Pageable pageable) {
-        Page<Villa> page = villaRepository.findByFilters(villaTypeId, status, zone, pageable);
+        Specification<Villa> spec = VillaSpecification.filter(villaTypeId, status, zone);
+        Page<Villa> page = villaRepository.findAll(spec, pageable);
         return PageResponse.of(page.map(villaMapper::toResponse));
     }
 
