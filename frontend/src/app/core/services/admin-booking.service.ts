@@ -5,16 +5,13 @@ import { map, catchError } from 'rxjs/operators';
 import {
   AdminBookingFilterParams,
   AdminBookingItem,
-  AdminPageResponse,
   GanttRoomAvailability,
 } from '../models/admin-booking.model';
+import { PageResponse } from '../models/page.model';
+import { ApiResponse } from '../models/api-response.model';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
 
+import { buildHttpParams } from '../utils/http-params.util';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -25,18 +22,11 @@ export class AdminBookingService {
 
   constructor(private http: HttpClient) {}
 
-  getBookings(filter: AdminBookingFilterParams): Observable<AdminPageResponse<AdminBookingItem>> {
-    let params = new HttpParams();
-    if (filter.tab) params = params.set('tab', filter.tab);
-    if (filter.search) params = params.set('search', filter.search);
-    if (filter.status) params = params.set('status', filter.status);
-    if (filter.startDate) params = params.set('startDate', filter.startDate);
-    if (filter.endDate) params = params.set('endDate', filter.endDate);
-    if (filter.page !== undefined) params = params.set('page', filter.page.toString());
-    if (filter.size !== undefined) params = params.set('size', filter.size.toString());
+  getBookings(filter: AdminBookingFilterParams): Observable<PageResponse<AdminBookingItem>> {
+    const params = buildHttpParams(filter);
 
     return this.http
-      .get<ApiResponse<AdminPageResponse<AdminBookingItem>>>(this.API_URL, { params })
+      .get<ApiResponse<PageResponse<AdminBookingItem>>>(this.API_URL, { params })
       .pipe(
         map((res) => res.data),
         catchError((error) => {
@@ -87,7 +77,7 @@ export class AdminBookingService {
     return this.http.post<ApiResponse<unknown>>(`${this.API_URL}/direct`, data);
   }
 
-  private getMockBookings(filter: AdminBookingFilterParams): AdminPageResponse<AdminBookingItem> {
+  private getMockBookings(filter: AdminBookingFilterParams): PageResponse<AdminBookingItem> {
     return {
       content: [],
       pageNo: filter.page || 0,

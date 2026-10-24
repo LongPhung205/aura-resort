@@ -5,11 +5,8 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { StaffRosterResponse, ShiftSwapRequest, WeeklyShiftRegistration } from '../models/admin-staff.model';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 @Injectable({
   providedIn: 'root',

@@ -1,76 +1,58 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Villa, VillaRequest } from '../models/villa.model';
-
+import { ApiResponse } from '../models/api-response.model';
+import { BaseCrudService } from './base-crud.service';
+import { buildHttpParams } from '../utils/http-params.util';
 import { environment } from '../../../environments/environment';
-
-interface ApiResponse<T> {
-  status?: string;
-  success?: boolean;
-  message: string;
-  data: T;
-}
 
 @Injectable({
   providedIn: 'root',
 })
-export class VillaService {
+export class VillaService extends BaseCrudService<Villa, VillaRequest> {
   private readonly API_URL = `${environment.apiUrl}/villas`;
 
-  constructor(private http: HttpClient) {}
+  constructor(http: HttpClient) {
+    super(http, `${environment.apiUrl}/villas`);
+  }
 
   getVillas(typeId?: number, status?: string, zone?: string): Observable<Villa[]> {
-    let params = new HttpParams();
-    if (typeId) params = params.set('typeId', typeId.toString());
-    if (status && status !== 'ALL') params = params.set('status', status);
-    if (zone && zone !== 'ALL') params = params.set('zone', zone);
+    const params = buildHttpParams({ typeId, status, zone });
 
     return this.http.get<ApiResponse<Villa[]>>(this.API_URL, { params }).pipe(
-      map((res) => res.data),
+      map((res) => res.data || []),
       catchError(() => of([]))
     );
   }
 
+  // Alias methods cho tính tương thích ngược
   getVillaById(id: number): Observable<Villa> {
-    return this.http.get<ApiResponse<Villa>>(`${this.API_URL}/${id}`).pipe(
-      map((res) => res.data)
-    );
+    return this.getById(id);
   }
 
   createVilla(payload: VillaRequest): Observable<Villa> {
-    return this.http.post<ApiResponse<Villa>>(this.API_URL, payload).pipe(
-      map((res) => res.data)
-    );
+    return this.create(payload);
   }
 
   updateVilla(id: number, payload: VillaRequest): Observable<Villa> {
-    return this.http.put<ApiResponse<Villa>>(`${this.API_URL}/${id}`, payload).pipe(
-      map((res) => res.data)
-    );
+    return this.update(id, payload);
   }
 
   deleteVilla(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map(() => undefined)
-    );
+    return this.delete(id);
   }
 
   updateVillaStatus(id: number, status: string): Observable<Villa> {
-    const params = new HttpParams().set('status', status);
+    const params = buildHttpParams({ status });
     return this.http.patch<ApiResponse<Villa>>(`${this.API_URL}/${id}/status`, {}, { params }).pipe(
       map((res) => res.data)
     );
   }
 
   searchAvailableVillas(zone: string, checkInDate: string, checkOutDate: string, adults?: number): Observable<Villa[]> {
-    let params = new HttpParams()
-      .set('checkInDate', checkInDate)
-      .set('checkOutDate', checkOutDate);
-    
-    if (zone) params = params.set('zone', zone);
-    if (adults) params = params.set('adults', adults.toString());
+    const params = buildHttpParams({ zone, checkInDate, checkOutDate, adults });
 
     return this.http.get<ApiResponse<Villa[]>>(`${environment.apiUrl}/public/villas/search`, { params }).pipe(
       map(res => res.data)

@@ -3,50 +3,43 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HomeBanner, HomeBannerPayload } from '../models/banner.model';
-import { ApiResponse } from '../models/auth.model';
-
+import { ApiResponse } from '../models/api-response.model';
+import { BaseCrudService } from './base-crud.service';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AdminBannerService {
-  private readonly API_URL = `${environment.apiUrl}/admin/banners`;
+export class AdminBannerService extends BaseCrudService<HomeBanner, HomeBannerPayload> {
+  private readonly BANNER_API_URL = `${environment.apiUrl}/admin/banners`;
 
-  constructor(private http: HttpClient) {}
+  constructor(http: HttpClient) {
+    super(http, `${environment.apiUrl}/admin/banners`);
+  }
 
+  // Alias methods cho tính tương thích ngược
   getAllBanners(): Observable<HomeBanner[]> {
-    return this.http.get<ApiResponse<HomeBanner[]>>(this.API_URL).pipe(
-      map(res => res.data || [])
-    );
+    return this.getAll();
   }
 
   getBannerById(id: number): Observable<HomeBanner> {
-    return this.http.get<ApiResponse<HomeBanner>>(`${this.API_URL}/${id}`).pipe(
-      map(res => res.data)
-    );
+    return this.getById(id);
   }
 
   createBanner(payload: HomeBannerPayload): Observable<HomeBanner> {
-    return this.http.post<ApiResponse<HomeBanner>>(this.API_URL, payload).pipe(
-      map(res => res.data)
-    );
+    return this.create(payload);
   }
 
   updateBanner(id: number, payload: HomeBannerPayload): Observable<HomeBanner> {
-    return this.http.put<ApiResponse<HomeBanner>>(`${this.API_URL}/${id}`, payload).pipe(
-      map(res => res.data)
-    );
-  }
-
-  toggleBannerStatus(id: number): Observable<void> {
-    return this.http.patch<ApiResponse<void>>(`${this.API_URL}/${id}/toggle`, {}).pipe(
-      map(() => void 0)
-    );
+    return this.update(id, payload);
   }
 
   deleteBanner(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
+    return this.delete(id);
+  }
+
+  toggleBannerStatus(id: number): Observable<void> {
+    return this.http.patch<ApiResponse<void>>(`${this.BANNER_API_URL}/${id}/toggle`, {}).pipe(
       map(() => void 0)
     );
   }

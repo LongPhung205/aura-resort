@@ -3,18 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Zone, ZonePayload, ZoneDetail } from '../models/zone.model';
-import { ApiResponse } from '../models/auth.model';
-
+import { ApiResponse } from '../models/api-response.model';
+import { BaseCrudService } from './base-crud.service';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ZoneService {
+export class ZoneService extends BaseCrudService<Zone, ZonePayload> {
   private readonly PUBLIC_API_URL = `${environment.apiUrl}/zones`;
-  private readonly ADMIN_API_URL = `${environment.apiUrl}/admin/zones`;
 
-  constructor(private http: HttpClient) {}
+  constructor(http: HttpClient) {
+    super(http, `${environment.apiUrl}/admin/zones`);
+  }
 
   // Public APIs
   getActiveZones(): Observable<Zone[]> {
@@ -29,35 +30,25 @@ export class ZoneService {
     );
   }
 
-  // Admin APIs
+  // Admin APIs (Alias methods cho tính tương thích ngược)
   getAllZones(): Observable<Zone[]> {
-    return this.http.get<ApiResponse<Zone[]>>(this.ADMIN_API_URL).pipe(
-      map(res => res.data || [])
-    );
+    return this.getAll();
   }
 
   getZoneById(id: number): Observable<Zone> {
-    return this.http.get<ApiResponse<Zone>>(`${this.ADMIN_API_URL}/${id}`).pipe(
-      map(res => res.data)
-    );
+    return this.getById(id);
   }
 
   createZone(payload: ZonePayload): Observable<Zone> {
-    return this.http.post<ApiResponse<Zone>>(this.ADMIN_API_URL, payload).pipe(
-      map(res => res.data)
-    );
+    return this.create(payload);
   }
 
   updateZone(id: number, payload: ZonePayload): Observable<Zone> {
-    return this.http.put<ApiResponse<Zone>>(`${this.ADMIN_API_URL}/${id}`, payload).pipe(
-      map(res => res.data)
-    );
+    return this.update(id, payload);
   }
 
   deleteZone(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.ADMIN_API_URL}/${id}`).pipe(
-      map(() => void 0)
-    );
+    return this.delete(id);
   }
 
   uploadImage(file: File): Observable<string> {

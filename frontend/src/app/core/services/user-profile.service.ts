@@ -16,12 +16,8 @@ export interface UserProfile {
   totalBookings: number;
   totalSpent: number;
 }
+import { ApiResponse } from '../models/api-response.model';
 
-interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}
 
 @Injectable({
   providedIn: 'root'

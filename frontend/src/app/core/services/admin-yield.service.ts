@@ -6,11 +6,8 @@ import { YieldMatrixResponse, YieldRule } from '../models/admin-yield.model';
 
 import { environment } from '../../../environments/environment';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 @Injectable({
   providedIn: 'root',

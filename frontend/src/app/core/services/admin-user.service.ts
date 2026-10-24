@@ -4,15 +4,17 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
   AdminUser,
-  ApiResponse,
   CreateUserRequest,
-  PageResponse,
   ResetPasswordRequest,
   UpdateUserRequest,
   UserFilter,
   UserSummaryStats,
 } from '../models/admin-user.model';
+import { PageResponse } from '../models/page.model';
+import { ApiResponse } from '../models/api-response.model';
 
+
+import { buildHttpParams } from '../utils/http-params.util';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -24,25 +26,13 @@ export class AdminUserService {
   constructor(private http: HttpClient) {}
 
   getUsers(filter: UserFilter): Observable<PageResponse<AdminUser>> {
-    let params = new HttpParams()
-      .set('tab', filter.tab)
-      .set('page', filter.page.toString())
-      .set('size', filter.size.toString());
-
-    if (filter.search && filter.search.trim()) {
-      params = params.set('search', filter.search.trim());
-    }
-    if (filter.role) {
-      params = params.set('role', filter.role);
-    }
-    if (filter.isActive !== '' && filter.isActive !== undefined && filter.isActive !== null) {
-      params = params.set('isActive', filter.isActive.toString());
-    }
+    const params = buildHttpParams(filter);
 
     return this.http
       .get<ApiResponse<PageResponse<AdminUser>>>(this.baseUrl, { params })
       .pipe(map((res) => res.data));
   }
+
 
   getStats(): Observable<UserSummaryStats> {
     return this.http

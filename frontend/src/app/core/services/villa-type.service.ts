@@ -1,54 +1,36 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { VillaType, VillaTypeRequest } from '../models/villa-type.model';
-
+import { BaseCrudService } from './base-crud.service';
 import { environment } from '../../../environments/environment';
-
-interface ApiResponse<T> {
-  status?: string;
-  success?: boolean;
-  message: string;
-  data: T;
-}
 
 @Injectable({
   providedIn: 'root',
 })
-export class VillaTypeService {
-  private readonly API_URL = `${environment.apiUrl}/villa-types`;
+export class VillaTypeService extends BaseCrudService<VillaType, VillaTypeRequest> {
+  constructor(http: HttpClient) {
+    super(http, `${environment.apiUrl}/villa-types`);
+  }
 
-  constructor(private http: HttpClient) {}
-
+  // Alias methods cho tính tương thích ngược tuyệt đối
   getVillaTypes(): Observable<VillaType[]> {
-    return this.http.get<ApiResponse<VillaType[]>>(this.API_URL).pipe(
-      map((res) => res.data),
-      catchError(() => of([]))
-    );
+    return this.getAll();
   }
 
   getVillaTypeById(id: number): Observable<VillaType> {
-    return this.http.get<ApiResponse<VillaType>>(`${this.API_URL}/${id}`).pipe(
-      map((res) => res.data)
-    );
+    return this.getById(id);
   }
 
   createVillaType(payload: VillaTypeRequest): Observable<VillaType> {
-    return this.http.post<ApiResponse<VillaType>>(this.API_URL, payload).pipe(
-      map((res) => res.data)
-    );
+    return this.create(payload);
   }
 
   updateVillaType(id: number, payload: VillaTypeRequest): Observable<VillaType> {
-    return this.http.put<ApiResponse<VillaType>>(`${this.API_URL}/${id}`, payload).pipe(
-      map((res) => res.data)
-    );
+    return this.update(id, payload);
   }
 
   deleteVillaType(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map(() => undefined)
-    );
+    return this.delete(id);
   }
 }

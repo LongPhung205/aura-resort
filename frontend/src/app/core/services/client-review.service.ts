@@ -24,12 +24,8 @@ export interface CreateReviewRequest {
   rating: number;
   comment: string;
 }
+import { ApiResponse } from '../models/api-response.model';
 
-interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}
 
 @Injectable({
   providedIn: 'root'

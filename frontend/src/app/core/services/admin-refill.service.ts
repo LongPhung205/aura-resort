@@ -11,11 +11,8 @@ import {
   VillaSupplyStandardPayload,
 } from '../models/refill.model';
 
-interface ApiResponse<T> {
-  status?: string;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 import { environment } from '../../../environments/environment';
 

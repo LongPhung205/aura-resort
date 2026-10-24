@@ -57,17 +57,6 @@ export interface UserFilter {
   size: number;
 }
 
-export interface PageResponse<T> {
-  content: T[];
-  pageNo: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
+export type { PageResponse } from './page.model';
+export type { ApiResponse } from './api-response.model';
 
-export interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}

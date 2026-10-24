@@ -7,12 +7,8 @@ export interface AuthResponse {
   avatarUrl?: string;
 }
 
-export interface ApiResponse<T> {
-  success?: boolean;
-  status?: string;
-  message: string;
-  data: T;
-}
+export type { ApiResponse } from './api-response.model';
+
 
 export interface LoginRequest {
   email?: string;

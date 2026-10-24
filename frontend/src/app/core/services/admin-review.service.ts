@@ -5,11 +5,8 @@ import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ReviewAnalytics, ReviewItem, ServiceRecoveryTicket } from '../models/admin-review.model';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 @Injectable({
   providedIn: 'root',
@@ -41,7 +38,7 @@ export class AdminReviewService {
 
   deleteReview(id: number): Observable<boolean> {
     return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map((res) => res.success),
+      map((res) => res.success ?? res.status === 'SUCCESS' ?? true),
       catchError((err) => {
         console.error('Failed to delete review', err);
         return of(false);

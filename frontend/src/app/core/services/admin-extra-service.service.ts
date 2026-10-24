@@ -51,12 +51,8 @@ export interface VillaServicePayload {
   note?: string;
 }
 
-interface ApiResponse<T> {
-  status?: string;
-  success?: boolean;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 import { environment } from '../../../environments/environment';
 

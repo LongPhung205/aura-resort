@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-
+import { ApiResponse } from '../models/api-response.model';
+import { BaseCrudService } from './base-crud.service';
 import { environment } from '../../../environments/environment';
 
 export interface ComboPackage {
@@ -18,49 +19,19 @@ export interface ComboPackage {
   updatedAt?: string;
 }
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
 @Injectable({ providedIn: 'root' })
-export class ComboPackageService {
-  private readonly API_URL = `${environment.apiUrl}/combo-packages`;
+export class ComboPackageService extends BaseCrudService<ComboPackage> {
+  private readonly COMBO_API_URL = `${environment.apiUrl}/combo-packages`;
 
-  constructor(private http: HttpClient) {}
+  constructor(http: HttpClient) {
+    super(http, `${environment.apiUrl}/combo-packages`);
+  }
 
   /** Public — trang chủ */
   getActive(): Observable<ComboPackage[]> {
-    return this.http.get<ApiResponse<ComboPackage[]>>(`${this.API_URL}/active`).pipe(
+    return this.http.get<ApiResponse<ComboPackage[]>>(`${this.COMBO_API_URL}/active`).pipe(
       map(res => res.data || []),
       catchError(() => of([]))
-    );
-  }
-
-  /** Admin — danh sách đầy đủ */
-  getAll(): Observable<ComboPackage[]> {
-    return this.http.get<ApiResponse<ComboPackage[]>>(this.API_URL).pipe(
-      map(res => res.data || []),
-      catchError(() => of([]))
-    );
-  }
-
-  create(combo: ComboPackage): Observable<ComboPackage> {
-    return this.http.post<ApiResponse<ComboPackage>>(this.API_URL, combo).pipe(
-      map(res => res.data)
-    );
-  }
-
-  update(id: number, combo: ComboPackage): Observable<ComboPackage> {
-    return this.http.put<ApiResponse<ComboPackage>>(`${this.API_URL}/${id}`, combo).pipe(
-      map(res => res.data)
-    );
-  }
-
-  delete(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map(() => void 0)
     );
   }
 }

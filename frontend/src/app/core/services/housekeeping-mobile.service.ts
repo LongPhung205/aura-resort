@@ -13,11 +13,9 @@ import {
 
 import { environment } from '../../../environments/environment';
 
-export interface ApiResponse<T> {
-  status: string;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+export type { ApiResponse };
+
 
 @Injectable({
   providedIn: 'root',

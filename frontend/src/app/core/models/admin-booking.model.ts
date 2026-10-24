@@ -110,11 +110,5 @@ export interface AdminBookingFilterParams {
   size?: number;
 }
 
-export interface AdminPageResponse<T> {
-  content: T[];
-  pageNo: number;
-  pageSize: number;
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
+export type { AdminPageResponse, PageResponse } from './page.model';
+

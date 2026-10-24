@@ -12,12 +12,8 @@ import {
   VillaAssetPayload,
   VillaAssetStatus,
 } from '../models/inventory.model';
+import { ApiResponse } from '../models/api-response.model';
 
-interface ApiResponse<T> {
-  status?: string;
-  message: string;
-  data: T;
-}
 
 export interface VillaOption {
   id: number;

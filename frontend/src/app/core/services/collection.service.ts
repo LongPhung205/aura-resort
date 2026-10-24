@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { ApiResponse } from '../models/api-response.model';
+import { BaseCrudService } from './base-crud.service';
+import { environment } from '../../../environments/environment';
 
 export interface Collection {
   id?: number;
@@ -22,25 +25,19 @@ export interface CollectionRequest {
   isActive?: boolean;
 }
 
-import { environment } from '../../../environments/environment';
-
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
-
 @Injectable({
   providedIn: 'root'
 })
-export class CollectionService {
-  private readonly API_URL = `${environment.apiUrl}/collections`;
+export class CollectionService extends BaseCrudService<Collection, CollectionRequest> {
+  private readonly BASE_COLLECTION_URL = `${environment.apiUrl}/collections`;
 
-  constructor(private http: HttpClient) {}
+  constructor(http: HttpClient) {
+    super(http, `${environment.apiUrl}/collections`);
+  }
 
   // Public APIs
   getActiveCollections(): Observable<Collection[]> {
-    return this.http.get<ApiResponse<Collection[]>>(`${this.API_URL}/active`).pipe(
+    return this.http.get<ApiResponse<Collection[]>>(`${this.BASE_COLLECTION_URL}/active`).pipe(
       map(res => res.data || []),
       catchError(err => {
         console.error('Error fetching active collections', err);
@@ -50,43 +47,29 @@ export class CollectionService {
   }
 
   getCollectionBySlug(slug: string): Observable<Collection> {
-    return this.http.get<ApiResponse<Collection>>(`${this.API_URL}/slug/${slug}`).pipe(
+    return this.http.get<ApiResponse<Collection>>(`${this.BASE_COLLECTION_URL}/slug/${slug}`).pipe(
       map(res => res.data)
     );
   }
 
-  // Admin APIs
+  // Alias methods cho tính tương thích ngược
   getAllCollections(): Observable<Collection[]> {
-    return this.http.get<ApiResponse<Collection[]>>(this.API_URL).pipe(
-      map(res => res.data || []),
-      catchError(err => {
-        console.error('Error fetching all collections', err);
-        return of([]);
-      })
-    );
+    return this.getAll().pipe(catchError(() => of([])));
   }
 
   getCollectionById(id: number): Observable<Collection> {
-    return this.http.get<ApiResponse<Collection>>(`${this.API_URL}/${id}`).pipe(
-      map(res => res.data)
-    );
+    return this.getById(id);
   }
 
   createCollection(data: CollectionRequest): Observable<Collection> {
-    return this.http.post<ApiResponse<Collection>>(this.API_URL, data).pipe(
-      map(res => res.data)
-    );
+    return this.create(data);
   }
 
   updateCollection(id: number, data: CollectionRequest): Observable<Collection> {
-    return this.http.put<ApiResponse<Collection>>(`${this.API_URL}/${id}`, data).pipe(
-      map(res => res.data)
-    );
+    return this.update(id, data);
   }
 
   deleteCollection(id: number): Observable<void> {
-    return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map(() => void 0)
-    );
+    return this.delete(id);
   }
 }

@@ -132,12 +132,8 @@ export interface CreateRoomPayload {
 
 export type UpdateRoomPayload = CreateRoomPayload;
 
-interface ApiResponse<T> {
-  status?: string;
-  success?: boolean;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 import { environment } from '../../../environments/environment';
 

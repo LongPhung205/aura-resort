@@ -6,11 +6,8 @@ import { ServiceDispatch, ServiceDispatchRequest } from '../models/admin-service
 
 import { environment } from '../../../environments/environment';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-}
+import { ApiResponse } from '../models/api-response.model';
+
 
 @Injectable({
   providedIn: 'root',
