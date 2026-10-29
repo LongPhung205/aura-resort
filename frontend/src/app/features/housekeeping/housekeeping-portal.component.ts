@@ -28,10 +28,10 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
   mobileSidebarOpen = true;
 
   // Search & Filter state
-  searchQuery: string = '';
-  selectedZone: string = 'ALL';
-  selectedStatus: string = 'ALL';
-  selectedTaskType: string = 'ALL';
+  searchQuery = '';
+  selectedZone = 'ALL';
+  selectedStatus = 'ALL';
+  selectedTaskType = 'ALL';
 
   // Staff Identity & Shift
   staffName = 'Nhân viên buồng phòng';
@@ -41,7 +41,7 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
   isAdmin = false;
 
   // Real-time Clock & Shift Progress
-  currentTime: string = '';
+  currentTime = '';
   private clockTimer?: ReturnType<typeof setInterval>;
 
   // Interactive Quick Incident Modal
@@ -749,7 +749,7 @@ export class HousekeepingPortalComponent implements OnInit, OnDestroy {
     };
 
     this.hkService.submitShiftRegistration(payload).subscribe({
-      next: (res: any) => {
+      next: () => {
         this.isRegSubmitted = true;
         this.regStatus = 'PENDING';
         this.regSubmittedTime = new Date().toLocaleDateString('vi-VN') + ' ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });

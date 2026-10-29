@@ -4,7 +4,6 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AdminDashboardService } from '../../core/services/admin-dashboard.service';
 import { AdminBookingService } from '../../core/services/admin-booking.service';
-import { AdminHousekeepingService } from '../../core/services/admin-housekeeping.service';
 import { AdminServiceDispatchService } from '../../core/services/admin-service-dispatch.service';
 import { AdminStaffService } from '../../core/services/admin-staff.service';
 import { AdminLedgerService } from '../../core/services/admin-ledger.service';
@@ -66,7 +65,6 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   constructor(
     private dashboardService: AdminDashboardService,
     private bookingService: AdminBookingService,
-    private housekeepingService: AdminHousekeepingService,
     private dispatchService: AdminServiceDispatchService,
     private staffService: AdminStaffService,
     private ledgerService: AdminLedgerService,
@@ -361,7 +359,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
             parsed.getFullYear() === now.getFullYear()
           );
         }
-      } catch (_) {}
+      } catch {
+        // Ignore date parsing failure
+      }
     }
     return false;
   }
@@ -653,7 +653,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
           this.totalRevenueAmount = total > 0 ? total : 250500000;
 
           // Compute primary payment channel
-          const methodCounts: { [key: string]: number } = {};
+          const methodCounts: Record<string, number> = {};
           successfulTxns.forEach((t) => {
             const m = (t.paymentMethod || 'OTHER').toUpperCase();
             methodCounts[m] = (methodCounts[m] || 0) + 1;
@@ -1035,8 +1035,8 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
 
     // Client-side quick check
-    const cleanInput = input.replace(/[\s\-\.]/g, '');
-    const cleanBookingCode = (item.bookingCode || '').replace(/[\s\-\.]/g, '');
+    const cleanInput = input.replace(/[\s\-.]/g, '');
+    const cleanBookingCode = (item.bookingCode || '').replace(/[\s\-.]/g, '');
 
     // Normalize phone
     const cleanPhone = (item.phone || '').replace(/[^0-9]/g, '');

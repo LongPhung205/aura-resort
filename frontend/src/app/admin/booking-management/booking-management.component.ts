@@ -918,8 +918,8 @@ export class BookingManagementComponent implements OnInit {
     }
 
     // Client-side quick check
-    const cleanInput = input.replace(/[\s\-\.]/g, '');
-    const cleanBookingCode = (b.code || '').replace(/[\s\-\.]/g, '');
+    const cleanInput = input.replace(/[\s\-.]/g, '');
+    const cleanBookingCode = (b.code || '').replace(/[\s\-.]/g, '');
     
     // Normalize phone
     const cleanPhone = (b.phone || '').replace(/[^0-9]/g, '');

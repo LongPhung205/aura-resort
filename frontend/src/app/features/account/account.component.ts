@@ -133,7 +133,7 @@ export class AccountComponent implements OnInit {
             userSession.fullName = updated.fullName;
             userSession.avatarUrl = updated.avatar;
             localStorage.setItem('user', JSON.stringify(userSession));
-          } catch (e) {}
+          } catch { /* ignore */ }
         }
         
         this.showToast('Cập nhật thông tin cá nhân thành công!', 'success');
@@ -355,10 +355,10 @@ export class AccountComponent implements OnInit {
   // --- Utility Methods ---
   logout(): void {
     const refreshToken = this.tokenService.getRefreshToken() || undefined;
-    this.authService.logout(refreshToken).subscribe({
-      next: () => {},
-      error: () => {}
-    });
+    this.authService.logout(refreshToken).subscribe();
+
+
+
     this.tokenService.clearAll();
     window.location.href = '/login';
   }

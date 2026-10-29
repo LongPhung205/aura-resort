@@ -28,7 +28,7 @@ export class CheckoutComponent implements OnInit {
   comboPackagesList: ComboPackage[] = [];
   serviceSelectionMode: 'individual' | 'combo' = 'individual';
   selectedComboId: number | null = null;
-  selectedServiceIds: Set<number> = new Set();
+  selectedServiceIds = new Set<number>();
   isServicesExpanded = false;
 
   // Promotion / Coupon code state

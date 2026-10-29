@@ -88,10 +88,10 @@ export class HeaderComponent implements OnInit {
 
   logout(): void {
     const refreshToken = this.tokenService.getRefreshToken() || undefined;
-    this.authService.logout(refreshToken).subscribe({
-      next: () => {},
-      error: () => {}
-    });
+    this.authService.logout(refreshToken).subscribe();
+
+
+
     this.tokenService.clearAll();
     this.currentUser = null;
     this.isLoggedIn = false;

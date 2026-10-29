@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AdminHousekeepingService } from '../../core/services/admin-housekeeping.service';
+import { AdminRoomService } from '../../core/services/admin-room.service';
 import {
-  AdminHousekeepingService,
   AdminRoomItem,
   AdminRoomTypeItem,
   UpdateRoomTypePayload,
   CreateRoomPayload,
   ChildRoomItem,
   ZoneItem,
-} from '../../core/services/admin-housekeeping.service';
+} from '../../core/models/admin-room.model';
 import {
   HousekeepingTask,
   HousekeeperSummary,
@@ -362,6 +363,7 @@ export class RoomManagementComponent implements OnInit {
   ];
 
   constructor(
+    private roomService: AdminRoomService,
     private housekeepingService: AdminHousekeepingService,
     private extraServiceApi: AdminExtraServiceService,
     private adminBookingService: AdminBookingService,
@@ -463,7 +465,7 @@ export class RoomManagementComponent implements OnInit {
   }
 
   initCustomZones(): void {
-    this.housekeepingService.getZones().subscribe({
+    this.roomService.getZones().subscribe({
       next: (data) => {
         if (data && data.length > 0) {
           this.customZones = data.map((z) => ({
@@ -488,7 +490,7 @@ export class RoomManagementComponent implements OnInit {
   }
 
   loadRooms(): void {
-    this.housekeepingService.getRooms().subscribe({
+    this.roomService.getRooms().subscribe({
       next: (data) => {
         if (data && data.length > 0) {
           this.rooms = data.map((r: AdminRoomItem) => {
@@ -765,7 +767,7 @@ export class RoomManagementComponent implements OnInit {
   }
 
   loadRoomTypes(): void {
-    this.housekeepingService.getRoomTypes().subscribe({
+    this.roomService.getRoomTypes().subscribe({
       next: (data) => {
         if (data && data.length > 0) {
           this.roomTypesList = data;
@@ -1428,7 +1430,7 @@ export class RoomManagementComponent implements OnInit {
     };
 
     if (this.isRoomTypeEditMode && this.roomTypeForm.id) {
-      this.housekeepingService.updateRoomType(this.roomTypeForm.id, payload).subscribe({
+      this.roomService.updateRoomType(this.roomTypeForm.id, payload).subscribe({
         next: (res) => {
           this.isSaving = false;
           this.showRoomTypeModal = false;
@@ -1442,7 +1444,7 @@ export class RoomManagementComponent implements OnInit {
         },
       });
     } else {
-      this.housekeepingService.createRoomType(payload).subscribe({
+      this.roomService.createRoomType(payload).subscribe({
         next: (res) => {
           this.isSaving = false;
           this.showRoomTypeModal = false;
@@ -1489,7 +1491,7 @@ export class RoomManagementComponent implements OnInit {
     }
 
     this.isSaving = true;
-    this.housekeepingService.deleteRoomType(targetId).subscribe({
+    this.roomService.deleteRoomType(targetId).subscribe({
       next: () => {
         this.isSaving = false;
         this.showToast(`Đã xóa thành công loại giường ${this.roomTypeToDelete?.title}!`);
@@ -1564,7 +1566,7 @@ export class RoomManagementComponent implements OnInit {
           description: this.zoneForm.desc.trim() || existing.desc,
         };
 
-        this.housekeepingService.updateZone(existing.id, payload).subscribe({
+        this.roomService.updateZone(existing.id, payload).subscribe({
           next: () => {
             this.showZoneModal = false;
             this.showToast(`Đã cập nhật phân khu "${trimmedName}" thành công!`);
@@ -1595,7 +1597,7 @@ export class RoomManagementComponent implements OnInit {
       description: this.zoneForm.desc.trim() || 'Tổ hợp biệt thự và tiện ích nghỉ dưỡng cao cấp.',
     };
 
-    this.housekeepingService.createZone(payload).subscribe({
+    this.roomService.createZone(payload).subscribe({
       next: () => {
         this.showZoneModal = false;
         this.showToast(`Đã khởi tạo thành công phân khu mới "${trimmedName}"!`);
@@ -1615,7 +1617,7 @@ export class RoomManagementComponent implements OnInit {
     const file = event.target.files[0];
     if (file) {
       this.isUploadingZoneImage = true;
-      this.housekeepingService.uploadImage(file).subscribe({
+      this.roomService.uploadImage(file).subscribe({
         next: (url) => {
           this.zoneForm.icon = url;
           this.isUploadingZoneImage = false;
@@ -1647,7 +1649,7 @@ export class RoomManagementComponent implements OnInit {
     if (!this.zoneToDelete) return;
     const target = this.zoneToDelete;
     if (target.id) {
-      this.housekeepingService.deleteZone(target.id).subscribe({
+      this.roomService.deleteZone(target.id).subscribe({
         next: () => {
           this.showDeleteZoneConfirmModal = false;
           this.zoneToDelete = null;
@@ -1802,7 +1804,7 @@ export class RoomManagementComponent implements OnInit {
     reader.readAsDataURL(file);
 
     // Tải ảnh lên server
-    this.housekeepingService.uploadImage(file).subscribe({
+    this.roomService.uploadImage(file).subscribe({
       next: (url) => {
         this.roomForm.isUploadingImage = false;
         if (url) {
@@ -1831,7 +1833,7 @@ export class RoomManagementComponent implements OnInit {
       if (!file.type.startsWith('image/')) continue;
       
       this.roomForm.isUploadingImage = true;
-      this.housekeepingService.uploadImage(file).subscribe({
+      this.roomService.uploadImage(file).subscribe({
         next: (url) => {
           if (!this.roomForm.images) this.roomForm.images = [];
           this.roomForm.images.push(url);
@@ -1878,7 +1880,7 @@ export class RoomManagementComponent implements OnInit {
     };
     reader.readAsDataURL(file);
 
-    this.housekeepingService.uploadImage(file).subscribe({
+    this.roomService.uploadImage(file).subscribe({
       next: (url) => {
         if (url) {
           this.roomTypeForm.imageUrl = url;
@@ -1959,7 +1961,7 @@ export class RoomManagementComponent implements OnInit {
     };
 
     if (this.isEditMode && this.selectedRoomId) {
-      this.housekeepingService.updateRoom(this.selectedRoomId, payload).subscribe({
+      this.roomService.updateRoom(this.selectedRoomId, payload).subscribe({
         next: () => {
           this.isSaving = false;
           this.showRoomModal = false;
@@ -1992,7 +1994,7 @@ export class RoomManagementComponent implements OnInit {
         },
       });
     } else {
-      this.housekeepingService.createRoom(payload).subscribe({
+      this.roomService.createRoom(payload).subscribe({
         next: (createdRoom) => {
           this.isSaving = false;
           this.showRoomModal = false;
@@ -2031,7 +2033,7 @@ export class RoomManagementComponent implements OnInit {
     if (!this.roomToDelete || !this.roomToDelete.id) return;
     this.isSaving = true;
 
-    this.housekeepingService.deleteRoom(this.roomToDelete.id).subscribe({
+    this.roomService.deleteRoom(this.roomToDelete.id).subscribe({
       next: () => {
         this.isSaving = false;
         this.showToast(`Đã xóa thành công phòng ${this.roomToDelete?.number}!`);
@@ -2062,7 +2064,7 @@ export class RoomManagementComponent implements OnInit {
     if (!this.roomToChangeStatus || !this.roomToChangeStatus.id) return;
     this.isSaving = true;
 
-    this.housekeepingService
+    this.roomService
       .updateRoomStatus(this.roomToChangeStatus.id, this.quickStatusTarget)
       .subscribe({
         next: () => {

@@ -14,14 +14,14 @@ import { HomeBanner, HomeBannerPayload } from '../../core/models/banner.model';
 })
 export class BannerManagementComponent implements OnInit {
   banners: HomeBanner[] = [];
-  loading: boolean = false;
-  saving: boolean = false;
+  loading = false;
+  saving = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
   // Modal State
-  showModal: boolean = false;
-  isEditing: boolean = false;
+  showModal = false;
+  isEditing = false;
   currentId: number | null = null;
 
   // Form State
@@ -42,8 +42,8 @@ export class BannerManagementComponent implements OnInit {
   previewBanner: HomeBanner | null = null;
 
   // File Upload State
-  isUploadingImage: boolean = false;
-  selectedFileName: string = '';
+  isUploadingImage = false;
+  selectedFileName = '';
 
   constructor(private adminBannerService: AdminBannerService) {}
 

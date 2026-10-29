@@ -203,6 +203,7 @@ export class AdminLayoutComponent implements OnInit {
             this.showProfileModal = false;
             this.showToast('Đã lưu thông tin hồ sơ!');
           },
+    
         });
     } else {
       this.isSavingProfile = false;
@@ -218,10 +219,10 @@ export class AdminLayoutComponent implements OnInit {
 
   confirmLogout(): void {
     const refreshToken = this.tokenService.getRefreshToken() || undefined;
-    this.authService.logout(refreshToken).subscribe({
-      next: () => {},
-      error: () => {}
-    });
+    this.authService.logout(refreshToken).subscribe();
+
+
+
     this.tokenService.clearAll();
     this.showLogoutConfirmModal = false;
     this.showToast('Đã đăng xuất khỏi hệ thống');

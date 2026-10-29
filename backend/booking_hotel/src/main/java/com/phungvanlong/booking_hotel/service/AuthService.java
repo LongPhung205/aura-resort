@@ -8,6 +8,8 @@ import com.phungvanlong.booking_hotel.dto.response.AuthResponse;
 import com.phungvanlong.booking_hotel.dto.request.ForgotPasswordRequest;
 import com.phungvanlong.booking_hotel.dto.request.ResetPasswordRequest;
 import com.phungvanlong.booking_hotel.dto.request.GoogleLoginRequest;
+import com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest;
+import com.phungvanlong.booking_hotel.dto.request.LogoutRequest;
 
 public interface AuthService {
     AuthResponse login(LoginRequest loginRequest);
@@ -16,6 +18,6 @@ public interface AuthService {
     void forgotPassword(ForgotPasswordRequest request);
     void resetPassword(ResetPasswordRequest request);
     AuthResponse googleLogin(GoogleLoginRequest request);
-    AuthResponse refreshToken(com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest request);
-    void logout(String accessToken, com.phungvanlong.booking_hotel.dto.request.LogoutRequest request);
+    AuthResponse refreshToken(RefreshTokenRequest request);
+    void logout(String accessToken, LogoutRequest request);
 }

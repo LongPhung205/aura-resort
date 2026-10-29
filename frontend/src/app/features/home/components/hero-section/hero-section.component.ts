@@ -13,7 +13,7 @@ import { HomeBanner } from '../../../../core/models/banner.model';
 })
 export class HeroSectionComponent implements OnInit, OnDestroy {
   banners: HomeBanner[] = [];
-  currentIndex: number = 0;
+  currentIndex = 0;
   private intervalId: any = null;
   readonly slideDuration = 6000; // 6 seconds per slide
 

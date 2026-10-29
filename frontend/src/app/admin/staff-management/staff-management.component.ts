@@ -109,7 +109,7 @@ export class StaffManagementComponent implements OnInit {
   // Modal 4: AI Smart Roster
   showAiRosterModal = false;
 
-  constructor(private staffService: AdminStaffService) {}
+  constructor(private staffService: AdminStaffService) { }
 
   ngOnInit(): void {
     this.updateWeekDays();
@@ -286,7 +286,7 @@ export class StaffManagementComponent implements OnInit {
     });
   }
 
-  private mapShift(dayItem: any, isToday: boolean, fallbackIdx: number): ShiftCell {
+  private mapShift(dayItem: any, isToday: boolean, _fallbackIdx?: number): ShiftCell {
     if (!dayItem || dayItem.status === 'OFF' || dayItem.shiftName?.includes('OFF')) {
       return {
         shiftType: 'OFF',
@@ -611,7 +611,7 @@ export class StaffManagementComponent implements OnInit {
     };
 
     this.staffService.createStaff(payload).subscribe({
-      next: (res) => {
+      next: () => {
         this.isCreatingStaff = false;
         this.showAddStaffModal = false;
         this.showToast(`Đã thêm nhân sự mới: ${payload.fullName} vào hệ thống!`, 'success');
@@ -693,7 +693,7 @@ export class StaffManagementComponent implements OnInit {
 
     const startStr = this.currentWeekStartDate.toISOString().split('T')[0];
     this.staffService.generateAiRoster(startStr).subscribe({
-      next: (roster) => {
+      next: () => {
         this.loadStaffData();
         this.showToast('Hoàn tất! AI đã tối ưu hóa và lưu 100% lịch trực tuần vào Database!', 'success');
       },

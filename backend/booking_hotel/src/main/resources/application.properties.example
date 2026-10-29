@@ -2,30 +2,101 @@
 # APPLICATION TEMPLATE EXAMPLE (File mẫu hướng dẫn cấu hình)
 # Cách dùng: Copy file này thành 'application.properties' khi clone dự án về
 # ===================================================================
+
+# 1. Server Configuration
 spring.application.name=booking_hotel
 server.port=8080
 server.servlet.context-path=/api/v1
 
-# Profile kích hoạt mặc định (dev / prod / test)
-spring.profiles.active=${SPRING_PROFILES_ACTIVE:dev}
-
-# Import cấu hình cá nhân (nếu có)
-spring.config.import=optional:classpath:application-local.properties,optional:file:./application-local.properties
-
-# Tối ưu hiệu năng nén GZIP & Tomcat
+# 2. Performance & Web Optimization
 server.compression.enabled=true
-server.compression.mime-types=application/json,text/html,text/xml,text/plain
+server.compression.mime-types=text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
 server.compression.min-response-size=1024
 server.tomcat.threads.max=200
 server.tomcat.threads.min-spare=20
 server.shutdown=graceful
+spring.lifecycle.timeout-per-shutdown-phase=30s
 
-# JPA Base Settings
+# 3. Database MySQL Local (Thay đổi theo máy của bạn)
+spring.datasource.url=jdbc:mysql://localhost:3306/hotel_booking_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+spring.datasource.username=root
+spring.datasource.password=your_mysql_password
+
+# 4. JPA / Hibernate (đặt none để tránh Hibernate quét và chạy ALTER TABLE liên tục lúc khởi động)
 spring.jpa.open-in-view=false
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.properties.hibernate.jdbc.batch_size=50
+spring.jpa.properties.hibernate.order_inserts=true
+spring.jpa.properties.hibernate.order_updates=true
 
-# Multipart Upload Limits
+# 5. JWT Authentication
+jwt.secret-key=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+jwt.access-token-expiration=1800000
+jwt.refresh-token-expiration=604800000
+
+# 6. Base URLs & Uploads
+app.frontend-url=http://localhost:4200
+app.backend-url=http://localhost:8080
+app.otp.expiration=5
+app.upload-dir=d:/booking_hotel/frontend/public/assets/images/uploads
 spring.servlet.multipart.max-file-size=50MB
 spring.servlet.multipart.max-request-size=50MB
 
-app.otp.expiration=5
+# 7. MoMo Sandbox Credentials
+momo.endpoint=https://test-payment.momo.vn/v2/gateway/api/create
+momo.partner-code=MOMOBKUN20180529
+momo.access-key=klm05TvNBzhg7h7j
+momo.secret-key=at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa
+momo.redirect-url=http://localhost:8080/api/v1/payments/momo-return
+momo.frontend-url=http://localhost:4200/payment/momo-result
+momo.ipn-url=https://webhook.site/momo-ipn-dummy
+momo.request-type=payWithCC
+
+# 8. PayOS Sandbox Configuration
+client_id_payos=bfc74aaf-203f-41d6-8a79-673f77d37048
+apikey_payos=e76944fc-d4f8-4b10-8f0e-c5b04eb255ac
+checksum_payos=159c8862fb93249ca58f85843f7b69d97fcc1fbf339bd2f8b37149fc0e7d2a9f
+payos.return-url=http://localhost:8080/api/v1/payments/payos-return
+payos.frontend-url=http://localhost:4200/payment/payos-result
+
+# 9. Cloudinary CDN Storage
+cloudinary.cloud-name=your_cloud_name
+cloudinary.api-key=your_api_key
+cloudinary.api-secret=your_api_secret
+
+# 10. Spring Mail (Gmail SMTP)
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your_email@gmail.com
+spring.mail.password=your_gmail_app_password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# 11. Google OAuth2 Login
+spring.security.oauth2.client.registration.google.client-id=your_google_client_id
+spring.security.oauth2.client.registration.google.client-secret=your_google_client_secret
+spring.security.oauth2.client.registration.google.scope=openid,profile
+
+# 12. Redis Cache
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+
+# 13. Ollama AI Local
+spring.ai.ollama.base-url=http://localhost:11434
+spring.ai.ollama.chat.options.model=qwen2.5:3b
+spring.ai.ollama.chat.options.temperature=0.1
+
+# 14. Logging Level
+logging.level.com.phungvanlong.booking_hotel=DEBUG
+logging.level.org.springframework.security=INFO
+
+# 15. Swagger & OpenAPI Documentation
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.tags-sorter=alpha
+springdoc.swagger-ui.operations-sorter=alpha
+springdoc.swagger-ui.doc-expansion=none
+springdoc.api-docs.enabled=true
+springdoc.swagger-ui.enabled=true

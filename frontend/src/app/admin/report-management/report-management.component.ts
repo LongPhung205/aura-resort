@@ -308,7 +308,7 @@ export class ReportManagementComponent implements OnInit {
     // Calculate pages array (max 5 visible buttons)
     const pages: number[] = [];
     let startPage = Math.max(1, this.currentPage - 2);
-    let endPage = Math.min(this.totalPages, startPage + 4);
+    const endPage = Math.min(this.totalPages, startPage + 4);
     if (endPage - startPage < 4) {
       startPage = Math.max(1, endPage - 4);
     }

@@ -23,7 +23,7 @@ export class TaskWorkspaceComponent implements OnInit, OnDestroy {
   @Output() taskUpdated = new EventEmitter<HousekeepingTask>();
 
   activeTab: 'checklist' | 'inventory' | 'utilities' = 'checklist';
-  selectedCategory: string = 'ALL';
+  selectedCategory = 'ALL';
 
   // Checklist
   checklistSteps: ChecklistStepItem[] = [];

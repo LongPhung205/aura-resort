@@ -126,7 +126,7 @@ export class VillaSearchComponent implements OnInit {
           this.loading = false;
           window.scrollTo({ top: 0, behavior: 'smooth' });
         },
-        /* eslint-disable @typescript-eslint/no-explicit-any */ error: (err: any) => {
+        error: () => {
           this.hasError = true;
           this.loading = false;
         }

@@ -352,7 +352,7 @@
               </td>
               <td class="py-3 px-4 text-right font-bold text-slate-900">
                 {{
-                  (item.totalValue != null ? item.totalValue : item.inStock * item.unitPrice)
+                  (item.totalValue !== null ? item.totalValue : item.inStock * item.unitPrice)
                     | number: '1.0-0'
                 }}đ
               </td>
@@ -614,7 +614,7 @@
                   <span class="text-slate-500">Tồn kho trung tâm:</span>
                   <span class="font-mono font-bold"
                         [ngClass]="(it.warehouseStock || 0) < it.refillQuantity ? 'text-rose-600' : 'text-slate-700'">
-                    {{ it.warehouseStock != null ? it.warehouseStock : 'Đủ' }}
+                    {{ it.warehouseStock !== null ? it.warehouseStock : 'Đủ' }}
                   </span>
                 </div>
               </div>

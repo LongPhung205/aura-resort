@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
+
 import { VillaService } from '../../../core/services/villa.service';
 import { TokenService } from '../../../core/services/token.service';
 import { Villa, ChildRoom } from '../../../core/models/villa.model';
@@ -26,7 +26,7 @@ export class VillaDetailComponent implements OnInit {
   hasError = false;
 
   // Gallery & Lightbox states
-  selectedImageUrl: string = '';
+  selectedImageUrl = '';
   galleryImages: string[] = [];
   isLightboxOpen = false;
   lightboxIndex = 0;
@@ -57,7 +57,7 @@ export class VillaDetailComponent implements OnInit {
   serviceSelectionMode: 'individual' | 'combo' = 'individual';
   activeServiceTab: 'none' | 'individual' | 'combo' = 'none';
   selectedComboId: number | null = null;
-  selectedServiceIds: Set<number> = new Set();
+  selectedServiceIds = new Set<number>();
   isServicesLoading = false;
 
   // Form states
@@ -270,14 +270,14 @@ export class VillaDetailComponent implements OnInit {
     this.isLightboxOpen = true;
     try {
       document.body.style.overflow = 'hidden';
-    } catch (e) {}
+    } catch {}
   }
 
   closeLightbox(): void {
     this.isLightboxOpen = false;
     try {
       document.body.style.overflow = '';
-    } catch (e) {}
+    } catch {}
   }
 
   lightboxNext(): void {
@@ -324,7 +324,7 @@ export class VillaDetailComponent implements OnInit {
         title: 'Villa ' + (this.villa?.villaNumber || ''),
         text: 'Nghỉ dưỡng thượng lưu tại FLC Sầm Sơn',
         url: window.location.href
-      }).catch(() => {});
+      }).catch(() => undefined);
     } else if (typeof navigator !== 'undefined' && (navigator as any).clipboard) {
       (navigator as any).clipboard.writeText(window.location.href);
       this.showToastMessage('Đã sao chép liên kết Villa vào bộ nhớ tạm!', 'success');

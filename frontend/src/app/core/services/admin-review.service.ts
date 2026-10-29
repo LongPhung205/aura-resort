@@ -38,7 +38,7 @@ export class AdminReviewService {
 
   deleteReview(id: number): Observable<boolean> {
     return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map((res) => res.success ?? res.status === 'SUCCESS' ?? true),
+      map((res) => (res.success !== undefined ? res.success : res.status === 'SUCCESS')),
       catchError((err) => {
         console.error('Failed to delete review', err);
         return of(false);

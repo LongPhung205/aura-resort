@@ -63,7 +63,7 @@ export class AdminLedgerService {
     );
   }
 
-  private getMockLedger(type: string, method: string): LedgerItem[] {
+  private getMockLedger(_type?: string, _method?: string): LedgerItem[] {
     return [];
   }
 

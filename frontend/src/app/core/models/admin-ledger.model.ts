@@ -92,6 +92,6 @@ export interface PaymentDashboardStatsResponse {
   totalTransactions: number;
   lineChartData: DailyRevenue[];
   monthlyChartData: MonthlyRevenue[];
-  donutChartData: { [key: string]: number };
+  donutChartData: Record<string, number>;
   methodStats: PaymentMethodStat[];
 }

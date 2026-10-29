@@ -14,16 +14,16 @@ import { Zone, ZoneDetail, ZoneDetailVilla } from '../../../core/models/zone.mod
   styleUrls: ['./zone-detail.component.scss']
 })
 export class ZoneDetailComponent implements OnInit, OnDestroy {
-  slug: string = '';
+  slug = '';
   zoneDetail: ZoneDetail | null = null;
   allZones: Zone[] = [];
-  loading: boolean = true;
+  loading = true;
   errorMessage: string | null = null;
 
   // Filter & Sort State
-  selectedBedrooms: string = 'ALL';
-  selectedSort: string = 'DEFAULT';
-  searchQuery: string = '';
+  selectedBedrooms = 'ALL';
+  selectedSort = 'DEFAULT';
+  searchQuery = '';
 
   private routeSub: Subscription | null = null;
 

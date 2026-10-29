@@ -336,12 +336,12 @@ export class HousekeepingMobileService {
     weekStartDate: string;
     preferredZone?: string;
     notes?: string;
-    days: Array<{
+    days: {
       workDate: string;
       dayOfWeek: string;
       shiftType: string;
       note?: string;
-    }>;
+    }[];
   }): Observable<any> {
     return this.http.post<ApiResponse<any>>(`${this.API_URL}/shift-registration`, payload).pipe(
       map((res) => res.data),

@@ -22,7 +22,7 @@ import {
   RefillItemCheckPayload,
   RefillTask,
   RefillTaskStatus,
-  VillaInventoryStock,
+
   VillaSupplyStandard,
   VillaSupplyStandardPayload,
 } from '../../core/models/refill.model';
@@ -86,8 +86,8 @@ export class InventoryManagementComponent implements OnInit {
 
   // Matrix Mode
   isMatrixMode = true;
-  allStandardsMatrix: { [itemId: number]: { [villaId: number]: VillaSupplyStandard | undefined } | undefined } = {};
-  localStandardsMatrix: { [itemId: number]: { [villaId: number]: number } } = {};
+  allStandardsMatrix: Record<number, Record<number, VillaSupplyStandard | undefined> | undefined> = {};
+  localStandardsMatrix: Record<number, Record<number, number>> = {};
   selectedStandardItems: Set<number> = new Set<number>();
   isSavingStandards = false;
   bulkStandardValue: number | null = null;

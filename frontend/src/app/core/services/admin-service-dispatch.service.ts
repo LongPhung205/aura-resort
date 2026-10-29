@@ -40,7 +40,7 @@ export class AdminServiceDispatchService {
     );
   }
 
-  private getMockDispatches(status: string): ServiceDispatch[] {
+  private getMockDispatches(_status?: string): ServiceDispatch[] {
     return [];
   }
 }

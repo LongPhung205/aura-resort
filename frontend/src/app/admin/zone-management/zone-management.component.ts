@@ -14,14 +14,14 @@ import { Zone, ZonePayload } from '../../core/models/zone.model';
 })
 export class ZoneManagementComponent implements OnInit {
   zones: Zone[] = [];
-  loading: boolean = false;
-  saving: boolean = false;
+  loading = false;
+  saving = false;
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
   // Modal State
-  showModal: boolean = false;
-  isEditing: boolean = false;
+  showModal = false;
+  isEditing = false;
   currentId: number | null = null;
 
   // Form State
@@ -39,8 +39,8 @@ export class ZoneManagementComponent implements OnInit {
   };
 
   // File Upload State
-  isUploadingImage: boolean = false;
-  selectedFileName: string = '';
+  isUploadingImage = false;
+  selectedFileName = '';
 
   // Preset icon choices
   readonly iconPresets = [

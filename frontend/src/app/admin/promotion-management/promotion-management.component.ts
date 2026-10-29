@@ -332,7 +332,7 @@ export class PromotionManagementComponent implements OnInit {
     this.voucherLoading = true;
     this.promotionService.getAllPromotions().subscribe({
       next: (data) => {
-        let list = data || [];
+        const list = data || [];
         if (list.length === 0) {
           // If empty, also attempt public active endpoint
           this.promotionService.getActivePromotions().subscribe({

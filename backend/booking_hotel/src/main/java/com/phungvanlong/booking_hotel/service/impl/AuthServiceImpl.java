@@ -32,6 +32,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.phungvanlong.booking_hotel.dto.request.GoogleLoginRequest;
+import com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest;
+import com.phungvanlong.booking_hotel.dto.request.LogoutRequest;
 import com.phungvanlong.booking_hotel.entity.AuthProvider;
 import org.springframework.beans.factory.annotation.Value;
 import java.util.Collections;
@@ -156,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse refreshToken(com.phungvanlong.booking_hotel.dto.request.RefreshTokenRequest request) {
+    public AuthResponse refreshToken(RefreshTokenRequest request) {
         String refreshToken = request.getRefreshToken();
         if (!tokenProvider.validateToken(refreshToken)) {
             throw new BusinessException("Refresh token không hợp lệ hoặc đã hết hạn");
@@ -194,7 +196,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String bearerToken, com.phungvanlong.booking_hotel.dto.request.LogoutRequest request) {
+    public void logout(String bearerToken, LogoutRequest request) {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             String accessToken = bearerToken.substring(7);
             long remainingTtl = tokenProvider.getRemainingTtl(accessToken);

@@ -20,8 +20,8 @@ export class BookingSearchWidgetComponent implements OnInit {
   isBusinessTrip = false;
 
   destination = 'all';
-  checkInDate: string = '';
-  checkOutDate: string = '';
+  checkInDate = '';
+  checkOutDate = '';
   adults = 2;
   children = 0;
   rooms = 1;

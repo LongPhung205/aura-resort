@@ -235,7 +235,7 @@ export class ReviewManagementComponent implements OnInit {
     this.isSubmittingReply = true;
 
     this.reviewService.replyReview(reviewId, this.replyContent.trim()).subscribe({
-      next: (updatedReview) => {
+      next: () => {
         this.isSubmittingReply = false;
         // Update review in local state
         const target = this.allReviews.find(r => r.id === reviewId);
@@ -336,7 +336,7 @@ export class ReviewManagementComponent implements OnInit {
     };
   }
 
-  getStarRange(rating: number): number[] {
+  getStarRange(_rating?: number): number[] {
     return Array.from({ length: 5 }, (_, i) => i + 1);
   }
 
