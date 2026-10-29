@@ -38,3 +38,5 @@ application*.yml
 application*.yaml
 !application*.example
 !application*.sample
+
+!src/test/resources/application*.properties
