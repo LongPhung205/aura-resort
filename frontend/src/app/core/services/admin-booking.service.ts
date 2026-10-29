@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   AdminBookingFilterParams,
   AdminBookingItem,
@@ -9,8 +9,6 @@ import {
 } from '../models/admin-booking.model';
 import { PageResponse } from '../models/page.model';
 import { ApiResponse } from '../models/api-response.model';
-
-
 import { buildHttpParams } from '../utils/http-params.util';
 import { environment } from '../../../environments/environment';
 
@@ -27,13 +25,7 @@ export class AdminBookingService {
 
     return this.http
       .get<ApiResponse<PageResponse<AdminBookingItem>>>(this.API_URL, { params })
-      .pipe(
-        map((res) => res.data),
-        catchError((error) => {
-          console.warn('Admin Bookings API error, returning empty result:', error);
-          return of(this.getMockBookings(filter));
-        })
-      );
+      .pipe(map((res) => res.data));
   }
 
   getGanttAvailability(startDate?: string, days = 7): Observable<GanttRoomAvailability[]> {
@@ -42,13 +34,7 @@ export class AdminBookingService {
 
     return this.http
       .get<ApiResponse<GanttRoomAvailability[]>>(`${this.API_URL}/gantt`, { params })
-      .pipe(
-        map((res) => res.data),
-        catchError((error) => {
-          console.warn('Gantt API error, returning empty list:', error);
-          return of(this.getMockGanttData());
-        })
-      );
+      .pipe(map((res) => res.data));
   }
 
   checkInBooking(id: number, verifyCode?: string): Observable<unknown> {
@@ -75,20 +61,5 @@ export class AdminBookingService {
     note?: string;
   }): Observable<unknown> {
     return this.http.post<ApiResponse<unknown>>(`${this.API_URL}/direct`, data);
-  }
-
-  private getMockBookings(filter: AdminBookingFilterParams): PageResponse<AdminBookingItem> {
-    return {
-      content: [],
-      pageNo: filter.page || 0,
-      pageSize: filter.size || 10,
-      totalElements: 0,
-      totalPages: 0,
-      last: true,
-    };
-  }
-
-  private getMockGanttData(): GanttRoomAvailability[] {
-    return [];
   }
 }

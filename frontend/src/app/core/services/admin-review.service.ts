@@ -1,12 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ReviewAnalytics, ReviewItem, ServiceRecoveryTicket } from '../models/admin-review.model';
-
 import { ApiResponse } from '../models/api-response.model';
-
 
 @Injectable({
   providedIn: 'root',
@@ -18,60 +16,31 @@ export class AdminReviewService {
 
   getAnalytics(): Observable<ReviewAnalytics> {
     return this.http.get<ApiResponse<ReviewAnalytics>>(`${this.API_URL}/analytics`).pipe(
-      map((res) => res.data),
-      catchError((err) => {
-        console.error('Failed to load review analytics', err);
-        return of(this.getMockAnalytics());
-      })
+      map((res) => res.data)
     );
   }
 
-  replyReview(id: number, reply: string): Observable<ReviewItem | null> {
+  replyReview(id: number, reply: string): Observable<ReviewItem> {
     return this.http.post<ApiResponse<ReviewItem>>(`${this.API_URL}/${id}/reply`, { reply }).pipe(
-      map((res) => res.data),
-      catchError((err) => {
-        console.error('Failed to reply review', err);
-        return of(null);
-      })
+      map((res) => res.data)
     );
   }
 
   deleteReview(id: number): Observable<boolean> {
     return this.http.delete<ApiResponse<void>>(`${this.API_URL}/${id}`).pipe(
-      map((res) => (res.success !== undefined ? res.success : res.status === 'SUCCESS')),
-      catchError((err) => {
-        console.error('Failed to delete review', err);
-        return of(false);
-      })
+      map((res) => (res.success !== undefined ? res.success : res.status === 'SUCCESS'))
     );
   }
 
-  createRecoveryTicket(ticket: Partial<ServiceRecoveryTicket>): Observable<ServiceRecoveryTicket | null> {
+  createRecoveryTicket(ticket: Partial<ServiceRecoveryTicket>): Observable<ServiceRecoveryTicket> {
     return this.http.post<ApiResponse<ServiceRecoveryTicket>>(`${this.API_URL}/service-recovery`, ticket).pipe(
-      map((res) => res.data),
-      catchError(() => of(null))
+      map((res) => res.data)
     );
   }
 
-  resolveRecoveryTicket(id: number, resolutionMinutes = 2): Observable<ServiceRecoveryTicket | null> {
+  resolveRecoveryTicket(id: number, resolutionMinutes = 2): Observable<ServiceRecoveryTicket> {
     return this.http.patch<ApiResponse<ServiceRecoveryTicket>>(`${this.API_URL}/service-recovery/${id}/resolve`, { resolutionMinutes }).pipe(
-      map((res) => res.data),
-      catchError(() => of(null))
+      map((res) => res.data)
     );
-  }
-
-  private getMockAnalytics(): ReviewAnalytics {
-    return {
-      csatScore: 0,
-      npsScore: 0,
-      totalReviews: 0,
-      positiveCount: 0,
-      neutralCount: 0,
-      negativeCount: 0,
-      responseRate: 0,
-      averageResponseMinutes: 0,
-      latestReviews: [],
-      openRecoveryTickets: [],
-    };
   }
 }

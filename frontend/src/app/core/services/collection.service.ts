@@ -5,25 +5,7 @@ import { map, catchError } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-response.model';
 import { BaseCrudService } from './base-crud.service';
 import { environment } from '../../../environments/environment';
-
-export interface Collection {
-  id?: number;
-  name: string;
-  slug?: string;
-  description?: string;
-  imageUrl?: string;
-  displayOrder?: number;
-  isActive?: boolean;
-}
-
-export interface CollectionRequest {
-  name: string;
-  slug?: string;
-  description?: string;
-  imageUrl?: string;
-  displayOrder?: number;
-  isActive?: boolean;
-}
+import { Collection, CollectionRequest } from '../models/collection.model';
 
 @Injectable({
   providedIn: 'root'

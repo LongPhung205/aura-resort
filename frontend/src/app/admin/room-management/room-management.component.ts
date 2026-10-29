@@ -18,10 +18,8 @@ import {
   AssignHousekeepingTaskRequest,
   UpdateCleaningProgressRequest,
 } from '../../core/models/admin-housekeeping.model';
-import {
-  AdminExtraServiceService,
-  ExtraServiceItem,
-} from '../../core/services/admin-extra-service.service';
+import { AdminExtraServiceService } from '../../core/services/admin-extra-service.service';
+import { ExtraServiceItem } from '../../core/models/extra-service.model';
 import { AdminBookingService } from '../../core/services/admin-booking.service';
 import { AdminBookingItem } from '../../core/models/admin-booking.model';
 import { BodyPortalDirective } from '../../shared/directives/body-portal.directive';

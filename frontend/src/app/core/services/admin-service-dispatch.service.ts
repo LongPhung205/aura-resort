@@ -1,13 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ServiceDispatch, ServiceDispatchRequest } from '../models/admin-service-dispatch.model';
-
 import { environment } from '../../../environments/environment';
-
 import { ApiResponse } from '../models/api-response.model';
-
 
 @Injectable({
   providedIn: 'root',
@@ -20,27 +17,20 @@ export class AdminServiceDispatchService {
   getDispatches(status = 'ALL'): Observable<ServiceDispatch[]> {
     const params = new HttpParams().set('status', status);
     return this.http.get<ApiResponse<ServiceDispatch[]>>(this.API_URL, { params }).pipe(
-      map((res) => res.data),
-      catchError(() => of(this.getMockDispatches(status)))
+      map((res) => res.data)
     );
   }
 
   createDispatch(request: ServiceDispatchRequest): Observable<ServiceDispatch> {
     return this.http.post<ApiResponse<ServiceDispatch>>(this.API_URL, request).pipe(
-      map((res) => res.data),
-      catchError(() => of({} as ServiceDispatch))
+      map((res) => res.data)
     );
   }
 
   updateStatus(id: number, status: ServiceDispatch['status']): Observable<ServiceDispatch> {
     const params = new HttpParams().set('status', status);
     return this.http.patch<ApiResponse<ServiceDispatch>>(`${this.API_URL}/${id}/status`, null, { params }).pipe(
-      map((res) => res.data),
-      catchError(() => of({} as ServiceDispatch))
+      map((res) => res.data)
     );
-  }
-
-  private getMockDispatches(_status?: string): ServiceDispatch[] {
-    return [];
   }
 }

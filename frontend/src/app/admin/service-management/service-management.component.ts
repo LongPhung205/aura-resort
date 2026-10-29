@@ -1,11 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  AdminExtraServiceService,
-  ExtraServiceItem,
-  ExtraServicePayload,
-} from '../../core/services/admin-extra-service.service';
+import { AdminExtraServiceService } from '../../core/services/admin-extra-service.service';
+import { ExtraServiceItem, ExtraServicePayload } from '../../core/models/extra-service.model';
 import { BodyPortalDirective } from '../../shared/directives/body-portal.directive';
 
 type ServiceType = 'ALL' | 'DINING' | 'TRANSPORT' | 'SPA' | 'ENTERTAINMENT' | 'CLEANING' | 'OTHER';

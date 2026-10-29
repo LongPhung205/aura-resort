@@ -3,29 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-
-export interface ClientBooking {
-  id: number;
-  bookingCode: string;
-  checkInDate: string;
-  checkOutDate: string;
-  totalAmount: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED';
-  expireAt?: string;
-  note?: string;
-  userEmail?: string;
-  guestName?: string;
-  guestPhone?: string;
-  bookedVillaNumbers?: string[];
-  bookedRoomNumbers?: string[];
-  // Extended UI fields
-  villaName?: string;
-  villaImage?: string;
-  totalNights?: number;
-  hasReview?: boolean;
-}
+import { ClientBooking } from '../models/client-booking.model';
 import { ApiResponse } from '../models/api-response.model';
-
 
 @Injectable({
   providedIn: 'root'

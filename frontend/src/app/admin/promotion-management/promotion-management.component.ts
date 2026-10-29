@@ -5,7 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ComboPackageService } from '../../core/services/combo-package.service';
-import { AdminExtraServiceService, ExtraServiceItem } from '../../core/services/admin-extra-service.service';
+import { AdminExtraServiceService } from '../../core/services/admin-extra-service.service';
+import { ExtraServiceItem } from '../../core/models/extra-service.model';
 import { PromotionService } from '../../core/services/promotion.service';
 import { environment } from '../../../environments/environment';
 

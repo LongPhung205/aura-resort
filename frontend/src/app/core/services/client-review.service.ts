@@ -3,29 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-
-export interface ClientReview {
-  id: number;
-  rating: number;
-  comment: string;
-  userEmail: string;
-  userName: string;
-  createdAt: string;
-  bookingId?: number;
-  bookingCode?: string;
-  villaName?: string;
-  sentiment?: string;
-  managementReply?: string;
-  repliedAt?: string;
-}
-
-export interface CreateReviewRequest {
-  bookingId: number;
-  rating: number;
-  comment: string;
-}
+import { ClientReview, CreateReviewRequest } from '../models/client-review.model';
 import { ApiResponse } from '../models/api-response.model';
-
 
 @Injectable({
   providedIn: 'root'

@@ -5,19 +5,7 @@ import { map, catchError } from 'rxjs/operators';
 import { ApiResponse } from '../models/api-response.model';
 import { BaseCrudService } from './base-crud.service';
 import { environment } from '../../../environments/environment';
-
-export interface ComboPackage {
-  id?: number;
-  name: string;
-  description?: string;
-  imageUrl?: string;
-  price?: number;
-  status: string;
-  extraServiceIds?: number[];
-  extraServices?: any[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { ComboPackage } from '../models/combo-package.model';
 
 @Injectable({ providedIn: 'root' })
 export class ComboPackageService extends BaseCrudService<ComboPackage> {

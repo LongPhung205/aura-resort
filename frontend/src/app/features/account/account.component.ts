@@ -3,9 +3,12 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { UserProfileService, UserProfile } from '../../core/services/user-profile.service';
-import { ClientBookingService, ClientBooking } from '../../core/services/client-booking.service';
-import { ClientReviewService, ClientReview, CreateReviewRequest } from '../../core/services/client-review.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
+import { UserProfile } from '../../core/models/user-profile.model';
+import { ClientBookingService } from '../../core/services/client-booking.service';
+import { ClientBooking } from '../../core/models/client-booking.model';
+import { ClientReviewService } from '../../core/services/client-review.service';
+import { ClientReview, CreateReviewRequest } from '../../core/models/client-review.model';
 import { TokenService } from '../../core/services/token.service';
 import { AuthService } from '../../core/services/auth.service';
 

@@ -7,10 +7,13 @@ import { VillaService } from '../../../core/services/villa.service';
 import { TokenService } from '../../../core/services/token.service';
 import { Villa, ChildRoom } from '../../../core/models/villa.model';
 import { BookingStateService } from '../../../core/services/booking-state.service';
-import { AdminExtraServiceService, ExtraServiceItem } from '../../../core/services/admin-extra-service.service';
-import { ComboPackageService, ComboPackage } from '../../../core/services/combo-package.service';
+import { AdminExtraServiceService } from '../../../core/services/admin-extra-service.service';
+import { ExtraServiceItem } from '../../../core/models/extra-service.model';
+import { ComboPackageService } from '../../../core/services/combo-package.service';
+import { ComboPackage } from '../../../core/models/combo-package.model';
 import { PromotionService } from '../../../core/services/promotion.service';
-import { ClientReviewService, ClientReview } from '../../../core/services/client-review.service';
+import { ClientReviewService } from '../../../core/services/client-review.service';
+import { ClientReview } from '../../../core/models/client-review.model';
 
 @Component({
   selector: 'app-villa-detail',

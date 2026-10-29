@@ -2,58 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
-
-export interface ExtraServiceItem {
-  id: number;
-  name: string;
-  description?: string;
-  price: number;
-  type: string;
-  unit: string;
-  icon?: string;
-  imageUrl?: string;
-  isActive: boolean;
-  villaCount?: number;
-}
-
-export interface ExtraServicePayload {
-  name: string;
-  description?: string;
-  price: number;
-  type: string;
-  unit: string;
-  icon?: string;
-  imageUrl?: string;
-  isActive?: boolean;
-}
-
-export interface VillaServiceItem {
-  id: number;
-  villaId: number;
-  villaNumber: string;
-  serviceId: number;
-  serviceName: string;
-  serviceType: string;
-  serviceIcon?: string;
-  serviceUnit?: string;
-  defaultPrice: number;
-  priceOverride?: number;
-  effectivePrice: number;
-  isAvailable: boolean;
-  note?: string;
-}
-
-export interface VillaServicePayload {
-  villaId: number;
-  serviceId: number;
-  priceOverride?: number;
-  isAvailable?: boolean;
-  note?: string;
-}
-
+import {
+  ExtraServiceItem,
+  ExtraServicePayload,
+  VillaServiceItem,
+  VillaServicePayload,
+} from '../models/extra-service.model';
 import { ApiResponse } from '../models/api-response.model';
-
-
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -141,19 +96,17 @@ export class AdminExtraServiceService {
       .pipe(map((res) => res.data));
   }
 
-  syncVillaServices(villaId: number, selectedServiceIds: number[]): Observable<any> {
+  syncVillaServices(villaId: number, selectedServiceIds: number[]): Observable<unknown> {
     return this.getVillaServices(villaId).pipe(
       switchMap((existingServices) => {
         const existingIds = existingServices.map((es) => es.serviceId);
-        
+
         const toRemove = existingServices.filter((es) => !selectedServiceIds.includes(es.serviceId));
         const toAddIds = selectedServiceIds.filter((id) => !existingIds.includes(id));
-        
-        // Use any to bypass strict typing for forkJoin arrays of different return types if needed,
-        // but here they are all Observables. We'll import forkJoin dynamically or just use it.
+
         const removeObs = toRemove.map((es) => this.removeVillaService(es.id));
         const addObs = toAddIds.map((serviceId) => this.assignService({ villaId, serviceId, isAvailable: true }));
-        
+
         const allObs = [...removeObs, ...addObs];
         if (allObs.length === 0) return of(null);
         return forkJoin(allObs);

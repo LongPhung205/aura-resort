@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CollectionService, Collection, CollectionRequest } from '../../core/services/collection.service';
+import { CollectionService } from '../../core/services/collection.service';
+import { Collection, CollectionRequest } from '../../core/models/collection.model';
 
 @Component({
   selector: 'app-collection-management',

@@ -97,3 +97,18 @@ export interface InventorySummary {
   totalTransactions: number;
   totalVillaAssets: number;
 }
+
+export interface VillaOption {
+  id: number;
+  villaNumber: string;
+  zone?: string;
+  capacity?: number;
+}
+
+export interface VillaApiResponseItem {
+  id: number;
+  villaNumber?: string;
+  zoneName?: string;
+  zone?: { name?: string } | string;
+  totalCapacity?: number;
+}

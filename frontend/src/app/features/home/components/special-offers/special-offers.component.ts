@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ComboPackageService, ComboPackage } from '../../../../core/services/combo-package.service';
+import { ComboPackageService } from '../../../../core/services/combo-package.service';
+import { ComboPackage } from '../../../../core/models/combo-package.model';
 
 @Component({
   selector: 'app-special-offers',

@@ -3,21 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-
-export interface UserProfile {
-  id: number;
-  email: string;
-  fullName: string;
-  phone?: string;
-  avatar?: string;
-  role: string;
-  provider: string;
-  createdAt: string;
-  totalBookings: number;
-  totalSpent: number;
-}
+import { UserProfile } from '../models/user-profile.model';
 import { ApiResponse } from '../models/api-response.model';
-
 
 @Injectable({
   providedIn: 'root'

@@ -17,16 +17,6 @@ import {
 import { ApiResponse } from '../models/api-response.model';
 import { environment } from '../../../environments/environment';
 
-// Re-export models for backwards compatibility
-export type {
-  ChildRoomItem,
-  AdminRoomItem,
-  AdminRoomTypeItem,
-  UpdateRoomTypePayload,
-  ZoneItem,
-  CreateRoomPayload,
-  UpdateRoomPayload,
-} from '../models/admin-room.model';
 
 @Injectable({
   providedIn: 'root',

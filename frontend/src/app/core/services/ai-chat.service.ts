@@ -3,22 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-
-export interface ChatMessage {
-  role: 'user' | 'ai';
-  content: string;
-  timestamp: Date;
-  actionType?: string | null;
-  actionPayload?: any;
-  isLoading?: boolean;
-}
-
-export interface ChatApiResponse {
-  reply: string;
-  sessionId: string;
-  actionType?: string | null;
-  actionPayload?: any;
-}
+import { ChatApiResponse } from '../models/ai-chat.model';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +26,7 @@ export class AiChatService {
   }
 
   generateSessionId(): string {
-    return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    return 'session-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
   }
 
   getOrCreateSessionId(): string {

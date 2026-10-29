@@ -1,18 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Villa } from '../models/villa.model';
-
-export interface BookingState {
-  villa: Villa | null;
-  checkInDate: string;
-  checkOutDate: string;
-  numberOfGuests?: number;
-  serviceSelectionMode?: 'individual' | 'combo';
-  selectedServiceIds?: number[];
-  selectedComboId?: number | null;
-  promoCode?: string;
-  discountPercent?: number;
-  appliedPromotion?: any;
-}
+import { BookingState } from '../models/booking-state.model';
 
 @Injectable({
   providedIn: 'root'

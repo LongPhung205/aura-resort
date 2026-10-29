@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { LedgerItem, LedgerItemRequest, DayEndClosingReport, DayEndClosingRequest, PaymentDashboardStatsResponse, ReconcileRequest } from '../models/admin-ledger.model';
-
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+  LedgerItem,
+  LedgerItemRequest,
+  DayEndClosingReport,
+  DayEndClosingRequest,
+  PaymentDashboardStatsResponse,
+  ReconcileRequest,
+} from '../models/admin-ledger.model';
 import { environment } from '../../../environments/environment';
-
 import { ApiResponse } from '../models/api-response.model';
-
 
 @Injectable({
   providedIn: 'root',
@@ -23,11 +27,7 @@ export class AdminLedgerService {
       .set('method', method);
 
     return this.http.get<ApiResponse<LedgerItem[]>>(`${this.API_URL}/ledger`, { params }).pipe(
-      map((res) => res.data),
-      catchError((err) => {
-        console.error('Failed to fetch ledger:', err);
-        return of(this.getMockLedger(ledgerType, method));
-      })
+      map((res) => res.data)
     );
   }
 
@@ -39,8 +39,7 @@ export class AdminLedgerService {
 
   executeDayEndClosing(request?: DayEndClosingRequest): Observable<DayEndClosingReport> {
     return this.http.post<ApiResponse<DayEndClosingReport>>(`${this.API_URL}/day-end-closing`, request || {}).pipe(
-      map((res) => res.data),
-      catchError(() => of(this.getMockClosing()))
+      map((res) => res.data)
     );
   }
 
@@ -58,33 +57,7 @@ export class AdminLedgerService {
 
   getLatestClosing(): Observable<DayEndClosingReport> {
     return this.http.get<ApiResponse<DayEndClosingReport>>(`${this.API_URL}/latest-closing`).pipe(
-      map((res) => res.data),
-      catchError(() => of(this.getMockClosing()))
+      map((res) => res.data)
     );
-  }
-
-  private getMockLedger(_type?: string, _method?: string): LedgerItem[] {
-    return [];
-  }
-
-  private getMockClosing(): DayEndClosingReport {
-    return {
-      id: 0,
-      closingDate: new Date().toISOString().split('T')[0],
-      totalRevenue: 0,
-      roomRevenue: 0,
-      serviceRevenue: 0,
-      totalOpex: 0,
-      netCash: 0,
-      occupancyRate: 0,
-      adr: 0,
-      revPar: 0,
-      totalBookings: 0,
-      occupiedRooms: 0,
-      closedByName: '',
-      closedAt: new Date().toISOString(),
-      status: 'OPEN',
-      notes: 'Chưa có dữ liệu chốt sổ',
-    };
   }
 }

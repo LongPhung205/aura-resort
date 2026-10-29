@@ -3,7 +3,8 @@ import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BodyPortalDirective } from '../../shared/directives/body-portal.directive';
-import { AdminInventoryService, VillaOption } from '../../core/services/admin-inventory.service';
+import { AdminInventoryService } from '../../core/services/admin-inventory.service';
+import { VillaOption } from '../../core/models/inventory.model';
 import { AdminRefillService } from '../../core/services/admin-refill.service';
 import {
   InventoryCategory,

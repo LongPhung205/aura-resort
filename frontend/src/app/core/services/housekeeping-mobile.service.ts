@@ -14,7 +14,6 @@ import {
 import { environment } from '../../../environments/environment';
 
 import { ApiResponse } from '../models/api-response.model';
-export type { ApiResponse };
 
 
 @Injectable({

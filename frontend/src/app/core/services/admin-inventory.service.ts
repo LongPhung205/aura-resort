@@ -11,17 +11,10 @@ import {
   VillaAsset,
   VillaAssetPayload,
   VillaAssetStatus,
+  VillaOption,
+  VillaApiResponseItem,
 } from '../models/inventory.model';
 import { ApiResponse } from '../models/api-response.model';
-
-
-export interface VillaOption {
-  id: number;
-  villaNumber: string;
-  zone?: string;
-  capacity?: number;
-}
-
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -157,14 +150,6 @@ export class AdminInventoryService {
   }
 
   getVillasList(): Observable<VillaOption[]> {
-    interface VillaApiResponseItem {
-      id: number;
-      villaNumber?: string;
-      zoneName?: string;
-      zone?: { name?: string } | string;
-      totalCapacity?: number;
-    }
-
     return this.http
       .get<ApiResponse<VillaApiResponseItem[]> | VillaApiResponseItem[]>(this.VILLAS_URL)
       .pipe(

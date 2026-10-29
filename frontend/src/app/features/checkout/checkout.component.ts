@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { BookingStateService, BookingState } from '../../core/services/booking-state.service';
+import { BookingStateService } from '../../core/services/booking-state.service';
+import { BookingState } from '../../core/models/booking-state.model';
 import { TokenService } from '../../core/services/token.service';
-import { AdminExtraServiceService, ExtraServiceItem } from '../../core/services/admin-extra-service.service';
-import { ComboPackageService, ComboPackage } from '../../core/services/combo-package.service';
+import { AdminExtraServiceService } from '../../core/services/admin-extra-service.service';
+import { ExtraServiceItem } from '../../core/models/extra-service.model';
+import { ComboPackageService } from '../../core/services/combo-package.service';
+import { ComboPackage } from '../../core/models/combo-package.model';
 import { PromotionService } from '../../core/services/promotion.service';
 import { environment } from '../../../environments/environment';
 
