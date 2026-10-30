@@ -73,7 +73,10 @@ public class AdminHousekeepingServiceImpl implements AdminHousekeepingService {
     @Override
     @Transactional(readOnly = true)
     public List<HousekeeperSummaryDto> getAvailableHousekeepers() {
-        return housekeepingTaskRepository.findHousekeeperSummariesWithActiveTaskCount(Role.ROLE_HOUSEKEEPING);
+        return housekeepingTaskRepository.findHousekeeperSummariesWithActiveTaskCount(Role.ROLE_HOUSEKEEPING)
+                .stream()
+                .map(HousekeeperSummaryDto::fromProjection)
+                .toList();
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.phungvanlong.booking_hotel.repository;
 
-import com.phungvanlong.booking_hotel.dto.response.HousekeeperSummaryDto;
 import com.phungvanlong.booking_hotel.entity.HousekeepingTask;
 import com.phungvanlong.booking_hotel.entity.Role;
+import com.phungvanlong.booking_hotel.repository.projection.HousekeeperSummaryProjection;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,13 +45,12 @@ public interface HousekeepingTaskRepository extends JpaRepository<HousekeepingTa
     @Query("SELECT t FROM HousekeepingTask t WHERE UPPER(t.status) = 'PENDING' OR t.housekeeper IS NULL ORDER BY t.createdAt DESC")
     List<HousekeepingTask> findAvailableDirtyTasks();
 
-    @Query("SELECT new com.phungvanlong.booking_hotel.dto.response.HousekeeperSummaryDto(" +
-           "u.id, u.fullName, u.email, u.phone, COUNT(t.id)) " +
+    @Query("SELECT u.id AS id, u.fullName AS fullName, u.email AS email, u.phone AS phone, COUNT(t.id) AS activeTasksCount " +
            "FROM User u " +
            "LEFT JOIN HousekeepingTask t ON t.housekeeper = u AND UPPER(t.status) NOT IN ('COMPLETED', 'CANCELLED') " +
            "WHERE u.role = :role " +
            "GROUP BY u.id, u.fullName, u.email, u.phone")
-    List<HousekeeperSummaryDto> findHousekeeperSummariesWithActiveTaskCount(@Param("role") Role role);
+    List<HousekeeperSummaryProjection> findHousekeeperSummariesWithActiveTaskCount(@Param("role") Role role);
 
     boolean existsByVillaIdAndTaskTypeAndCreatedAtAfter(Long villaId, String taskType, java.time.LocalDateTime createdAt);
 }
